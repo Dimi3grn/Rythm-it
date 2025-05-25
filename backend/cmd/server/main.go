@@ -6,7 +6,9 @@ import (
 	"net/http"
 
 	"rythmitbackend/configs"
+	"rythmitbackend/internal/router"
 	"rythmitbackend/internal/utils"
+	"rythmitbackend/pkg/database"
 )
 
 func main() {
@@ -16,18 +18,20 @@ func main() {
 	// Affichage bannière de démarrage
 	displayBanner(cfg)
 
-	// Configuration du serveur HTTP
-	mux := http.NewServeMux()
+	// Connexion base de données
+	if err := database.Connect(cfg); err != nil {
+		log.Fatalf("❌ Erreur connexion MySQL: %v", err)
+	}
+	defer database.Close()
+	log.Println("✅ Base de données connectée")
 
-	// Routes de base
-	mux.HandleFunc("/", homeHandler)
-	mux.HandleFunc("/health", healthHandler)
-	mux.HandleFunc("/api/", apiHandler)
+	// Configuration du router
+	handler := router.Init(cfg)
 
 	// Configuration du serveur avec timeouts
 	srv := &http.Server{
 		Addr:         ":" + cfg.App.Port,
-		Handler:      mux,
+		Handler:      handler,
 		ReadTimeout:  cfg.Server.ReadTimeout,
 		WriteTimeout: cfg.Server.WriteTimeout,
 		IdleTimeout:  cfg.Server.IdleTimeout,

@@ -1,0 +1,127 @@
+package router
+
+import (
+	"net/http"
+
+	"rythmitbackend/configs"
+	"rythmitbackend/internal/controllers"
+	"rythmitbackend/internal/middleware"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
+)
+
+// Router instance globale
+var Router *mux.Router
+
+// Init initialise le router avec toutes les routes
+func Init(cfg *configs.Config) http.Handler {
+	Router = mux.NewRouter()
+
+	// Middleware global
+	Router.Use(middleware.Logger)
+	Router.Use(middleware.Recovery)
+
+	// Routes API
+	api := Router.PathPrefix("/api").Subrouter()
+	api.Use(middleware.JSONMiddleware)
+
+	// Health routes (toujours accessibles)
+	healthController := &controllers.HealthController{}
+	registerRoutes(api, healthController)
+
+	// Routes publiques (pas besoin d'auth)
+	public := api.PathPrefix("/public").Subrouter()
+	setupPublicRoutes(public)
+
+	// Routes protégées (auth requise)
+	protected := api.PathPrefix("/v1").Subrouter()
+	protected.Use(middleware.AuthMiddleware)
+	setupProtectedRoutes(protected)
+
+	// Route racine
+	Router.HandleFunc("/", homeHandler).Methods("GET")
+
+	// Configuration CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		ExposedHeaders:   []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           86400,
+	})
+
+	return c.Handler(Router)
+}
+
+// registerRoutes enregistre les routes d'un controller
+func registerRoutes(router *mux.Router, controller controllers.BaseController) {
+	for _, route := range controller.Routes() {
+		router.HandleFunc(route.Pattern, route.HandlerFunc).Methods(route.Method).Name(route.Name)
+	}
+}
+
+// setupPublicRoutes configure les routes publiques
+func setupPublicRoutes(router *mux.Router) {
+	// Auth routes (inscription/connexion)
+	router.HandleFunc("/register", handleNotImplemented).Methods("POST")
+	router.HandleFunc("/login", handleNotImplemented).Methods("POST")
+
+	// Threads publics
+	router.HandleFunc("/threads", handleNotImplemented).Methods("GET")
+	router.HandleFunc("/threads/{id:[0-9]+}", handleNotImplemented).Methods("GET")
+
+	// Battles publiques
+	router.HandleFunc("/battles/active", handleNotImplemented).Methods("GET")
+	router.HandleFunc("/battles/{id:[0-9]+}", handleNotImplemented).Methods("GET")
+}
+
+// setupProtectedRoutes configure les routes protégées
+func setupProtectedRoutes(router *mux.Router) {
+	// User routes
+	router.HandleFunc("/profile", handleNotImplemented).Methods("GET")
+	router.HandleFunc("/profile", handleNotImplemented).Methods("PUT")
+
+	// Thread management
+	router.HandleFunc("/threads", handleNotImplemented).Methods("POST")
+	router.HandleFunc("/threads/{id:[0-9]+}", handleNotImplemented).Methods("PUT", "DELETE")
+
+	// Messages
+	router.HandleFunc("/threads/{id:[0-9]+}/messages", handleNotImplemented).Methods("GET", "POST")
+	router.HandleFunc("/messages/{id:[0-9]+}/fire", handleNotImplemented).Methods("POST")
+	router.HandleFunc("/messages/{id:[0-9]+}/skip", handleNotImplemented).Methods("POST")
+
+	// Battles
+	router.HandleFunc("/battles", handleNotImplemented).Methods("POST")
+	router.HandleFunc("/battles/{id:[0-9]+}/vote", handleNotImplemented).Methods("POST")
+
+	// Admin routes
+	admin := router.PathPrefix("/admin").Subrouter()
+	admin.Use(middleware.AdminMiddleware)
+
+	admin.HandleFunc("/dashboard", handleNotImplemented).Methods("GET")
+	admin.HandleFunc("/users/{id:[0-9]+}/ban", handleNotImplemented).Methods("POST")
+	admin.HandleFunc("/threads/{id:[0-9]+}/state", handleNotImplemented).Methods("PUT")
+}
+
+// homeHandler page d'accueil
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(`{
+		"message": "Bienvenue sur Rythmit API",
+		"version": "0.1.0",
+		"endpoints": {
+			"health": "/health",
+			"api": "/api",
+			"docs": "Coming soon"
+		}
+	}`))
+}
+
+// handleNotImplemented pour les routes pas encore implémentées
+func handleNotImplemented(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNotImplemented)
+	w.Write([]byte(`{"error": "Cette fonctionnalité n'est pas encore implémentée", "status": 501}`))
+}
