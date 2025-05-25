@@ -1,6 +1,10 @@
 package controllers
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+	"rythmitbackend/pkg/database"
+)
 
 // BaseController interface que tous les controllers doivent implémenter
 type BaseController interface {
@@ -56,8 +60,12 @@ func (hc *HealthController) HealthCheck(w http.ResponseWriter, r *http.Request) 
 
 // ReadinessCheck vérifie que l'API est prête (DB connectée, etc.)
 func (hc *HealthController) ReadinessCheck(w http.ResponseWriter, r *http.Request) {
-	// TODO: Vérifier la connexion DB quand elle sera implémentée
+	dbStatus := "connected"
+	if err := database.Health(); err != nil {
+		dbStatus = "disconnected"
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"ready","database":"pending"}`))
+	w.Write([]byte(fmt.Sprintf(`{"status":"ready","database":"%s"}`, dbStatus)))
 }

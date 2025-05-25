@@ -1,7 +1,9 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"rythmitbackend/configs"
 	"rythmitbackend/internal/controllers"
@@ -15,7 +17,7 @@ import (
 var Router *mux.Router
 
 // Init initialise le router avec toutes les routes
-func Init(cfg *configs.Config) http.Handler {
+func Init(cfg *configs.Config) *mux.Router {
 	Router = mux.NewRouter()
 
 	// Middleware global
@@ -42,6 +44,13 @@ func Init(cfg *configs.Config) http.Handler {
 	// Route racine
 	Router.HandleFunc("/", homeHandler).Methods("GET")
 
+	// Health check direct à la racine (plus pratique)
+	Router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"healthy","service":"rythmit-api","timestamp":` + fmt.Sprintf("%d", time.Now().Unix()) + `}`))
+	}).Methods("GET")
+
 	// Configuration CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:5173"},
@@ -52,7 +61,10 @@ func Init(cfg *configs.Config) http.Handler {
 		MaxAge:           86400,
 	})
 
-	return c.Handler(Router)
+	// Appliquer CORS comme middleware
+	Router.Use(c.Handler)
+
+	return Router
 }
 
 // registerRoutes enregistre les routes d'un controller
