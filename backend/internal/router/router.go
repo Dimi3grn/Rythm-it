@@ -121,7 +121,7 @@ func setupProtectedRoutes(router *mux.Router) {
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{
-		"message": "Bienvenue sur Rythmit API",
+		"message": "Bienvenue sur Rythmit API - Hot Reload fonctionne!",
 		"version": "0.1.0",
 		"endpoints": {
 			"health": "/health",
