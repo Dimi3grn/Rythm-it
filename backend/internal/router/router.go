@@ -8,6 +8,9 @@ import (
 	"rythmitbackend/configs"
 	"rythmitbackend/internal/controllers"
 	"rythmitbackend/internal/middleware"
+	"rythmitbackend/internal/repositories"
+	"rythmitbackend/internal/services"
+	"rythmitbackend/pkg/database"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -24,6 +27,11 @@ func Init(cfg *configs.Config) *mux.Router {
 	Router.Use(middleware.Logger)
 	Router.Use(middleware.Recovery)
 
+	// Initialiser les services et contrôleurs
+	userRepo := repositories.NewUserRepository(database.DB)
+	authService := services.NewAuthService(userRepo, cfg)
+	authController := controllers.NewAuthController(authService)
+
 	// Routes API
 	api := Router.PathPrefix("/api").Subrouter()
 	api.Use(middleware.JSONMiddleware)
@@ -34,12 +42,12 @@ func Init(cfg *configs.Config) *mux.Router {
 
 	// Routes publiques (pas besoin d'auth)
 	public := api.PathPrefix("/public").Subrouter()
-	setupPublicRoutes(public)
+	setupPublicRoutes(public, authController)
 
 	// Routes protégées (auth requise)
 	protected := api.PathPrefix("/v1").Subrouter()
 	protected.Use(middleware.AuthMiddleware)
-	setupProtectedRoutes(protected)
+	setupProtectedRoutes(protected, authController)
 
 	// Route racine
 	Router.HandleFunc("/", homeHandler).Methods("GET")
@@ -74,13 +82,14 @@ func registerRoutes(router *mux.Router, controller controllers.BaseController) {
 	}
 }
 
-// setupPublicRoutes configure les routes publiques
-func setupPublicRoutes(router *mux.Router) {
-	// Auth routes (inscription/connexion)
-	router.HandleFunc("/register", handleNotImplemented).Methods("POST")
-	router.HandleFunc("/login", handleNotImplemented).Methods("POST")
+// setupPublicRoutes configure les routes publiques avec AuthController
+func setupPublicRoutes(router *mux.Router, authController *controllers.AuthController) {
+	// Auth routes (inscription/connexion) - MAINTENANT FONCTIONNELLES
+	router.HandleFunc("/register", authController.Register).Methods("POST")
+	router.HandleFunc("/login", authController.Login).Methods("POST")
+	router.HandleFunc("/refresh", authController.RefreshToken).Methods("POST")
 
-	// Threads publics
+	// Threads publics (consultation sans auth)
 	router.HandleFunc("/threads", handleNotImplemented).Methods("GET")
 	router.HandleFunc("/threads/{id:[0-9]+}", handleNotImplemented).Methods("GET")
 
@@ -89,22 +98,22 @@ func setupPublicRoutes(router *mux.Router) {
 	router.HandleFunc("/battles/{id:[0-9]+}", handleNotImplemented).Methods("GET")
 }
 
-// setupProtectedRoutes configure les routes protégées
-func setupProtectedRoutes(router *mux.Router) {
-	// User routes
-	router.HandleFunc("/profile", handleNotImplemented).Methods("GET")
-	router.HandleFunc("/profile", handleNotImplemented).Methods("PUT")
+// setupProtectedRoutes configure les routes protégées avec AuthController
+func setupProtectedRoutes(router *mux.Router, authController *controllers.AuthController) {
+	// User routes - MAINTENANT FONCTIONNELLES
+	router.HandleFunc("/profile", authController.GetProfile).Methods("GET")
+	router.HandleFunc("/profile", authController.UpdateProfile).Methods("PUT")
 
-	// Thread management
+	// Thread management (à implémenter)
 	router.HandleFunc("/threads", handleNotImplemented).Methods("POST")
 	router.HandleFunc("/threads/{id:[0-9]+}", handleNotImplemented).Methods("PUT", "DELETE")
 
-	// Messages
+	// Messages (à implémenter)
 	router.HandleFunc("/threads/{id:[0-9]+}/messages", handleNotImplemented).Methods("GET", "POST")
 	router.HandleFunc("/messages/{id:[0-9]+}/fire", handleNotImplemented).Methods("POST")
 	router.HandleFunc("/messages/{id:[0-9]+}/skip", handleNotImplemented).Methods("POST")
 
-	// Battles
+	// Battles (à implémenter)
 	router.HandleFunc("/battles", handleNotImplemented).Methods("POST")
 	router.HandleFunc("/battles/{id:[0-9]+}/vote", handleNotImplemented).Methods("POST")
 
@@ -121,11 +130,17 @@ func setupProtectedRoutes(router *mux.Router) {
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{
-		"message": "Bienvenue sur Rythmit API - Hot Reload fonctionne!",
+		"message": "Bienvenue sur Rythmit API - Authentification fonctionnelle!",
 		"version": "0.1.0",
+		"status": "Phase 1 terminée",
 		"endpoints": {
 			"health": "/health",
-			"api": "/api",
+			"auth": {
+				"register": "POST /api/public/register",
+				"login": "POST /api/public/login",
+				"profile": "GET /api/v1/profile (auth required)",
+				"refresh": "POST /api/public/refresh"
+			},
 			"docs": "Coming soon"
 		}
 	}`))
@@ -135,5 +150,9 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func handleNotImplemented(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotImplemented)
-	w.Write([]byte(`{"error": "Cette fonctionnalité n'est pas encore implémentée", "status": 501}`))
+	w.Write([]byte(`{
+		"error": "Cette fonctionnalité n'est pas encore implémentée", 
+		"status": 501,
+		"message": "En cours de développement pour la Phase 2"
+	}`))
 }

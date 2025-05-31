@@ -6,9 +6,113 @@
 **Type** : Forum musical interactif avec système de battles d'artistes  
 **Équipe** : Dimitri (Backend Go) + Romain (Frontend JS/HTML/CSS)  
 **Deadline** : 16/06/2025 23h59  
-**Repo** : [URL à compléter]
+**Repo** : https://github.com/Dimi3grn/rythmit
 
-## 🎯 Concept unique
+## 🚀 Status actuel du projet
+
+### ✅ Phase 0 COMPLÈTE (26/05/2025)
+- Structure MVC complète avec Go
+- Module : `rythmitbackend`
+- Port : 8085
+- Base de données MySQL via WAMP
+- 15 tests unitaires qui passent
+- Hot reload avec Air configuré
+- Documentation complète
+
+### 🔄 Phase 1 EN ATTENTE
+Prochaine étape : Système d'authentification JWT
+
+## 📂 Structure actuelle du projet
+
+```
+rythmit/
+├── backend/
+│   ├── cmd/
+│   │   ├── server/
+│   │   │   ├── main.go
+│   │   │   └── main_test.go
+│   │   └── test_db/
+│   │       └── main.go
+│   ├── configs/
+│   │   ├── config.go
+│   │   └── config_test.go
+│   ├── internal/
+│   │   ├── controllers/
+│   │   │   └── base_controller.go
+│   │   ├── middleware/
+│   │   │   └── middleware.go
+│   │   ├── models/
+│   │   │   └── base_model.go
+│   │   ├── repositories/
+│   │   │   └── repository.go
+│   │   ├── router/
+│   │   │   └── router.go
+│   │   ├── services/
+│   │   │   └── service.go
+│   │   └── utils/
+│   │       ├── errors.go
+│   │       ├── response.go
+│   │       └── validation.go
+│   ├── pkg/
+│   │   └── database/
+│   │       ├── database.go
+│   │       └── database_test.go
+│   ├── migrations/
+│   │   ├── 000_create_database.sql
+│   │   └── 001_initial_schema.sql
+│   ├── docs/
+│   │   └── ARCHITECTURE.md
+│   ├── .env
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── .air.toml
+│   ├── dev.ps1
+│   ├── Makefile
+│   ├── go.mod
+│   ├── go.sum
+│   └── README.md
+├── frontend/ (à venir - Romain)
+├── database/ (scripts SQL dans backend/migrations)
+└── claude_context.md (ce fichier)
+```
+
+## 🔧 Configuration technique actuelle
+
+### Environnement de développement
+- **OS** : Windows avec PowerShell
+- **Base de données** : MySQL via WAMP (pas de mot de passe root)
+- **Hot reload** : Air configuré et fonctionnel
+- **Scripts** : `dev.ps1` pour Windows, Makefile pour Linux/Mac
+
+### Dépendances installées
+```go
+// go.mod principal
+module rythmitbackend
+
+require:
+- github.com/gorilla/mux         // Router HTTP
+- github.com/rs/cors            // CORS middleware
+- github.com/go-sql-driver/mysql // Driver MySQL
+- github.com/joho/godotenv      // Variables d'environnement
+- github.com/golang-jwt/jwt/v5  // JWT (installé, pas encore utilisé)
+- golang.org/x/crypto/bcrypt    // Hash passwords (installé, pas encore utilisé)
+- github.com/go-playground/validator/v10 // Validation (installé, utilisé dans utils)
+```
+
+### Routes implémentées
+- ✅ `GET /` - Page d'accueil API
+- ✅ `GET /health` - Health check direct
+- ✅ `GET /api/health` - Health check API
+- ✅ `GET /api/ready` - Readiness check avec status DB
+- 🚧 Toutes les autres routes retournent 501 Not Implemented
+
+### Base de données
+- **11 tables créées** : users, threads, messages, tags, battles, etc.
+- **Admin par défaut** : username=admin, password=ChangeThisPassword123!
+- **20 tags musicaux** préchargés (genres + artistes)
+- **Connexion** : Pool de 25 connexions max, timeouts configurés
+
+## 🎯 Concept unique (rappel)
 
 Forum musical où les utilisateurs peuvent :
 - Créer des discussions sur des artistes/albums/genres
@@ -20,10 +124,10 @@ Forum musical où les utilisateurs peuvent :
 ## 📋 Spécifications techniques obligatoires
 
 ### Contraintes imposées
-- **Backend** : Go obligatoire (architecture MVC)
+- **Backend** : Go obligatoire (architecture MVC) ✅
 - **Frontend** : HTML/CSS/JavaScript (pas de framework imposé)
 - **Auth** : JWT + hash SHA512 minimum pour mots de passe
-- **BDD** : Persistance obligatoire (MySQL recommandé)
+- **BDD** : Persistance obligatoire (MySQL) ✅
 - **Refresh** : JavaScript pour éviter les rechargements de page
 
 ### Fonctionnalités obligatoires (FT-1 à FT-12)
@@ -42,245 +146,139 @@ Forum musical où les utilisateurs peuvent :
 
 ## 🗄️ Structure Base de Données
 
-### Tables principales
-```sql
-User (User_Id, username, email, password, is_Admin, profile_pic, Biographie, last_connection, message_count, threat_count)
+### Tables actuelles (créées dans MySQL)
+- `users` - Utilisateurs avec is_admin
+- `threads` - Discussions avec état et visibilité
+- `messages` - Messages dans les threads
+- `tags` - Tags musicaux (genre/artist/album)
+- `thread_tags` - Liaison threads-tags (N:N)
+- `message_votes` - Fire/Skip sur messages
+- `friendships` - Musical Twins
+- `battles` - Battles musicales
+- `battle_options` - Options de vote (2 par battle)
+- `battle_votes` - Votes des utilisateurs
+- `user_music_preferences` - Préférences musicales
 
-thread (Thread_Id, title, desc_, creation, state, visibility, User_Id)
+## 🔗 API Endpoints prévus
 
-Message (Message_Id, content, date_, Thread_Id, User_Id)
-
-tag (tag_id, name)
-
-have_tag (Thread_Id, tag_Id) -- relation N:N
-
-liked_disliked (User_Id, Message_Id, state) -- Fire/Skip
-
-friendship (Friendship_id, status, request_date, response_date, User_Id, User_Id_1) -- Musical Twins
-```
-
-### États des threads
-- **ouvert** : consultation + nouveaux messages OK
-- **fermé** : consultation OK, nouveaux messages NON
-- **archivé** : plus visible ni accessible
-
-### États Fire/Skip
-- **Fire** : +1 au score popularité
-- **Skip** : -1 au score popularité
-- **Neutre** : aucun vote
-
-## 🔗 API Endpoints (Dimitri → Romain)
+Les endpoints sont définis dans `router.go` mais pas encore implémentés.
 
 ### Authentification
 ```
-POST /api/register
-POST /api/login
-GET /api/profile
+POST /api/public/register   - 501 Not Implemented
+POST /api/public/login       - 501 Not Implemented
+GET  /api/v1/profile        - 501 Not Implemented (auth requise)
 ```
 
 ### Threads
 ```
-GET /api/threads?page=1&limit=10&tag=&search=
-POST /api/threads
-GET /api/threads/:id
-PUT /api/threads/:id (propriétaire ou admin)
-DELETE /api/threads/:id (propriétaire ou admin)
+GET  /api/public/threads          - 501 Not Implemented
+GET  /api/public/threads/{id}     - 501 Not Implemented
+POST /api/v1/threads              - 501 Not Implemented (auth requise)
+PUT  /api/v1/threads/{id}         - 501 Not Implemented (auth requise)
+DELETE /api/v1/threads/{id}       - 501 Not Implemented (auth requise)
 ```
 
 ### Messages
 ```
-GET /api/threads/:id/messages?page=1&limit=10&sort=date|popularity
-POST /api/threads/:id/messages
-POST /api/messages/:id/fire
-POST /api/messages/:id/skip
-DELETE /api/messages/:id (propriétaire ou admin)
+GET  /api/v1/threads/{id}/messages - 501 Not Implemented (auth requise)
+POST /api/v1/threads/{id}/messages - 501 Not Implemented (auth requise)
+POST /api/v1/messages/{id}/fire    - 501 Not Implemented (auth requise)
+POST /api/v1/messages/{id}/skip    - 501 Not Implemented (auth requise)
 ```
 
-### Battles (spécifique Rythm'it)
+### Battles
 ```
-POST /api/battles
-GET /api/battles/:id
-POST /api/battles/:id/vote
-GET /api/battles/active
-```
-
-### Musique (intégrations)
-```
-GET /api/search/artists?q=
-GET /api/search/albums?q=
-GET /api/compatibility/:userId
+GET  /api/public/battles/active  - 501 Not Implemented
+GET  /api/public/battles/{id}    - 501 Not Implemented
+POST /api/v1/battles             - 501 Not Implemented (auth requise)
+POST /api/v1/battles/{id}/vote   - 501 Not Implemented (auth requise)
 ```
 
 ### Admin
 ```
-GET /api/admin/dashboard
-PUT /api/admin/threads/:id/state
-DELETE /api/admin/threads/:id
-DELETE /api/admin/messages/:id
-POST /api/admin/users/:id/ban
+GET  /api/v1/admin/dashboard         - 403 Forbidden (middleware admin actif)
+POST /api/v1/admin/users/{id}/ban    - 403 Forbidden
+PUT  /api/v1/admin/threads/{id}/state - 403 Forbidden
 ```
 
-## 📊 Formats JSON critiques
+## 🔐 Sécurité et validation
 
-### Thread Response
-```json
-{
-  "id": 1,
-  "title": "Drake vs Kendrick : qui est le GOAT ?",
-  "description": "Battle épique entre les deux kings...",
-  "tags": ["rap", "drake", "kendrick"],
-  "creation_date": "2025-05-23T14:30:00Z",
-  "author": {
-    "id": 1,
-    "username": "MusicLover"
-  },
-  "state": "ouvert",
-  "message_count": 42,
-  "fire_count": 15,
-  "skip_count": 3
-}
+### Validation mise en place
+- Helper de validation dans `utils/validation.go`
+- Validation custom pour passwords (12 chars, majuscule, spécial)
+- Validation username (alphanumérique + underscore)
+- Interface `validator/v10` intégrée
+
+### Middlewares actifs
+- ✅ Logger : Log toutes les requêtes
+- ✅ Recovery : Récupère des panics
+- ✅ CORS : Configuré pour localhost:3000 et 5173
+- ✅ JSON : Force Content-Type JSON sur /api
+- 🚧 Auth : Structure en place mais pas de vérification JWT
+- ✅ Admin : Bloque tous les accès admin (403)
+
+### Gestion des erreurs
+- Erreurs définies dans `utils/errors.go`
+- Réponses standardisées dans `utils/response.go`
+- Codes d'erreur cohérents
+
+## 🚀 Workflow de développement actuel
+
+### Commandes disponibles
+```powershell
+# Windows PowerShell
+.\dev.ps1 help    # Affiche l'aide
+.\dev.ps1 dev     # Hot reload avec Air
+.\dev.ps1 run     # Lance le serveur
+.\dev.ps1 test    # Lance les tests
+.\dev.ps1 build   # Compile l'exe
+.\dev.ps1 db-test # Test connexion MySQL
 ```
-
-### Message Response
-```json
-{
-  "id": 1,
-  "content": "Kendrick > Drake fight me 🔥",
-  "date": "2025-05-23T14:35:00Z",
-  "author": {
-    "id": 2,
-    "username": "KendrickFan"
-  },
-  "popularity_score": 8,
-  "user_vote": "fire", // null, "fire", ou "skip"
-  "embeds": {
-    "youtube": "https://youtube.com/watch?v=...",
-    "spotify": "https://open.spotify.com/track/..."
-  }
-}
-```
-
-### Battle Response
-```json
-{
-  "id": 1,
-  "title": "Drake vs Kendrick Lamar",
-  "options": [
-    {
-      "name": "Drake",
-      "image": "https://...",
-      "votes": 142
-    },
-    {
-      "name": "Kendrick Lamar", 
-      "image": "https://...",
-      "votes": 189
-    }
-  ],
-  "total_votes": 331,
-  "user_vote": "kendrick", // null si pas voté
-  "status": "active", // active, ended
-  "end_date": "2025-05-30T23:59:59Z"
-}
-```
-
-## 🎨 Spécificités UI/UX (Romain)
-
-### Thème musical
-- **Couleurs** : Dégradés sombres avec accents dorés/violets
-- **Icônes** : Vinyles, casques, ondes sonores, feu/skip
-- **Animations** : Equalizer, rotation vinyle, ondes lors des votes
-- **Fonts** : Modern, légèrement "street" pour le côté musical
-
-### Éléments clés
-- **Cards threads** : Style vinyle/cassette/CD selon le genre
-- **Fire/Skip buttons** : Animations au hover et clic
-- **Battle interface** : Barres de progression animées
-- **Embeds** : Intégration native YouTube/Spotify
-- **Loading states** : Equalizer animé
-
-## 🔄 Features spécifiques Rythm'it
-
-### Battle System
-- **Création** : Drag & drop de 2 artistes/albums
-- **Vote** : Animation de disque qui penche
-- **Résultats** : Effets visuels pour le gagnant
-- **Historique** : Battles gagnées/perdues par user
-
-### Musical Twins
-- **Compatibilité** : Calcul basé sur votes similaires
-- **Affichage** : Pourcentage + graphique radar des goûts
-- **Discovery** : Page "Find Your Musical Twin"
-
-### Tags intelligents
-- **Hiérarchie** : Genre > Artiste > Album
-- **Auto-complétion** : Suggestions basées sur APIs externes
-- **Visual** : Badges colorés par genre musical
-
-## 🚀 Workflow de développement
-
-### Communication
-- **Daily** : 15min chaque matin
-- **Sync points** : Validation formats JSON, endpoints
-- **Urgences** : Discord pour questions rapides
 
 ### Git
-- **Branches** : `feature/dimitri-backend` et `feature/romain-frontend`
-- **Main** : Merge après review
-- **Structure** :
-  ```
-  repo/
-  ├── backend/ (Go, Dimitri)
-  ├── frontend/ (HTML/CSS/JS, Romain)
-  ├── docs/ (ce fichier + specs)
-  └── database/ (scripts SQL)
-  ```
+- Branche actuelle : `feature/dimitri-backend`
+- Commits réguliers avec messages conventionnels
+- Phase 0 complète et pushée
 
-### Phases critiques
-1. **Phase 0-1** : Auth + architecture (priorité absolue)
-2. **Phase 2-3** : Threads + messages (cœur fonctionnel)  
-3. **Phase 4** : Battle system (différenciation)
-4. **Phase 5+** : Features bonus si temps
+### Tests
+- 15 tests unitaires écrits et fonctionnels
+- Coverage : cmd/server, configs, pkg/database
+- Commande : `.\dev.ps1 test`
 
-## ⚠️ Points d'attention
+## 📊 Formats JSON (définis mais pas utilisés)
 
-### Sécurité
-- **Mots de passe** : bcrypt recommandé (plus sûr que SHA512)
-- **JWT** : Expiration + refresh token
-- **Validation** : Côté client ET serveur
-- **XSS** : Sanitisation des messages utilisateur
+Les structures sont définies dans `models/base_model.go` mais pas encore utilisées dans les endpoints.
 
-### Performance  
-- **Pagination** : Obligatoire pour scalabilité
-- **Cache** : APIs externes musicales (limites de rate)
-- **Optimisation** : Index sur colonnes recherchées fréquemment
+## ⚠️ Points d'attention pour la suite
 
-### Intégrations externes
-- **YouTube API** : Quota limitations
-- **Spotify Web API** : Client credentials flow
-- **Embeds** : Vérification des URLs avant intégration
+### Phase 1 (Authentification) à implémenter
+1. Repository User avec CRUD
+2. Service d'authentification
+3. Hash bcrypt (remplacer SHA512 du cahier des charges)
+4. Génération et validation JWT
+5. Endpoints register/login fonctionnels
+6. Middleware Auth qui vérifie vraiment les tokens
 
-## 📝 Documentation requise
+### Décisions techniques prises
+- Bcrypt au lieu de SHA512 (plus sécurisé)
+- Validator v10 pour la validation
+- Structure MVC stricte avec separation of concerns
+- Tests first approach
 
-### README.md
-- Installation et lancement
-- Liste des routes (vues VS API)
-- Composition équipe
+### Points de vigilance
+- Le middleware Auth laisse tout passer actuellement
+- Pas de rate limiting
+- Pas de gestion des sessions/refresh tokens
+- Sanitisation XSS à implémenter
 
-### Rapport de projet
-- Décomposition en phases
-- Répartition des tâches  
-- Gestion du temps et priorités
-- Stratégie de documentation
+## 📝 Documentation
 
-### Soutenance (10min + 5min questions)
-- Pitch du projet
-- Architecture technique
-- Démonstration live
-- Organisation équipe
-- Difficultés et solutions
+- `README.md` : Guide d'installation et utilisation
+- `docs/ARCHITECTURE.md` : Documentation technique
+- `claude_context.md` : Ce fichier (contexte IA)
 
 ---
 
-**Dernière mise à jour** : [À compléter à chaque modification importante]  
-**Prochaine sync** : [Date du prochain point équipe]
+**Dernière mise à jour** : 26/05/2025 - Phase 0 complète, prêt pour Phase 1 (Auth)
+**Prochaine étape** : Implémenter le système d'authentification JWT complet
