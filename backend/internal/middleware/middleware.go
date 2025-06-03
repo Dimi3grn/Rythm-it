@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -12,7 +13,9 @@ import (
 	"rythmitbackend/internal/services"
 	"rythmitbackend/internal/utils"
 	"rythmitbackend/pkg/database"
-	"rythmitbackend/pkg/jwt"
+	customjwt "rythmitbackend/pkg/jwt"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // Logger middleware pour logger toutes les requêtes
@@ -70,54 +73,77 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// Extraire le token du header Authorization
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			utils.Unauthorized(w, "Token d'authentification manquant")
+			log.Println("❌ Token manquant")
+			utils.Unauthorized(w, "Token d'authentification requis")
 			return
 		}
 
 		// Vérifier le format "Bearer <token>"
 		tokenParts := strings.Split(authHeader, " ")
 		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			utils.Unauthorized(w, "Format du token invalide. Utilisez: Bearer <token>")
+			log.Println("❌ Format token invalide")
+			utils.Unauthorized(w, "Format du token invalide")
 			return
 		}
 
 		tokenString := tokenParts[1]
 
-		// Valider le token JWT
+		// Validation JWT simple avec github.com/golang-jwt/jwt/v5
 		cfg := configs.Get()
-		tokenManager := jwt.NewTokenManager(jwt.Config{
-			Secret:          cfg.JWT.Secret,
-			ExpirationHours: cfg.JWT.ExpirationHours,
-			Issuer:          "rythmit-api",
+
+		// Parser le token
+		token, err := jwt.NewParser().Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			// Vérifier la méthode de signature
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("méthode de signature invalide")
+			}
+			return []byte(cfg.JWT.Secret), nil
 		})
 
-		claims, err := tokenManager.ValidateToken(tokenString)
 		if err != nil {
+			log.Printf("❌ Erreur validation token: %v", err)
 			utils.Unauthorized(w, "Token invalide ou expiré")
 			return
 		}
 
-		// Récupérer l'utilisateur depuis la base de données
-		userRepo := repositories.NewUserRepository(database.DB)
-		log.Printf("🔍 [DEBUG] Recherche utilisateur ID: %d", claims.UserID)
-
-		user, err := userRepo.FindByID(claims.UserID)
-		if err != nil {
-			log.Printf("❌ [ERROR] Utilisateur ID %d non trouvé: %v", claims.UserID, err)
-			utils.Unauthorized(w, "Utilisateur non trouvé")
+		// Vérifier que le token est valide
+		if !token.Valid {
+			log.Println("❌ Token non valide")
+			utils.Unauthorized(w, "Token invalide")
 			return
 		}
 
-		log.Printf("✅ [SUCCESS] Utilisateur trouvé: %s (ID: %d)", user.Username, user.ID)
-		// Convertir en DTO de réponse (sans mot de passe)
-		userDTO := services.ToUserResponseDTO(user)
+		// Extraire les claims
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			log.Println("❌ Claims invalides")
+			utils.Unauthorized(w, "Token invalide")
+			return
+		}
 
-		// Injecter l'utilisateur dans le contexte de la requête
-		ctx := context.WithValue(r.Context(), "user", userDTO)
-		ctx = context.WithValue(ctx, "user_id", user.ID)
-		ctx = context.WithValue(ctx, "is_admin", user.IsAdmin)
+		// Vérifier l'expiration manuellement
+		if exp, ok := claims["exp"].(float64); ok {
+			if time.Now().Unix() > int64(exp) {
+				log.Println("❌ Token expiré")
+				utils.Unauthorized(w, "Token expiré")
+				return
+			}
+		}
 
-		// Continuer avec le contexte mis à jour
+		// Extraire les infos utilisateur
+		userID, _ := claims["user_id"].(float64) // JWT stocke les nombres en float64
+		username, _ := claims["username"].(string)
+		email, _ := claims["email"].(string)
+		isAdmin, _ := claims["is_admin"].(bool)
+
+		log.Printf("✅ Auth réussie - User: %s (ID: %.0f)", username, userID)
+
+		// Injecter dans le contexte
+		ctx := context.WithValue(r.Context(), "user_id", uint(userID))
+		ctx = context.WithValue(ctx, "username", username)
+		ctx = context.WithValue(ctx, "email", email)
+		ctx = context.WithValue(ctx, "is_admin", isAdmin)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -160,7 +186,7 @@ func OptionalAuthMiddleware(next http.Handler) http.Handler {
 
 		// Valider le token JWT
 		cfg := configs.Get()
-		tokenManager := jwt.NewTokenManager(jwt.Config{
+		tokenManager := customjwt.NewTokenManager(customjwt.Config{
 			Secret:          cfg.JWT.Secret,
 			ExpirationHours: cfg.JWT.ExpirationHours,
 			Issuer:          "rythmit-api",

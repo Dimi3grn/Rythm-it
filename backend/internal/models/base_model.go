@@ -36,7 +36,7 @@ type Thread struct {
 	Visibility  string `json:"visibility" db:"visibility" validate:"oneof=public privé"`
 	UserID      uint   `json:"user_id" db:"user_id"`
 	Author      *User  `json:"author,omitempty"`
-	Tags        []Tag  `json:"tags,omitempty"`
+	Tags        []*Tag `json:"tags,omitempty"`
 	FireCount   int    `json:"fire_count"` // Compteur Fire 🔥
 	SkipCount   int    `json:"skip_count"` // Compteur Skip ⏭️
 }
@@ -90,6 +90,39 @@ type BattleOption struct {
 	Name  string `json:"name" validate:"required"`
 	Image string `json:"image"`
 	Votes int    `json:"votes"`
+}
+
+// PaginationParams paramètres de pagination
+type PaginationParams struct {
+	Page    int    `json:"page"`
+	PerPage int    `json:"per_page"`
+	Sort    string `json:"sort"`
+	Order   string `json:"order"`
+}
+
+// DefaultPagination retourne les paramètres de pagination par défaut
+func DefaultPagination() PaginationParams {
+	return PaginationParams{
+		Page:    1,
+		PerPage: 10,
+		Sort:    "id",
+		Order:   "DESC",
+	}
+}
+
+// ValidatePagination valide et normalise les paramètres de pagination
+func ValidatePagination(params *PaginationParams) {
+	if params.Page < 1 {
+		params.Page = 1
+	}
+
+	if params.PerPage < 1 || params.PerPage > 100 {
+		params.PerPage = 10
+	}
+
+	if params.Order != "ASC" && params.Order != "DESC" {
+		params.Order = "DESC"
+	}
 }
 
 // Constants pour les états

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"rythmitbackend/internal/models"
 	"rythmitbackend/internal/services"
 	"rythmitbackend/internal/utils"
 
@@ -273,8 +274,8 @@ func RequireAdmin(w http.ResponseWriter, r *http.Request) bool {
 }
 
 // GetPaginationParams extrait les paramètres de pagination depuis la query string
-func GetPaginationParams(r *http.Request) services.PaginationParams {
-	params := services.DefaultPagination()
+func GetPaginationParams(r *http.Request) models.PaginationParams {
+	params := models.DefaultPagination()
 
 	// Page
 	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
@@ -300,6 +301,6 @@ func GetPaginationParams(r *http.Request) services.PaginationParams {
 		params.Order = order
 	}
 
-	services.ValidatePagination(&params)
+	models.ValidatePagination(&params)
 	return params
 }

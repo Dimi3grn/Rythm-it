@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -8,9 +9,6 @@ import (
 	"rythmitbackend/configs"
 	"rythmitbackend/internal/controllers"
 	"rythmitbackend/internal/middleware"
-	"rythmitbackend/internal/repositories"
-	"rythmitbackend/internal/services"
-	"rythmitbackend/pkg/database"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -19,6 +17,42 @@ import (
 // Router instance globale
 var Router *mux.Router
 
+// Remplacer la fonction debugProfileHandler dans router.go par :
+
+// Remplacer la fonction debugProfileHandler dans router.go par :
+
+func profileHandler(w http.ResponseWriter, r *http.Request) {
+	// Pour l'instant, retourner un profil fictif
+	// Plus tard, vous extrairez l'user_id du token JWT et ferez une vraie requête DB
+
+	profileData := map[string]interface{}{
+		"id":               1,
+		"username":         "admin",
+		"email":            "admin@rythmit.com",
+		"is_admin":         true,
+		"message_count":    0,
+		"thread_count":     0,
+		"favorite_genres":  []string{"rap", "hip-hop"},
+		"favorite_artists": []string{"kendrick lamar", "drake"},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	// Utiliser le helper response
+	// utils.Success(w, "Profil récupéré", profileData)
+
+	// Ou réponse simple pour l'instant :
+	response := map[string]interface{}{
+		"success":   true,
+		"message":   "Profil récupéré avec succès",
+		"data":      profileData,
+		"timestamp": time.Now().Unix(),
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
 // Init initialise le router avec toutes les routes
 func Init(cfg *configs.Config) *mux.Router {
 	Router = mux.NewRouter()
@@ -26,11 +60,6 @@ func Init(cfg *configs.Config) *mux.Router {
 	// Middleware global
 	Router.Use(middleware.Logger)
 	Router.Use(middleware.Recovery)
-
-	// Initialiser les services et contrôleurs
-	userRepo := repositories.NewUserRepository(database.DB)
-	authService := services.NewAuthService(userRepo, cfg)
-	authController := controllers.NewAuthController(authService)
 
 	// Routes API
 	api := Router.PathPrefix("/api").Subrouter()
@@ -42,12 +71,12 @@ func Init(cfg *configs.Config) *mux.Router {
 
 	// Routes publiques (pas besoin d'auth)
 	public := api.PathPrefix("/public").Subrouter()
-	setupPublicRoutes(public, authController)
+	setupPublicRoutes(public)
 
 	// Routes protégées (auth requise)
 	protected := api.PathPrefix("/v1").Subrouter()
 	protected.Use(middleware.AuthMiddleware)
-	setupProtectedRoutes(protected, authController)
+	setupProtectedRoutes(protected)
 
 	// Route racine
 	Router.HandleFunc("/", homeHandler).Methods("GET")
@@ -82,14 +111,13 @@ func registerRoutes(router *mux.Router, controller controllers.BaseController) {
 	}
 }
 
-// setupPublicRoutes configure les routes publiques avec AuthController
-func setupPublicRoutes(router *mux.Router, authController *controllers.AuthController) {
-	// Auth routes (inscription/connexion) - MAINTENANT FONCTIONNELLES
-	router.HandleFunc("/register", authController.Register).Methods("POST")
-	router.HandleFunc("/login", authController.Login).Methods("POST")
-	router.HandleFunc("/refresh", authController.RefreshToken).Methods("POST")
+// setupPublicRoutes configure les routes publiques
+func setupPublicRoutes(router *mux.Router) {
+	// Auth routes (inscription/connexion)
+	router.HandleFunc("/register", handleNotImplemented).Methods("POST")
+	router.HandleFunc("/login", handleNotImplemented).Methods("POST")
 
-	// Threads publics (consultation sans auth)
+	// Threads publics
 	router.HandleFunc("/threads", handleNotImplemented).Methods("GET")
 	router.HandleFunc("/threads/{id:[0-9]+}", handleNotImplemented).Methods("GET")
 
@@ -98,22 +126,22 @@ func setupPublicRoutes(router *mux.Router, authController *controllers.AuthContr
 	router.HandleFunc("/battles/{id:[0-9]+}", handleNotImplemented).Methods("GET")
 }
 
-// setupProtectedRoutes configure les routes protégées avec AuthController
-func setupProtectedRoutes(router *mux.Router, authController *controllers.AuthController) {
-	// User routes - MAINTENANT FONCTIONNELLES
-	router.HandleFunc("/profile", authController.GetProfile).Methods("GET")
-	router.HandleFunc("/profile", authController.UpdateProfile).Methods("PUT")
+// setupProtectedRoutes configure les routes protégées
+func setupProtectedRoutes(router *mux.Router) {
+	// User routes - MODIFICATION ICI
+	router.HandleFunc("/profile", profileHandler).Methods("GET") // <-- CHANGÉ
+	router.HandleFunc("/profile", handleNotImplemented).Methods("PUT")
 
-	// Thread management (à implémenter)
+	// Thread management
 	router.HandleFunc("/threads", handleNotImplemented).Methods("POST")
 	router.HandleFunc("/threads/{id:[0-9]+}", handleNotImplemented).Methods("PUT", "DELETE")
 
-	// Messages (à implémenter)
+	// Messages
 	router.HandleFunc("/threads/{id:[0-9]+}/messages", handleNotImplemented).Methods("GET", "POST")
 	router.HandleFunc("/messages/{id:[0-9]+}/fire", handleNotImplemented).Methods("POST")
 	router.HandleFunc("/messages/{id:[0-9]+}/skip", handleNotImplemented).Methods("POST")
 
-	// Battles (à implémenter)
+	// Battles
 	router.HandleFunc("/battles", handleNotImplemented).Methods("POST")
 	router.HandleFunc("/battles/{id:[0-9]+}/vote", handleNotImplemented).Methods("POST")
 
@@ -130,17 +158,11 @@ func setupProtectedRoutes(router *mux.Router, authController *controllers.AuthCo
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{
-		"message": "Bienvenue sur Rythmit API - Authentification fonctionnelle!",
+		"message": "Bienvenue sur Rythmit API - Hot Reload fonctionne!",
 		"version": "0.1.0",
-		"status": "Phase 1 terminée",
 		"endpoints": {
 			"health": "/health",
-			"auth": {
-				"register": "POST /api/public/register",
-				"login": "POST /api/public/login",
-				"profile": "GET /api/v1/profile (auth required)",
-				"refresh": "POST /api/public/refresh"
-			},
+			"api": "/api",
 			"docs": "Coming soon"
 		}
 	}`))
@@ -150,9 +172,5 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func handleNotImplemented(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotImplemented)
-	w.Write([]byte(`{
-		"error": "Cette fonctionnalité n'est pas encore implémentée", 
-		"status": 501,
-		"message": "En cours de développement pour la Phase 2"
-	}`))
+	w.Write([]byte(`{"error": "Cette fonctionnalité n'est pas encore implémentée", "status": 501}`))
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"rythmitbackend/configs"
+	"rythmitbackend/internal/models"
 	"rythmitbackend/internal/repositories"
 	"rythmitbackend/internal/services"
 	"rythmitbackend/pkg/database"
@@ -415,12 +416,12 @@ func TestGetPaginationParams(t *testing.T) {
 	tests := []struct {
 		name     string
 		queryStr string
-		want     services.PaginationParams
+		want     models.PaginationParams
 	}{
 		{
 			name:     "Paramètres par défaut",
 			queryStr: "",
-			want: services.PaginationParams{
+			want: models.PaginationParams{
 				Page:    1,
 				PerPage: 10,
 				Sort:    "id",
@@ -430,7 +431,7 @@ func TestGetPaginationParams(t *testing.T) {
 		{
 			name:     "Paramètres personnalisés",
 			queryStr: "?page=2&per_page=20&sort=name&order=ASC",
-			want: services.PaginationParams{
+			want: models.PaginationParams{
 				Page:    2,
 				PerPage: 20,
 				Sort:    "name",
@@ -440,7 +441,7 @@ func TestGetPaginationParams(t *testing.T) {
 		{
 			name:     "Paramètres invalides ignorés",
 			queryStr: "?page=-1&per_page=1000&order=INVALID",
-			want: services.PaginationParams{
+			want: models.PaginationParams{
 				Page:    1,
 				PerPage: 10,
 				Sort:    "id",
