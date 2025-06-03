@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Amis - Rythm'it</title>
+    <link rel="stylesheet" href="styles/css/index.css">
+    <link rel="stylesheet" href="styles/css/friends.css">
+</head>
+<body>
+    <div class="app-container">
+       <header class="header">
+    <a href="index.html" class="brand">
+        <div class="brand-icon">
+            <div class="wave-animation">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+        </div>
+        <span class="brand-text">Rythm'it</span>
+    </a>
+    <div class="header-actions">
+        <a href="hub.html" class="header-btn">
+            <span class="nav-icon">🎯</span>
+            Hub
+        </a>
+        <a href="index.html" class="header-btn">
+            <span class="nav-icon">🏠</span>
+            Accueil
+        </a>
+        <a href="discover.html" class="header-btn">
+            <span class="nav-icon">🔍</span>
+            Découvrir
+        </a>
+        <a href="friends.html" class="header-btn active">
+            <span class="nav-icon">👥</span>
+            Amis
+        </a>
+        <div class="notification-container">
+            <a href="messages.html" class="header-btn notification-btn">
+                <span class="nav-icon">💬</span>
+                Messages
+                <span class="notification-badge">3</span>
+            </a>
+        </div>
+        <a href="profile.html" class="header-btn primary">Profil</a>
+    </div>
+</header>
+
+        <div class="main-layout friends-layout">
+           <aside class="sidebar-left">
+    <div class="nav-section">
+        <h3>Navigation</h3>
+        <a href="hub.html" class="nav-item">
+            <span class="nav-icon">🎯</span>
+            Hub
+        </a>
+        <a href="index.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            Accueil
+        </a>
+        <a href="discover.html" class="nav-item">
+            <span class="nav-icon">🔍</span>
+            Découvrir
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🔥</span>
+            Tendances
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">📚</span>
+            Playlists
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <h3>Social</h3>
+        <a href="friends.html" class="nav-item">
+            <span class="nav-icon">👥</span>
+            Mes Amis
+            <span class="status-indicator online"></span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="nav-icon">💬</span>
+            Messages
+            <span class="message-count">3</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎵</span>
+            Sessions Live
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <h3>Genres</h3>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎵</span>
+            Électronique
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎸</span>
+            Rock/Metal
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎷</span>
+            Jazz/Blues
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎤</span>
+            Hip-Hop
+        </a>
+    </div>
+</aside>
+            <main class="content-area">
+                <div class="friends-header">
+                    <h1>Mes Amis</h1>
+                    <div class="friends-actions">
+                        <div class="search-container">
+                            <input type="text" class="search-input" placeholder="Rechercher un ami...">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <button class="add-friend-btn">
+                            <span>➕</span>
+                            Ajouter un ami
+                        </button>
+                    </div>
+                </div>
+
+                <div class="friends-grid">
+                    <div class="friend-card" data-status="online" data-activity="music">
+                        <div class="friend-card-header">
+                            <div class="friend-avatar">
+                                <div class="user-pic">MX</div>
+                                <span class="online-status online"></span>
+                            </div>
+                            <div class="friend-menu">⋯</div>
+                        </div>
+                        <div class="friend-info">
+                            <h3>MixMaster</h3>
+                            <p class="friend-username">@mixmaster_pro</p>
+                            <p class="friend-activity">🎵 Écoute: "Techno Vibes Mix"</p>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="stat">
+                                <span class="stat-number">142</span>
+                                <span class="stat-label">Playlists</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">2.3k</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                        </div>
+                        <div class="friend-actions">
+                            <button class="friend-btn message-btn" data-friend="MixMaster">💬 Message</button>
+                            <button class="friend-btn profile-btn">👤 Profil</button>
+                        </div>
+                    </div>
+
+                    <div class="friend-card" data-status="online" data-activity="music">
+                        <div class="friend-card-header">
+                            <div class="friend-avatar">
+                                <div class="user-pic">SB</div>
+                                <span class="online-status online"></span>
+                            </div>
+                            <div class="friend-menu">⋯</div>
+                        </div>
+                        <div class="friend-info">
+                            <h3>SoundBliss</h3>
+                            <p class="friend-username">@soundbliss</p>
+                            <p class="friend-activity">🎵 Écoute: "Jazz Evening Collection"</p>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="stat">
+                                <span class="stat-number">89</span>
+                                <span class="stat-label">Playlists</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">1.8k</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                        </div>
+                        <div class="friend-actions">
+                            <button class="friend-btn message-btn" data-friend="SoundBliss">💬 Message</button>
+                            <button class="friend-btn profile-btn">👤 Profil</button>
+                        </div>
+                    </div>
+
+                    <div class="friend-card" data-status="away" data-activity="idle">
+                        <div class="friend-card-header">
+                            <div class="friend-avatar">
+                                <div class="user-pic">VW</div>
+                                <span class="online-status away"></span>
+                            </div>
+                            <div class="friend-menu">⋯</div>
+                        </div>
+                        <div class="friend-info">
+                            <h3>VibeWave</h3>
+                            <p class="friend-username">@vibewave21</p>
+                            <p class="friend-activity">💤 Absent - il y a 2h</p>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="stat">
+                                <span class="stat-number">67</span>
+                                <span class="stat-label">Playlists</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">956</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                        </div>
+                        <div class="friend-actions">
+                            <button class="friend-btn message-btn" data-friend="VibeWave">💬 Message</button>
+                            <button class="friend-btn profile-btn">👤 Profil</button>
+                        </div>
+                    </div>
+
+                    <div class="friend-card" data-status="online" data-activity="idle">
+                        <div class="friend-card-header">
+                            <div class="friend-avatar">
+                                <div class="user-pic">RH</div>
+                                <span class="online-status online"></span>
+                            </div>
+                            <div class="friend-menu">⋯</div>
+                        </div>
+                        <div class="friend-info">
+                            <h3>RhythmHunter</h3>
+                            <p class="friend-username">@rhythmhunter</p>
+                            <p class="friend-activity">🟢 En ligne</p>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="stat">
+                                <span class="stat-number">203</span>
+                                <span class="stat-label">Playlists</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">3.1k</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                        </div>
+                        <div class="friend-actions">
+                            <button class="friend-btn message-btn" data-friend="RhythmHunter">💬 Message</button>
+                            <button class="friend-btn profile-btn">👤 Profil</button>
+                        </div>
+                    </div>
+
+                    <div class="friend-card" data-status="online" data-activity="music">
+                        <div class="friend-card-header">
+                            <div class="friend-avatar">
+                                <div class="user-pic">EB</div>
+                                <span class="online-status online"></span>
+                            </div>
+                            <div class="friend-menu">⋯</div>
+                        </div>
+                        <div class="friend-info">
+                            <h3>EchoBeat</h3>
+                            <p class="friend-username">@echobeat_official</p>
+                            <p class="friend-activity">🎵 Écoute: "Synthwave Dreams"</p>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="stat">
+                                <span class="stat-number">156</span>
+                                <span class="stat-label">Playlists</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">2.7k</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                        </div>
+                        <div class="friend-actions">
+                            <button class="friend-btn message-btn" data-friend="EchoBeat">💬 Message</button>
+                            <button class="friend-btn profile-btn">👤 Profil</button>
+                        </div>
+                    </div>
+
+                    <div class="friend-card" data-status="offline" data-activity="idle">
+                        <div class="friend-card-header">
+                            <div class="friend-avatar">
+                                <div class="user-pic">DS</div>
+                                <span class="online-status offline"></span>
+                            </div>
+                            <div class="friend-menu">⋯</div>
+                        </div>
+                        <div class="friend-info">
+                            <h3>DeepSounds</h3>
+                            <p class="friend-username">@deepsounds</p>
+                            <p class="friend-activity">⚫ Hors ligne - il y a 1j</p>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="stat">
+                                <span class="stat-number">94</span>
+                                <span class="stat-label">Playlists</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">1.2k</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                        </div>
+                        <div class="friend-actions">
+                            <button class="friend-btn message-btn" data-friend="DeepSounds">💬 Message</button>
+                            <button class="friend-btn profile-btn">👤 Profil</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <aside class="sidebar-right">
+                <div class="widget">
+                    <h3>💬 Messages récents</h3>
+                    <div class="message-preview">
+                        <div class="message-avatar">
+                            <div class="user-pic small">MX</div>
+                            <span class="unread-indicator"></span>
+                        </div>
+                        <div class="message-content">
+                            <h5>MixMaster</h5>
+                            <p>Salut ! Tu as écouté le dernier album de...</p>
+                            <span class="message-time">il y a 5min</span>
+                        </div>
+                    </div>
+                    <div class="message-preview">
+                        <div class="message-avatar">
+                            <div class="user-pic small">SB</div>
+                            <span class="unread-indicator"></span>
+                        </div>
+                        <div class="message-content">
+                            <h5>SoundBliss</h5>
+                            <p>Cette playlist jazz est incroyable ! 🎷</p>
+                            <span class="message-time">il y a 1h</span>
+                        </div>
+                    </div>
+                    <div class="message-preview read">
+                        <div class="message-avatar">
+                            <div class="user-pic small">RH</div>
+                        </div>
+                        <div class="message-content">
+                            <h5>RhythmHunter</h5>
+                            <p>On fait une session d'écoute ce soir ?</p>
+                            <span class="message-time">il y a 3h</span>
+                        </div>
+                    </div>
+                    <a href="#" class="see-all-link">Voir tous les messages →</a>
+                </div>
+
+                <div class="widget">
+                    <h3>📊 Statistiques</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-value">47</span>
+                            <span class="stat-label">Amis total</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">12</span>
+                            <span class="stat-label">En ligne</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">8</span>
+                            <span class="stat-label">Écoute</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">23</span>
+                            <span class="stat-label">Conversations</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <h3>🎵 Écoute partagée</h3>
+                    <div class="shared-listening">
+                        <div class="listening-session">
+                            <div class="session-participants">
+                                <div class="user-pic tiny">MX</div>
+                                <div class="user-pic tiny">SB</div>
+                                <span class="participant-count">+2</span>
+                            </div>
+                            <div class="session-info">
+                                <h5>Session Jazz Night</h5>
+                                <p>4 participants • 2h23</p>
+                            </div>
+                            <button class="join-btn">Rejoindre</button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Modal de messagerie -->
+    <div class="message-modal" id="messageModal">
+        <div class="message-modal-content">
+            <div class="message-modal-header">
+                <div class="modal-user-info">
+                    <div class="user-pic">MX</div>
+                    <div>
+                        <h4 id="modalUserName">MixMaster</h4>
+                        <span class="modal-status">🟢 En ligne</span>
+                    </div>
+                </div>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="message-history">
+                <div class="message received">
+                    <div class="message-content">Salut ! Tu as écouté le dernier album de Daft Punk ?</div>
+                    <span class="message-timestamp">14:32</span>
+                </div>
+                <div class="message sent">
+                    <div class="message-content">Oui ! Complètement dingue 🔥</div>
+                    <span class="message-timestamp">14:35</span>
+                </div>
+                <div class="message received">
+                    <div class="message-content">Je te partage ma playlist techno, tu vas adorer !</div>
+                    <span class="message-timestamp">14:37</span>
+                </div>
+            </div>
+            <div class="message-input-container">
+                <input type="text" class="message-input" placeholder="Tapez votre message...">
+                <button class="send-btn">📤</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="styles/js/index.js"></script>
+    <script src="styles/js/friends.js"></script>
+</body>
+</html>
