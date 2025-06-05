@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -15,6 +16,42 @@ import (
 
 // Router instance globale
 var Router *mux.Router
+
+// Remplacer la fonction debugProfileHandler dans router.go par :
+
+// Remplacer la fonction debugProfileHandler dans router.go par :
+
+func profileHandler(w http.ResponseWriter, r *http.Request) {
+	// Pour l'instant, retourner un profil fictif
+	// Plus tard, vous extrairez l'user_id du token JWT et ferez une vraie requête DB
+
+	profileData := map[string]interface{}{
+		"id":               1,
+		"username":         "admin",
+		"email":            "admin@rythmit.com",
+		"is_admin":         true,
+		"message_count":    0,
+		"thread_count":     0,
+		"favorite_genres":  []string{"rap", "hip-hop"},
+		"favorite_artists": []string{"kendrick lamar", "drake"},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	// Utiliser le helper response
+	// utils.Success(w, "Profil récupéré", profileData)
+
+	// Ou réponse simple pour l'instant :
+	response := map[string]interface{}{
+		"success":   true,
+		"message":   "Profil récupéré avec succès",
+		"data":      profileData,
+		"timestamp": time.Now().Unix(),
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
 
 // Init initialise le router avec toutes les routes
 func Init(cfg *configs.Config) *mux.Router {
@@ -91,8 +128,8 @@ func setupPublicRoutes(router *mux.Router) {
 
 // setupProtectedRoutes configure les routes protégées
 func setupProtectedRoutes(router *mux.Router) {
-	// User routes
-	router.HandleFunc("/profile", handleNotImplemented).Methods("GET")
+	// User routes - MODIFICATION ICI
+	router.HandleFunc("/profile", profileHandler).Methods("GET") // <-- CHANGÉ
 	router.HandleFunc("/profile", handleNotImplemented).Methods("PUT")
 
 	// Thread management
