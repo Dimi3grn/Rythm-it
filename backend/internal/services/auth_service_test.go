@@ -1,4 +1,4 @@
-package services
+package services_test
 
 import (
 	"testing"
@@ -7,11 +7,12 @@ import (
 	"rythmitbackend/configs"
 	"rythmitbackend/internal/models"
 	"rythmitbackend/internal/repositories"
+	"rythmitbackend/internal/services"
 	"rythmitbackend/internal/utils"
 	"rythmitbackend/pkg/database"
 )
 
-func setupAuthService(t *testing.T) (AuthService, repositories.UserRepository) {
+func setupAuthService(t *testing.T) (services.AuthService, repositories.UserRepository) {
 	if testing.Short() {
 		t.Skip("Skipping database test in short mode")
 	}
@@ -24,7 +25,7 @@ func setupAuthService(t *testing.T) (AuthService, repositories.UserRepository) {
 	}
 
 	userRepo := repositories.NewUserRepository(database.DB)
-	authService := NewAuthService(userRepo, cfg)
+	authService := services.NewAuthService(userRepo, cfg)
 
 	return authService, userRepo
 }
@@ -33,16 +34,16 @@ func teardownAuthService() {
 	database.Close()
 }
 
-func createValidRegisterDTO() RegisterDTO {
-	return RegisterDTO{
+func createValidRegisterDTO() services.RegisterDTO {
+	return services.RegisterDTO{
 		Username: "testuser",
 		Email:    "test@example.com",
 		Password: "ValidPassword123!",
 	}
 }
 
-func createValidLoginDTO() LoginDTO {
-	return LoginDTO{
+func createValidLoginDTO() services.LoginDTO {
+	return services.LoginDTO{
 		Identifier: "test@example.com",
 		Password:   "ValidPassword123!",
 	}
@@ -95,11 +96,11 @@ func TestAuthService_Register_ValidationErrors(t *testing.T) {
 
 	tests := []struct {
 		name string
-		dto  RegisterDTO
+		dto  services.RegisterDTO
 	}{
 		{
 			name: "Username trop court",
-			dto: RegisterDTO{
+			dto: services.RegisterDTO{
 				Username: "ab",
 				Email:    "test@example.com",
 				Password: "ValidPassword123!",
@@ -107,7 +108,7 @@ func TestAuthService_Register_ValidationErrors(t *testing.T) {
 		},
 		{
 			name: "Email invalide",
-			dto: RegisterDTO{
+			dto: services.RegisterDTO{
 				Username: "testuser",
 				Email:    "invalid-email",
 				Password: "ValidPassword123!",
@@ -115,7 +116,7 @@ func TestAuthService_Register_ValidationErrors(t *testing.T) {
 		},
 		{
 			name: "Mot de passe trop faible",
-			dto: RegisterDTO{
+			dto: services.RegisterDTO{
 				Username: "testuser",
 				Email:    "test@example.com",
 				Password: "weak",
@@ -146,7 +147,7 @@ func TestAuthService_Register_DuplicateConstraints(t *testing.T) {
 	defer userRepo.Delete(user1.ID)
 
 	// Tenter de créer un utilisateur avec le même email
-	dto2 := RegisterDTO{
+	dto2 := services.RegisterDTO{
 		Username: "differentuser",
 		Email:    dto1.Email, // Même email
 		Password: "ValidPassword123!",
@@ -161,7 +162,7 @@ func TestAuthService_Register_DuplicateConstraints(t *testing.T) {
 	}
 
 	// Tenter de créer un utilisateur avec le même username
-	dto3 := RegisterDTO{
+	dto3 := services.RegisterDTO{
 		Username: dto1.Username, // Même username
 		Email:    "different@example.com",
 		Password: "ValidPassword123!",
@@ -189,7 +190,7 @@ func TestAuthService_Login(t *testing.T) {
 	defer userRepo.Delete(user.ID)
 
 	// Test connexion avec email
-	loginDTO := LoginDTO{
+	loginDTO := services.LoginDTO{
 		Identifier: registerDTO.Email,
 		Password:   registerDTO.Password,
 	}
@@ -238,25 +239,25 @@ func TestAuthService_Login_InvalidCredentials(t *testing.T) {
 
 	tests := []struct {
 		name string
-		dto  LoginDTO
+		dto  services.LoginDTO
 	}{
 		{
 			name: "Mauvais mot de passe",
-			dto: LoginDTO{
+			dto: services.LoginDTO{
 				Identifier: registerDTO.Email,
 				Password:   "WrongPassword123!",
 			},
 		},
 		{
 			name: "Email inexistant",
-			dto: LoginDTO{
+			dto: services.LoginDTO{
 				Identifier: "inexistant@example.com",
 				Password:   registerDTO.Password,
 			},
 		},
 		{
 			name: "Username inexistant",
-			dto: LoginDTO{
+			dto: services.LoginDTO{
 				Identifier: "inexistant",
 				Password:   registerDTO.Password,
 			},
@@ -457,7 +458,7 @@ func TestToUserResponseDTO(t *testing.T) {
 		LastConnection: &now,
 	}
 
-	dto := ToUserResponseDTO(user)
+	dto := services.ToUserResponseDTO(user)
 
 	// Vérifications
 	if dto.ID != user.ID {

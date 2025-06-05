@@ -21,6 +21,7 @@ type ThreadRepository interface {
 	GetThreadTags(threadID uint) ([]*models.Tag, error)
 	FindByTag(tagID uint, params models.PaginationParams) ([]*models.Thread, int64, error)
 	Search(query string, params models.PaginationParams) ([]*models.Thread, int64, error)
+	Transaction(fn func(*sql.Tx) error) error
 }
 
 // threadRepository implémentation concrète
@@ -461,4 +462,28 @@ func (r *threadRepository) Search(query string, params models.PaginationParams) 
 	}
 
 	return threads, total, nil
+}
+
+// Transaction exécute une transaction
+func (r *threadRepository) Transaction(fn func(*sql.Tx) error) error {
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return fmt.Errorf("erreur début de transaction: %w", err)
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p)
+		}
+	}()
+
+	if err := fn(tx); err != nil {
+		if err := tx.Rollback(); err != nil {
+			return fmt.Errorf("erreur rollback transaction: %w", err)
+		}
+		return err
+	}
+
+	return tx.Commit()
 }

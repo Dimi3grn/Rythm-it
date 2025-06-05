@@ -1,15 +1,15 @@
-package repositories
+package repositories_test
 
 import (
-	"testing"
-	"time"
-
 	"rythmitbackend/configs"
 	"rythmitbackend/internal/models"
+	"rythmitbackend/internal/repositories"
 	"rythmitbackend/pkg/database"
+	"testing"
+	"time"
 )
 
-func setupTestDB(t *testing.T) UserRepository {
+func setupTestDB(t *testing.T) repositories.UserRepository {
 	if testing.Short() {
 		t.Skip("Skipping database test in short mode")
 	}
@@ -21,7 +21,7 @@ func setupTestDB(t *testing.T) UserRepository {
 		t.Fatalf("Impossible de se connecter à la base de données: %v", err)
 	}
 
-	return NewUserRepository(database.DB)
+	return repositories.NewUserRepository(database.DB)
 }
 
 func teardownTestDB() {
