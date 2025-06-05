@@ -3,35 +3,35 @@
 /* Layout principal de la messagerie */
 .messages-layout {
     display: grid;
-    grid-template-columns: 350px 1fr 300px;
+    grid-template-columns: 300px 1fr 280px;
     gap: 0;
-    margin-top: 40px;
-    height: calc(100vh - 140px);
-    border-radius: 20px;
+    margin-top: 30px;
+    height: calc(100vh - 120px);
+    border-radius: 16px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
 }
 
 /* Sidebar des conversations */
 .conversations-sidebar {
     background: rgba(255, 255, 255, 0.03);
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    border-right: 1px solid var(--surface-border);
     display: flex;
     flex-direction: column;
     height: 100%;
 }
 
 .conversations-header {
-    padding: 25px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-bottom: 1px solid var(--surface-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .conversations-header h2 {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
     color: #fff;
     margin: 0;
@@ -39,44 +39,46 @@
 
 .conversation-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .new-conversation-btn,
 .search-conversations-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #b0b0b0;
-    width: 36px;
-    height: 36px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    font-size: 14px;
 }
 
 .new-conversation-btn:hover,
 .search-conversations-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--surface-hover);
     color: #fff;
     transform: scale(1.05);
 }
 
 /* Recherche de conversations */
 .search-conversations {
-    padding: 0 25px 20px;
+    padding: 0 20px 16px;
 }
 
 .search-conversations-input {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 12px 16px;
-    color: #f0f0f0;
-    font-size: 14px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-size: 13px;
+    transition: all 0.2s ease;
 }
 
 .search-conversations-input:focus {
@@ -93,23 +95,23 @@
 .conversations-list {
     flex: 1;
     overflow-y: auto;
-    padding: 0 15px;
+    padding: 0 12px;
 }
 
 .conversation-item {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 15px 10px;
-    border-radius: 12px;
+    gap: 12px;
+    padding: 12px 8px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     position: relative;
 }
 
 .conversation-item:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-hover);
 }
 
 .conversation-item.active {
@@ -124,10 +126,10 @@
 
 .conversation-avatar .online-status {
     position: absolute;
-    bottom: -2px;
-    right: -2px;
-    width: 12px;
-    height: 12px;
+    bottom: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
     border: 2px solid rgba(26, 26, 46, 1);
 }
 
@@ -137,14 +139,14 @@
 }
 
 .conversation-info h4 {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
 .last-message {
-    font-size: 13px;
+    font-size: 12px;
     color: #888;
     white-space: nowrap;
     overflow: hidden;
@@ -153,7 +155,7 @@
 }
 
 .message-time {
-    font-size: 11px;
+    font-size: 10px;
     color: #666;
 }
 
@@ -161,16 +163,16 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 5px;
+    gap: 4px;
 }
 
 .unread-count {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     color: white;
-    font-size: 11px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    min-width: 18px;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    min-width: 16px;
     text-align: center;
     font-weight: 600;
 }
@@ -184,8 +186,8 @@
 }
 
 .chat-header {
-    padding: 20px 25px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--surface-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -195,48 +197,49 @@
 .chat-user-info {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
 }
 
 .chat-user-info .user-pic {
-    width: 50px;
-    height: 50px;
-    font-size: 18px;
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
 }
 
 .user-details h3 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: #fff;
     margin-bottom: 2px;
 }
 
 .user-status {
-    font-size: 13px;
-    color: #4ade80;
+    font-size: 12px;
+    color: var(--accent-success);
 }
 
 .chat-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .chat-action-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #b0b0b0;
-    width: 40px;
-    height: 40px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    color: var(--text-secondary);
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    font-size: 14px;
 }
 
 .chat-action-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--surface-hover);
     color: #fff;
     transform: scale(1.05);
 }
@@ -245,23 +248,23 @@
 .chat-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 20px 25px;
+    padding: 16px 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
 }
 
 .message-group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .message-date {
     text-align: center;
     color: #666;
-    font-size: 12px;
-    margin: 20px 0 10px;
+    font-size: 11px;
+    margin: 16px 0 8px;
     position: relative;
 }
 
@@ -270,7 +273,7 @@
     content: '';
     position: absolute;
     top: 50%;
-    width: 40%;
+    width: 35%;
     height: 1px;
     background: rgba(255, 255, 255, 0.1);
 }
@@ -285,9 +288,9 @@
 
 .message {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     max-width: 70%;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .message.sent {
@@ -304,15 +307,15 @@
 }
 
 .user-pic.tiny {
-    width: 28px;
-    height: 28px;
-    font-size: 11px;
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
 }
 
 .message-content {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
 }
 
 .message.sent .message-content {
@@ -320,43 +323,43 @@
 }
 
 .message-bubble {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px 16px;
-    border-radius: 18px;
-    color: #f0f0f0;
-    font-size: 14px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    padding: 10px 14px;
+    border-radius: 16px;
+    color: var(--text-primary);
+    font-size: 13px;
     line-height: 1.4;
     max-width: 100%;
     word-wrap: break-word;
 }
 
 .message.sent .message-bubble {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     border-color: transparent;
     color: white;
 }
 
 .message-timestamp {
-    font-size: 11px;
+    font-size: 10px;
     color: #666;
 }
 
 /* Indicateur de frappe */
 .message.typing .message-bubble {
     background: rgba(255, 255, 255, 0.08);
-    padding: 15px 20px;
+    padding: 12px 16px;
 }
 
 .typing-indicator {
     display: flex;
-    gap: 4px;
+    gap: 3px;
     align-items: center;
 }
 
 .typing-dot {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: #888;
     animation: typing 1.5s ease-in-out infinite;
@@ -376,32 +379,32 @@
         opacity: 0.5;
     }
     30% {
-        transform: translateY(-8px);
+        transform: translateY(-6px);
         opacity: 1;
     }
 }
 
 /* Contenu partagé */
 .shared-content {
-    margin: 15px 0;
-    max-width: 400px;
+    margin: 12px 0;
+    max-width: 320px;
 }
 
 .shared-playlist {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 20px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
+    padding: 16px;
     display: flex;
-    gap: 15px;
+    gap: 12px;
     align-items: center;
 }
 
 .playlist-cover {
-    width: 80px;
-    height: 80px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    background: var(--primary-gradient);
     flex-shrink: 0;
 }
 
@@ -410,42 +413,42 @@
 }
 
 .playlist-info h5 {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 
 .playlist-info p {
-    font-size: 13px;
+    font-size: 12px;
     color: #888;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .playlist-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .playlist-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #f0f0f0;
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 12px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .playlist-btn.play {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     border-color: transparent;
     color: white;
 }
 
 .playlist-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--surface-hover);
     transform: translateY(-1px);
 }
 
@@ -455,19 +458,25 @@
 
 /* Zone de saisie de chat */
 .chat-input-area {
-    padding: 20px 25px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 16px 20px;
+    border-top: 1px solid var(--surface-border);
     background: rgba(255, 255, 255, 0.02);
 }
 
 .chat-input-container {
     display: flex;
     align-items: center;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 25px;
-    padding: 12px 16px;
+    gap: 8px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    border-radius: 20px;
+    padding: 10px 14px;
+    transition: all 0.2s ease;
+}
+
+.chat-input-container:focus-within {
+    border-color: rgba(102, 126, 234, 0.5);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .attachment-btn,
@@ -478,7 +487,7 @@
     border: none;
     color: #888;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
     transition: all 0.2s ease;
     flex-shrink: 0;
 }
@@ -491,10 +500,10 @@
 }
 
 .send-message-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     color: white;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -503,15 +512,15 @@
 
 .send-message-btn:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .chat-input {
     flex: 1;
     background: none;
     border: none;
-    color: #f0f0f0;
-    font-size: 14px;
+    color: var(--text-primary);
+    font-size: 13px;
     outline: none;
 }
 
@@ -520,32 +529,32 @@
 }
 
 .chat-status {
-    margin-top: 8px;
-    font-size: 12px;
+    margin-top: 6px;
+    font-size: 11px;
     color: #666;
-    min-height: 16px;
+    min-height: 14px;
 }
 
 .typing-status {
-    color: #4ade80;
+    color: var(--accent-success);
 }
 
 /* Sidebar droite du chat */
 .chat-sidebar {
     background: rgba(255, 255, 255, 0.03);
-    border-left: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 25px;
+    border-left: 1px solid var(--surface-border);
+    padding: 20px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 20px;
 }
 
 .chat-info-section h4 {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -553,39 +562,39 @@
 /* Carte de profil utilisateur */
 .user-profile-card {
     text-align: center;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
+    padding: 16px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
 }
 
 .user-pic.large {
-    width: 80px;
-    height: 80px;
-    font-size: 28px;
-    margin: 0 auto 15px;
+    width: 70px;
+    height: 70px;
+    font-size: 24px;
+    margin: 0 auto 12px;
 }
 
 .user-profile-card h3 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 
 .user-profile-card p {
-    font-size: 14px;
+    font-size: 13px;
     color: #888;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .user-stats {
     display: flex;
     justify-content: space-around;
-    margin-bottom: 20px;
-    padding: 15px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--surface-border);
+    border-bottom: 1px solid var(--surface-border);
 }
 
 .user-stats .stat {
@@ -594,13 +603,13 @@
 
 .user-stats .stat-number {
     display: block;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: #fff;
 }
 
 .user-stats .stat-label {
-    font-size: 11px;
+    font-size: 10px;
     color: #888;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -609,84 +618,84 @@
 .profile-actions {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .profile-action-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #f0f0f0;
-    padding: 10px 15px;
-    border-radius: 10px;
-    font-size: 13px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .profile-action-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--surface-hover);
     transform: translateY(-1px);
 }
 
 /* Lecture en cours */
 .currently-playing {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
     border-radius: 12px;
-    padding: 15px;
+    padding: 12px;
 }
 
 .track-cover {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    margin-bottom: 12px;
-}
-
-.track-details h5 {
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: 3px;
-}
-
-.track-details p {
-    font-size: 12px;
-    color: #888;
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    background: var(--primary-gradient);
     margin-bottom: 10px;
 }
 
+.track-details h5 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.track-details p {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
 .track-progress {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .progress-bar {
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    height: 4px;
-    margin-bottom: 5px;
+    border-radius: 3px;
+    height: 3px;
+    margin-bottom: 4px;
 }
 
 .progress-fill {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     height: 100%;
-    border-radius: 4px;
+    border-radius: 3px;
     transition: width 0.3s ease;
 }
 
 .track-time {
-    font-size: 11px;
+    font-size: 10px;
     color: #666;
 }
 
 .listen-together-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     border: none;
     color: white;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -695,34 +704,34 @@
 
 .listen-together-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 /* Fichiers partagés */
 .shared-files {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .shared-file {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
+    gap: 8px;
+    padding: 8px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .shared-file:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-hover);
 }
 
 .file-icon {
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .file-info {
@@ -731,7 +740,7 @@
 }
 
 .file-name {
-    font-size: 13px;
+    font-size: 12px;
     color: #fff;
     font-weight: 500;
     display: block;
@@ -741,18 +750,18 @@
 }
 
 .file-size {
-    font-size: 11px;
+    font-size: 10px;
     color: #888;
 }
 
 .see-all-files {
     color: #667eea;
-    font-size: 12px;
+    font-size: 11px;
     text-decoration: none;
     text-align: center;
-    padding: 8px;
-    margin-top: 10px;
-    border-radius: 6px;
+    padding: 6px;
+    margin-top: 8px;
+    border-radius: 4px;
     transition: all 0.2s ease;
 }
 
@@ -765,38 +774,38 @@
 .chat-options {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .option-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    color: #f0f0f0;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-primary);
     cursor: pointer;
 }
 
 .option-item input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     accent-color: #667eea;
 }
 
 .option-button {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #f0f0f0;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-size: 13px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: left;
 }
 
 .option-button:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--surface-hover);
 }
 
 .option-button.delete {
@@ -809,7 +818,7 @@
 }
 
 .option-button.block {
-    color: #facc15;
+    color: var(--accent-warning);
     border-color: rgba(250, 204, 21, 0.3);
 }
 
@@ -840,11 +849,11 @@
 
 .modal-content {
     background: rgba(26, 26, 46, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
+    border: 1px solid var(--surface-border);
+    border-radius: 16px;
     width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
+    max-width: 450px;
+    max-height: 70vh;
     overflow: hidden;
 }
 
@@ -852,12 +861,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 25px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-bottom: 1px solid var(--surface-border);
 }
 
 .modal-header h3 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: #fff;
 }
@@ -866,39 +875,39 @@
     background: none;
     border: none;
     color: #888;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
-    padding: 5px;
+    padding: 4px;
     border-radius: 50%;
     transition: all 0.2s ease;
 }
 
 .close-modal:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--surface-hover);
     color: #fff;
 }
 
 .modal-body {
-    padding: 25px;
-    max-height: 60vh;
+    padding: 20px;
+    max-height: 50vh;
     overflow-y: auto;
 }
 
 /* Liste d'utilisateurs dans le modal */
 .search-users,
 .music-search {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .search-users-input,
 .music-search-input {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 12px 16px;
-    color: #f0f0f0;
-    font-size: 14px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-size: 13px;
 }
 
 .search-users-input:focus,
@@ -912,25 +921,25 @@
 .music-results {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .user-item,
 .music-item {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .user-item:hover,
 .music-item:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-hover);
     border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -941,7 +950,7 @@
 
 .user-info h5,
 .music-info h5 {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: #fff;
     margin-bottom: 2px;
@@ -949,18 +958,18 @@
 
 .user-info p,
 .music-info p {
-    font-size: 12px;
+    font-size: 11px;
     color: #888;
 }
 
 .user-status {
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 8px;
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 6px;
 }
 
 .user-status.online {
-    color: #4ade80;
+    color: var(--accent-success);
     background: rgba(74, 222, 128, 0.1);
 }
 
@@ -970,20 +979,20 @@
 }
 
 .music-cover {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    background: var(--primary-gradient);
     flex-shrink: 0;
 }
 
 .select-music-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     border: none;
     color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -991,19 +1000,19 @@
 
 .select-music-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 /* Responsive */
 @media (max-width: 1200px) {
     .messages-layout {
-        grid-template-columns: 320px 1fr 280px;
+        grid-template-columns: 280px 1fr 260px;
     }
 }
 
 @media (max-width: 1024px) {
     .messages-layout {
-        grid-template-columns: 300px 1fr;
+        grid-template-columns: 280px 1fr;
     }
     
     .chat-sidebar {
@@ -1014,7 +1023,7 @@
 @media (max-width: 768px) {
     .messages-layout {
         grid-template-columns: 1fr;
-        height: calc(100vh - 100px);
+        height: calc(100vh - 80px);
     }
     
     .conversations-sidebar {
@@ -1026,84 +1035,35 @@
     }
     
     .chat-header {
-        padding: 15px 20px;
+        padding: 12px 16px;
     }
     
     .chat-messages {
-        padding: 15px 20px;
+        padding: 12px 16px;
     }
     
     .chat-input-area {
-        padding: 15px 20px;
+        padding: 12px 16px;
     }
     
     .modal-content {
         width: 95%;
-        margin: 20px;
+        margin: 16px;
     }
 }
-:root {
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --background-dark: radial-gradient(circle at 20% 50%, #1a1a2e 0%, #16213e 25%, #0f0f0f 100%);
-    --surface-bg: rgba(255, 255, 255, 0.02);
-    --surface-border: rgba(255, 255, 255, 0.05);
-    --surface-hover: rgba(255, 255, 255, 0.05);
-    --surface-active: rgba(102, 126, 234, 0.15);
-    --text-primary: #f0f0f0;
-    --text-secondary: #b0b0b0;
-    --text-muted: #888;
-    --accent-success: #4ade80;
-    --accent-warning: #facc15;
-    --accent-error: #ff6b6b;
-}
-* {
-    max-width: 100%;
-}
 
-/* Assurer la cohérence des polices */
-body, input, textarea, select, button {
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-/* Améliorer l'accessibilité */
-:focus {
-    outline: 2px solid rgba(102, 126, 234, 0.5);
-    outline-offset: 2px;
-}
-
-/* Éviter les problèmes de z-index */
-.header { z-index: 100; }
-.rythm-notification { z-index: 10000; }
-.page-loader { z-index: 10000; }
-
-/* Assurer que tous les liens sont cliquables */
-a {
-    cursor: pointer;
-}
-
-/* Transitions fluides pour tous les éléments interactifs */
-.header-btn,
-.nav-item,
-.page-card,
-.widget,
-.see-all-link,
-.btn {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Éviter les problèmes de mise en page */
-.main-layout,
-.friends-layout,
-.discover-layout,
-.messages-layout {
-    min-height: 0;
-    overflow: hidden;
-}
-
-/* Assurer que le contenu ne déborde pas */
-.content-area,
-.discover-content,
-.profile-content {
-    min-width: 0;
-    overflow-x: hidden;
+@media (max-width: 480px) {
+    .message {
+        max-width: 85%;
+    }
+    
+    .shared-playlist {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .playlist-actions {
+        justify-content: center;
+    }
 }
