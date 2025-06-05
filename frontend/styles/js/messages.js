@@ -675,3 +675,156 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('💬 Page Messages Rythm\'it initialisée avec succès !');
     console.log('🚀 Fonctionnalités: Chat en temps réel, Partage de musique, Écoute partagée');
 });
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Correction pour tous les liens de navigation vers Messages
+    const messageLinks = document.querySelectorAll('a[href="messages.html"]');
+    
+    messageLinks.forEach(link => {
+        // Supprimer tout événement qui pourrait empêcher la navigation
+        link.addEventListener('click', function(e) {
+            // Ne pas empêcher la navigation par défaut
+            console.log('Navigation vers messages.html...');
+            
+            // Optionnel : ajouter une animation de chargement
+            const badge = this.querySelector('.notification-badge');
+            if (badge) {
+                badge.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    badge.style.transform = 'scale(1)';
+                }, 200);
+            }
+        });
+    });
+    
+    // Correction spécifique pour les boutons de notification dans le header
+    const notificationBtns = document.querySelectorAll('.notification-btn');
+    
+    notificationBtns.forEach(btn => {
+        // Supprimer tous les événements click existants
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        // Ajouter seulement l'événement de navigation
+        newBtn.addEventListener('click', function(e) {
+            // Laisser la navigation se faire naturellement
+            if (this.href && this.href.includes('messages.html')) {
+                console.log('Redirection vers Messages...');
+                // La navigation se fera automatiquement grâce au href
+            }
+        });
+    });
+    
+    // Fonction globale pour afficher des notifications
+    if (!window.showNotification) {
+        window.showNotification = function(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const icons = {
+                info: 'ℹ️',
+                success: '✅',
+                music: '🎵',
+                message: '💬',
+                warning: '⚠️',
+                error: '❌'
+            };
+            
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <span class="notification-icon">${icons[type] || icons.info}</span>
+                    <span class="notification-text">${message}</span>
+                    <button class="notification-close">✕</button>
+                </div>
+            `;
+            
+            // Styles pour la notification
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(26, 26, 46, 0.95);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 15px 20px;
+                color: #f0f0f0;
+                z-index: 10000;
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+                backdrop-filter: blur(10px);
+                max-width: 350px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animation d'entrée
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Bouton de fermeture
+            notification.querySelector('.notification-close').addEventListener('click', () => {
+                closeNotification(notification);
+            });
+            
+            // Suppression automatique
+            setTimeout(() => {
+                closeNotification(notification);
+            }, 5000);
+            
+            function closeNotification(notif) {
+                notif.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    if (notif.parentNode) {
+                        notif.remove();
+                    }
+                }, 300);
+            }
+        };
+    }
+});
+
+// Styles CSS pour les notifications (à ajouter à votre CSS principal ou inline)
+const notificationStyles = `
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.notification-text {
+    font-size: 14px;
+    font-weight: 500;
+    flex: 1;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.notification-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+`;
+
+// Ajouter les styles si ils n'existent pas déjà
+if (!document.getElementById('notification-styles')) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'notification-styles';
+    styleSheet.textContent = notificationStyles;
+    document.head.appendChild(styleSheet);
+}

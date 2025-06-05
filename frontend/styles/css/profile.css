@@ -3,11 +3,15 @@
 /* Layout principal du profil */
 .profile-layout {
     margin-top: 40px;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 .profile-content {
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: none; /* Supprimer la limite de 1200px */
+    width: 100%;
+    margin: 0;
 }
 
 /* Section hero du profil */

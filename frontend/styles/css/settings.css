@@ -6,6 +6,9 @@
     grid-template-columns: 280px 1fr;
     gap: 40px;
     margin-top: 40px;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 /* Sidebar des paramètres */

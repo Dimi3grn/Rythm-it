@@ -85,23 +85,64 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gestion des boutons de message
     document.querySelectorAll('.message-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const friendName = this.getAttribute('data-friend') || 'Ami';
-            openMessageModal(friendName);
-        });
+    btn.addEventListener('click', function(e) {
+        e.preventDefault(); // Empêcher la soumission de formulaire si c'est un bouton dans un form
+        
+        let friendName;
+        
+        // Vérifier si c'est un bouton dans une carte d'ami (avec data-friend)
+        if (this.hasAttribute('data-friend')) {
+            friendName = this.getAttribute('data-friend');
+        } 
+        // Sinon, chercher dans la structure DOM
+        else {
+            const friendCard = this.closest('.friend-card') || this.closest('.friend-online');
+            if (friendCard) {
+                const nameElement = friendCard.querySelector('.friend-info h3, .friend-info h5, h3');
+                friendName = nameElement ? nameElement.textContent : 'Ami';
+            } else {
+                friendName = 'Ami';
+            }
+        }
+     this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = 'scale(1)';
+        }, 150);
+        
+        // Ouvrir le modal de message
+        openMessageModal(friendName);
     });
-    
+});
     // Fonction pour ouvrir le modal de message
     function openMessageModal(friendName) {
-        modalUserName.textContent = friendName;
-        messageModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        
-        // Focus sur l'input de message
-        setTimeout(() => {
-            document.querySelector('.message-input').focus();
-        }, 300);
+    // Vérifier si le modal existe
+    let messageModal = document.getElementById('messageModal');
+    
+    // Si le modal n'existe pas, le créer
+    if (!messageModal) {
+        createMessageModal();
+        messageModal = document.getElementById('messageModal');
     }
+    
+    const modalUserName = document.getElementById('modalUserName');
+    
+    if (modalUserName) {
+        modalUserName.textContent = friendName;
+    }
+    
+    messageModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Focus sur l'input de message
+    setTimeout(() => {
+        const messageInput = document.querySelector('.message-input');
+        if (messageInput) {
+            messageInput.focus();
+        }
+    }, 300);
+    
+    showNotification(`💬 Conversation avec ${friendName} ouverte`, 'info');
+}
     
     // Fermer le modal
     document.querySelector('.close-modal').addEventListener('click', function() {
@@ -450,4 +491,120 @@ if (!document.getElementById('friends-additional-styles')) {
     styleSheet.id = 'friends-additional-styles';
     styleSheet.textContent = additionalStyles;
     document.head.appendChild(styleSheet);
+}
+    document.body.appendChild(modal);
+    
+    // Attacher les événements pour le nouveau modal
+    modal.querySelector('.close-modal').addEventListener('click', closeMessageModal);
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeMessageModal();
+        }
+    });
+    function createMessageModal() {
+    const modal = document.createElement('div');
+    modal.className = 'message-modal';
+    modal.id = 'messageModal';
+    modal.innerHTML = `
+        <div class="message-modal-content">
+            <div class="message-modal-header">
+                <div class="modal-user-info">
+                    <div class="user-pic">MX</div>
+                    <div>
+                        <h4 id="modalUserName">Ami</h4>
+                        <span class="modal-status">🟢 En ligne</span>
+                    </div>
+                </div>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="message-history">
+                <div class="message received">
+                    <div class="message-content">Salut ! Comment ça va ?</div>
+                    <span class="message-timestamp">14:32</span>
+                </div>
+            </div>
+            <div class="message-input-container">
+                <input type="text" class="message-input" placeholder="Tapez votre message...">
+                <button class="send-btn">📤</button>
+            </div>
+        </div>
+    `;
+    // Gestion de l'envoi de messages pour le nouveau modal
+    const sendBtn = modal.querySelector('.send-btn');
+    const messageInput = modal.querySelector('.message-input');
+    
+    function sendMessage() {
+        const messageText = messageInput.value.trim();
+        if (messageText === '') return;
+        
+        const messageHistory = modal.querySelector('.message-history');
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message sent';
+        messageElement.innerHTML = `
+            <div class="message-content">${messageText}</div>
+            <span class="message-timestamp">${getCurrentTime()}</span>
+        `;
+        
+        messageHistory.appendChild(messageElement);
+        messageHistory.scrollTop = messageHistory.scrollHeight;
+        messageInput.value = '';
+        
+        // Animation d'envoi
+        sendBtn.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            sendBtn.style.transform = 'scale(1)';
+        }, 150);
+        
+        // Simuler une réponse
+        setTimeout(() => {
+            simulateResponse(messageHistory);
+        }, 1000 + Math.random() * 2000);
+    }
+    
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+}
+
+// Fonction pour simuler une réponse dans le modal
+function simulateResponse(messageHistory) {
+    const responses = [
+        "Super ! Et toi ?",
+        "Merci pour le message !",
+        "J'ai hâte d'écouter ça !",
+        "Excellente recommandation 👌",
+        "On en reparle bientôt ?",
+        "Parfait ! 🎵"
+    ];
+    
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    
+    const messageElement = document.createElement('div');
+    messageElement.className = 'message received';
+    messageElement.innerHTML = `
+        <div class="message-content">${randomResponse}</div>
+        <span class="message-timestamp">${getCurrentTime()}</span>
+    `;
+    
+    messageHistory.appendChild(messageElement);
+    messageHistory.scrollTop = messageHistory.scrollHeight;
+}
+
+// Fonction pour fermer le modal de message - CORRIGÉE
+function closeMessageModal() {
+    const messageModal = document.getElementById('messageModal');
+    if (messageModal) {
+        messageModal.classList.remove('active');
+    }
+    document.body.style.overflow = 'auto';
+}
+
+// Fonction utilitaire pour obtenir l'heure actuelle
+function getCurrentTime() {
+    const now = new Date();
+    return now.getHours().toString().padStart(2, '0') + ':' + 
+           now.getMinutes().toString().padStart(2, '0');
 }

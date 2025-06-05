@@ -11,6 +11,9 @@
     overflow: hidden;
     background: var(--surface-bg);
     border: 1px solid var(--surface-border);
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 /* Sidebar des conversations */

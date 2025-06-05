@@ -3,6 +3,9 @@
 /* Layout pour la page amis */
 .friends-layout {
     grid-template-columns: 300px 1fr 360px;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 /* Header de la page amis */
@@ -851,4 +854,75 @@ a {
 .profile-content {
     min-width: 0;
     overflow-x: hidden;
+}
+
+.friend-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.friend-btn {
+    flex: 1;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.friend-btn.message-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    /* Supprimer les propriétés width/height fixes */
+    /* width: 32px; height: 32px; border-radius: 50%; */
+}
+
+.friend-btn.profile-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f0f0f0;
+}
+
+.friend-btn:hover {
+    transform: translateY(-1px);
+}
+
+.friend-btn.message-btn:hover {
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.friend-btn.profile-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Boutons de message dans la sidebar (ces-là restent circulaires) */
+.friend-online .message-btn,
+.widget .message-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #888;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    padding: 0; /* Important pour les boutons circulaires */
+}
+
+.friend-online .message-btn:hover,
+.widget .message-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: scale(1.1);
 }

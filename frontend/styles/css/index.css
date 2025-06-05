@@ -19,8 +19,54 @@
     --accent-error: #ff6b6b;
     --sidebar-width: 260px;
     --sidebar-right-width: 320px;
-    --max-content-width: 1200px;
+    /* SUPPRESSION DE LA LIMITE MAX-WIDTH */
+    /* --max-content-width: 1200px; ← SUPPRIMER OU COMMENTER */
 }
+
+/* Container principal - Utiliser toute la largeur */
+.app-container {
+    /* max-width: var(--max-content-width); ← SUPPRIMER */
+    max-width: none; /* Utiliser toute la largeur disponible */
+    width: 100%; /* Forcer 100% de largeur */
+    margin: 0; /* Supprimer le centrage automatique */
+    padding: 0; /* Supprimer le padding latéral */
+    min-height: 100vh;
+}
+
+/* Header pleine largeur */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px; /* Augmenter le padding latéral */
+    border-bottom: 1px solid var(--surface-border);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Layout principal optimisé */
+.main-layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-right-width);
+    gap: 20px; /* Réduire l'espace entre colonnes */
+    margin-top: 30px;
+    min-height: calc(100vh - 120px);
+    width: 100%;
+    padding: 0 20px; /* Padding uniquement sur les côtés */
+    box-sizing: border-box;
+}
+
+/* Contenu principal - utiliser tout l'espace */
+.content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+    overflow-x: hidden;
+    width: 100%; /* Forcer l'utilisation de toute la largeur */
+    max-width: none; /* Supprimer toute limite */
+}
+
 
 body {
     font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

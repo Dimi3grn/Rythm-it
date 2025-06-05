@@ -397,27 +397,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     }
 
-    // Simulation d'activité en temps réel
-    function simulateRealTimeActivity() {
-        const activities = [
-            { user: 'MixMaster', action: 'a aimé votre post', type: 'like' },
-            { user: 'SoundBliss', action: 'vous a envoyé un message', type: 'message' },
-            { user: 'RhythmHunter', action: 'partage une nouvelle playlist', type: 'share' },
-            { user: 'EchoBeat', action: 'écoute la même musique que vous', type: 'music' }
-        ];
-        
-        setInterval(() => {
-            if (Math.random() < 0.3) { // 30% de chance toutes les 10 secondes
-                const activity = activities[Math.floor(Math.random() * activities.length)];
-                showNotification(`${activity.user} ${activity.action}`, activity.type);
-                
-                if (activity.type === 'message') {
-                    updateNotificationBadge();
-                }
-            }
-        }, 10000);
-    }
-
     // Mettre à jour le badge de notification
     function updateNotificationBadge() {
         notificationCount++;
@@ -428,8 +407,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Gestion du clic sur les notifications
-    document.querySelector('.notification-btn').addEventListener('click', function(e) {
-        e.preventDefault();
+   document.querySelector('.notification-btn').addEventListener('click', function(e) {
+    // Ne pas empêcher la navigation par défaut
+    // e.preventDefault(); ← SUPPRIMÉ
+    
+    // Si on est déjà sur la page messages, alors on gère les notifications
+    if (window.location.pathname.includes('messages.html')) {
+        e.preventDefault(); // Seulement si on est déjà sur la page
         notificationCount = 0;
         const badge = document.querySelector('.notification-badge');
         if (badge) {
@@ -439,10 +423,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 badge.style.display = 'none';
             }, 200);
         }
-        
-        // Ouvrir le panneau de messages (simulation)
-        showNotification('Panneau de messages ouvert', 'info');
-    });
+        showNotification('Notifications marquées comme lues', 'info');
+    } else {
+        // Laisser la navigation normale se faire
+        showNotification('Redirection vers Messages...', 'info');
+    }
+});
 
     // Détection d'inactivité
     function trackUserActivity() {
