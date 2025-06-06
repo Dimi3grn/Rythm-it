@@ -35,8 +35,24 @@ func NewMessageRepository(db *sql.DB) MessageRepository {
 	}
 }
 
-// Create crée un nouveau message
+// Create crée un nouveau message avec meilleure gestion d'erreur
 func (r *messageRepository) Create(message *models.Message) error {
+	if message == nil {
+		return fmt.Errorf("message ne peut pas être nil")
+	}
+
+	if message.Content == "" {
+		return fmt.Errorf("le contenu du message ne peut pas être vide")
+	}
+
+	if message.ThreadID == 0 {
+		return fmt.Errorf("thread_id est requis")
+	}
+
+	if message.UserID == 0 {
+		return fmt.Errorf("user_id est requis")
+	}
+
 	query := `
 		INSERT INTO messages (content, thread_id, user_id, created_at, updated_at) 
 		VALUES (?, ?, ?, NOW(), NOW())
@@ -44,6 +60,15 @@ func (r *messageRepository) Create(message *models.Message) error {
 
 	result, err := r.DB.Exec(query, message.Content, message.ThreadID, message.UserID)
 	if err != nil {
+		// Vérifier les erreurs spécifiques de la base de données
+		if strings.Contains(err.Error(), "foreign key constraint fails") {
+			if strings.Contains(err.Error(), "thread_id") {
+				return fmt.Errorf("thread non trouvé: %w", err)
+			}
+			if strings.Contains(err.Error(), "user_id") {
+				return fmt.Errorf("utilisateur non trouvé: %w", err)
+			}
+		}
 		return fmt.Errorf("erreur création message: %w", err)
 	}
 
@@ -56,20 +81,27 @@ func (r *messageRepository) Create(message *models.Message) error {
 	return nil
 }
 
-// FindByID trouve un message par son ID avec l'auteur
+// FindByID trouve un message par son ID avec meilleure gestion d'erreur
 func (r *messageRepository) FindByID(id uint) (*models.Message, error) {
+	if id == 0 {
+		return nil, fmt.Errorf("id invalide")
+	}
+
 	query := `
 		SELECT m.id, m.content, m.thread_id, m.user_id, m.created_at, m.updated_at,
-		       u.id, u.username, u.email, u.profile_pic
+			   u.id, u.username, u.email, u.profile_pic
 		FROM messages m
 		JOIN users u ON m.user_id = u.id
 		WHERE m.id = ?
 	`
 
-	message := &models.Message{Author: &models.User{}}
+	message := &models.Message{}
+	var author models.User
+
 	err := r.DB.QueryRow(query, id).Scan(
-		&message.ID, &message.Content, &message.ThreadID, &message.UserID, &message.CreatedAt, &message.UpdatedAt,
-		&message.Author.ID, &message.Author.Username, &message.Author.Email, &message.Author.ProfilePic,
+		&message.ID, &message.Content, &message.ThreadID, &message.UserID,
+		&message.CreatedAt, &message.UpdatedAt,
+		&author.ID, &author.Username, &author.Email, &author.ProfilePic,
 	)
 
 	if err != nil {
@@ -79,12 +111,7 @@ func (r *messageRepository) FindByID(id uint) (*models.Message, error) {
 		return nil, fmt.Errorf("erreur récupération message: %w", err)
 	}
 
-	// Calculer le score de popularité
-	score, err := r.GetPopularityScore(message.ID)
-	if err == nil {
-		message.PopularityScore = score
-	}
-
+	message.Author = &author
 	return message, nil
 }
 
@@ -108,7 +135,7 @@ func (r *messageRepository) FindByThreadID(threadID uint, params models.Paginati
 	offset := (params.Page - 1) * params.PerPage
 	query := fmt.Sprintf(`
 		SELECT m.id, m.content, m.thread_id, m.user_id, m.created_at, m.updated_at,
-		       u.id, u.username, u.email, u.profile_pic
+			   u.id, u.username, u.email, u.profile_pic
 		FROM messages m
 		JOIN users u ON m.user_id = u.id
 		WHERE m.thread_id = ?
@@ -182,7 +209,7 @@ func (r *messageRepository) FindByUserID(userID uint, params models.PaginationPa
 	offset := (params.Page - 1) * params.PerPage
 	query := `
 		SELECT m.id, m.content, m.thread_id, m.user_id, m.created_at, m.updated_at,
-		       u.id, u.username, u.email, u.profile_pic
+			   u.id, u.username, u.email, u.profile_pic
 		FROM messages m
 		JOIN users u ON m.user_id = u.id
 		WHERE m.user_id = ?
@@ -213,9 +240,34 @@ func (r *messageRepository) FindByUserID(userID uint, params models.PaginationPa
 	return messages, total, nil
 }
 
-// Update met à jour un message
+// Update met à jour un message avec meilleure gestion d'erreur
 func (r *messageRepository) Update(message *models.Message) error {
-	query := "UPDATE messages SET content = ?, updated_at = NOW() WHERE id = ?"
+	if message == nil {
+		return fmt.Errorf("message ne peut pas être nil")
+	}
+
+	if message.ID == 0 {
+		return fmt.Errorf("id invalide")
+	}
+
+	if message.Content == "" {
+		return fmt.Errorf("le contenu du message ne peut pas être vide")
+	}
+
+	// Vérifier que le message existe
+	exists, err := r.messageExists(message.ID)
+	if err != nil {
+		return fmt.Errorf("erreur vérification existence message: %w", err)
+	}
+	if !exists {
+		return fmt.Errorf("message ID %d non trouvé", message.ID)
+	}
+
+	query := `
+		UPDATE messages 
+		SET content = ?, updated_at = NOW()
+		WHERE id = ?
+	`
 
 	result, err := r.DB.Exec(query, message.Content, message.ID)
 	if err != nil {
@@ -232,6 +284,17 @@ func (r *messageRepository) Update(message *models.Message) error {
 	}
 
 	return nil
+}
+
+// messageExists vérifie si un message existe
+func (r *messageRepository) messageExists(id uint) (bool, error) {
+	var exists bool
+	query := "SELECT EXISTS(SELECT 1 FROM messages WHERE id = ?)"
+	err := r.DB.QueryRow(query, id).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("erreur vérification existence message: %w", err)
+	}
+	return exists, nil
 }
 
 // Delete supprime un message

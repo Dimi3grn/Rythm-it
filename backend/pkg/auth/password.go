@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"unicode"
 
 	"golang.org/x/crypto/bcrypt"
@@ -72,6 +73,7 @@ func (h *bcryptHasher) ValidatePasswordStrength(password string) error {
 		hasLower   bool
 		hasNumber  bool
 		hasSpecial bool
+		hasSpace   bool
 	)
 
 	// Analyser chaque caractère
@@ -85,25 +87,57 @@ func (h *bcryptHasher) ValidatePasswordStrength(password string) error {
 			hasNumber = true
 		case unicode.IsPunct(char) || unicode.IsSymbol(char):
 			hasSpecial = true
+		case unicode.IsSpace(char):
+			hasSpace = true
 		}
 	}
 
-	// Vérifier les critères obligatoires (selon cahier des charges)
+	// Vérifier les critères obligatoires
 	if !hasUpper {
 		return errors.New("le mot de passe doit contenir au moins une majuscule")
 	}
-
+	if !hasLower {
+		return errors.New("le mot de passe doit contenir au moins une minuscule")
+	}
+	if !hasNumber {
+		return errors.New("le mot de passe doit contenir au moins un chiffre")
+	}
 	if !hasSpecial {
 		return errors.New("le mot de passe doit contenir au moins un caractère spécial")
 	}
-
-	// Critères optionnels mais recommandés
-	if !hasLower {
-		return errors.New("le mot de passe devrait contenir au moins une minuscule")
+	if hasSpace {
+		return errors.New("les espaces ne sont pas autorisés dans le mot de passe")
 	}
 
-	if !hasNumber {
-		return errors.New("le mot de passe devrait contenir au moins un chiffre")
+	// Vérifier les séquences répétitives
+	for i := 0; i < len(password)-2; i++ {
+		if password[i] == password[i+1] && password[i] == password[i+2] {
+			return errors.New("le mot de passe ne doit pas contenir de caractères répétés plus de 2 fois")
+		}
+	}
+
+	// Vérifier les séquences courantes
+	commonSequences := []string{
+		"123", "234", "345", "456", "567", "678", "789", "890",
+		"abc", "bcd", "cde", "def", "efg", "fgh", "ghi", "hij", "ijk", "jkl", "klm", "lmn", "mno", "nop", "opq", "pqr", "qrs", "rst", "stu", "tuv", "uvw", "vwx", "wxy", "xyz",
+		"qwerty", "password", "admin", "welcome", "login", "letmein", "monkey", "dragon", "baseball", "football",
+		"superman", "trustno1", "iloveyou", "starwars", "princess", "master", "shadow", "michael", "jennifer",
+		"joshua", "thomas", "jessica", "michelle", "charlie", "andrew", "matthew", "jordan", "harley",
+	}
+	lowerPassword := strings.ToLower(password)
+	for _, seq := range commonSequences {
+		if strings.Contains(lowerPassword, seq) {
+			return fmt.Errorf("le mot de passe ne doit pas contenir la séquence '%s'", seq)
+		}
+	}
+
+	// Vérifier la diversité des caractères
+	uniqueChars := make(map[rune]bool)
+	for _, char := range password {
+		uniqueChars[char] = true
+	}
+	if len(uniqueChars) < 8 {
+		return errors.New("le mot de passe doit contenir au moins 8 caractères différents")
 	}
 
 	return nil

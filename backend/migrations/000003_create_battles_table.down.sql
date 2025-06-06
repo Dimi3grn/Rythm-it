@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS battle_votes;
+DROP TABLE IF EXISTS battles; 

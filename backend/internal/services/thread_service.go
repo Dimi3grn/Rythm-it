@@ -7,7 +7,21 @@ import (
 	"rythmitbackend/internal/repositories"
 	"rythmitbackend/internal/utils"
 	"strings"
+	"time"
 )
+
+// ThreadDTO represents a thread for the frontend
+type ThreadDTO struct {
+	ID           uint      `json:"id"`
+	Title        string    `json:"title"`
+	Content      string    `json:"content"`
+	UserID       uint      `json:"user_id"`
+	Username     string    `json:"username"`
+	MessageCount int       `json:"message_count"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Tags         []string  `json:"tags"`
+}
 
 // ThreadService interface pour la logique métier des threads
 type ThreadService interface {
@@ -20,6 +34,7 @@ type ThreadService interface {
 	ChangeThreadState(id uint, state string, userID uint, isAdmin bool) error
 	SearchThreads(query string, params models.PaginationParams) (*PaginatedThreadsResponseDTO, error)
 	GetThreadsByTag(tagName string, params models.PaginationParams) (*PaginatedThreadsResponseDTO, error)
+	GetAllThreads() ([]ThreadDTO, error)
 }
 
 // DTOs pour les threads
@@ -85,17 +100,19 @@ type ThreadFilters struct {
 
 // threadService implémentation
 type threadService struct {
-	threadRepo repositories.ThreadRepository
-	tagRepo    repositories.TagRepository
-	db         *sql.DB
+	threadRepo  repositories.ThreadRepository
+	tagRepo     repositories.TagRepository
+	messageRepo repositories.MessageRepository
+	db          *sql.DB
 }
 
 // NewThreadService crée une nouvelle instance du service
-func NewThreadService(threadRepo repositories.ThreadRepository, tagRepo repositories.TagRepository, db *sql.DB) ThreadService {
+func NewThreadService(threadRepo repositories.ThreadRepository, tagRepo repositories.TagRepository, messageRepo repositories.MessageRepository, db *sql.DB) ThreadService {
 	return &threadService{
-		threadRepo: threadRepo,
-		tagRepo:    tagRepo,
-		db:         db,
+		threadRepo:  threadRepo,
+		tagRepo:     tagRepo,
+		messageRepo: messageRepo,
+		db:          db,
 	}
 }
 
@@ -450,4 +467,62 @@ func determineTagType(tagName string) string {
 	// Par défaut, considérer comme un artiste
 	// Une amélioration future pourrait utiliser une API externe pour déterminer cela
 	return "artist"
+}
+
+// GetAllThreads retrieves all threads with their tags
+func (s *threadService) GetAllThreads() ([]ThreadDTO, error) {
+	// Use default pagination params
+	params := models.PaginationParams{
+		Page:    1,
+		PerPage: 100, // Get a reasonable number of threads
+		Sort:    "created_at",
+		Order:   "DESC",
+	}
+
+	threads, total, err := s.threadRepo.FindAll(params)
+	if err != nil {
+		return nil, err
+	}
+
+	if total == 0 {
+		return []ThreadDTO{}, nil
+	}
+
+	var dtos []ThreadDTO
+	for _, thread := range threads {
+		// Get tags from the thread's Tags field since they should be preloaded
+		tagNames := make([]string, len(thread.Tags))
+		for i, tag := range thread.Tags {
+			tagNames[i] = tag.Name
+		}
+
+		// Get message count from the message repository
+		messageCount64, err := s.messageRepo.CountByThreadID(thread.ID)
+		if err != nil {
+			// Log the error but continue with 0 count
+			fmt.Printf("Error getting message count for thread %d: %v\n", thread.ID, err)
+			messageCount64 = 0
+		}
+
+		// Safely convert int64 to int
+		messageCount := 0
+		if messageCount64 <= int64(^uint(0)>>1) { // Check if it fits in an int
+			messageCount = int(messageCount64)
+		}
+
+		dto := ThreadDTO{
+			ID:           thread.ID,
+			Title:        thread.Title,
+			Content:      thread.Description,
+			UserID:       thread.UserID,
+			Username:     thread.Author.Username,
+			MessageCount: messageCount,
+			CreatedAt:    thread.CreatedAt,
+			UpdatedAt:    thread.UpdatedAt,
+			Tags:         tagNames,
+		}
+		dtos = append(dtos, dto)
+	}
+
+	return dtos, nil
 }

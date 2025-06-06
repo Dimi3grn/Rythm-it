@@ -1,6 +1,10 @@
 package models
 
 import (
+	"errors"
+	"fmt"
+	"rythmitbackend/internal/utils"
+	"strings"
 	"time"
 )
 
@@ -41,22 +45,101 @@ type Thread struct {
 	SkipCount   int    `json:"skip_count"` // Compteur Skip ⏭️
 }
 
-// Message modèle message dans un thread
+// Message modèle pour les messages
 type Message struct {
 	BaseModel
-	Content         string         `json:"content" db:"content" validate:"required,min=1,max=5000"`
-	ThreadID        uint           `json:"thread_id" db:"thread_id"`
-	UserID          uint           `json:"user_id" db:"user_id"`
+	Content         string         `json:"content" db:"content" validate:"required,min=1,max=5000,nohtml"`
+	ThreadID        uint           `json:"thread_id" db:"thread_id" validate:"required"`
+	UserID          uint           `json:"user_id" db:"user_id" validate:"required"`
 	Author          *User          `json:"author,omitempty"`
-	PopularityScore int            `json:"popularity_score"`    // Fire - Skip
-	UserVote        *string        `json:"user_vote,omitempty"` // "fire", "skip" ou null
-	Embeds          *MessageEmbeds `json:"embeds,omitempty"`
+	PopularityScore int            `json:"popularity_score"` // Fire - Skip
+	UserVote        *string        `json:"user_vote,omitempty" validate:"omitempty,oneof=fire skip neutral"`
+	Embeds          *MessageEmbeds `json:"embeds,omitempty" validate:"omitempty,dive"`
 }
 
 // MessageEmbeds embeds YouTube/Spotify dans les messages
 type MessageEmbeds struct {
-	YouTube *string `json:"youtube,omitempty"`
-	Spotify *string `json:"spotify,omitempty"`
+	YouTube *string `json:"youtube,omitempty" validate:"omitempty,url,youtube_url"`
+	Spotify *string `json:"spotify,omitempty" validate:"omitempty,url,spotify_url"`
+}
+
+// ValidateMessageEmbeds valide les embeds d'un message
+func ValidateMessageEmbeds(embeds *MessageEmbeds) error {
+	if embeds == nil {
+		return nil
+	}
+
+	// Vérifier qu'au moins un embed est présent
+	if embeds.YouTube == nil && embeds.Spotify == nil {
+		return errors.New("au moins un embed (YouTube ou Spotify) doit être présent")
+	}
+
+	// Vérifier les URLs YouTube
+	if embeds.YouTube != nil {
+		if !strings.Contains(*embeds.YouTube, "youtube.com") && !strings.Contains(*embeds.YouTube, "youtu.be") {
+			return errors.New("URL YouTube invalide")
+		}
+	}
+
+	// Vérifier les URLs Spotify
+	if embeds.Spotify != nil {
+		if !strings.Contains(*embeds.Spotify, "spotify.com") {
+			return errors.New("URL Spotify invalide")
+		}
+	}
+
+	return nil
+}
+
+// ValidateMessage valide un message complet
+func ValidateMessage(msg *Message) error {
+	if msg == nil {
+		return errors.New("message ne peut pas être nil")
+	}
+
+	// Valider la structure de base
+	validationErrors := utils.ValidateStruct(msg)
+	if len(validationErrors) > 0 {
+		// Convertir les erreurs de validation en une seule erreur
+		var errMsgs []string
+		for _, err := range validationErrors {
+			errMsgs = append(errMsgs, err.Message)
+		}
+		return fmt.Errorf("erreurs de validation: %s", strings.Join(errMsgs, "; "))
+	}
+
+	// Valider les embeds si présents
+	if err := ValidateMessageEmbeds(msg.Embeds); err != nil {
+		return err
+	}
+
+	// Vérifier que le contenu n'est pas vide après nettoyage
+	content := strings.TrimSpace(msg.Content)
+	if content == "" {
+		return errors.New("le contenu du message ne peut pas être vide")
+	}
+
+	// Vérifier que le contenu n'est pas trop court
+	if len(content) < 2 {
+		return errors.New("le contenu du message est trop court")
+	}
+
+	// Vérifier que le contenu n'est pas trop long
+	if len(content) > 5000 {
+		return errors.New("le contenu du message est trop long (max 5000 caractères)")
+	}
+
+	// Vérifier que le vote est valide si présent
+	if msg.UserVote != nil {
+		switch *msg.UserVote {
+		case "fire", "skip", "neutral":
+			// OK
+		default:
+			return errors.New("vote invalide")
+		}
+	}
+
+	return nil
 }
 
 // Tag modèle pour les tags musicaux
@@ -73,23 +156,23 @@ type LikedDisliked struct {
 	State     string `json:"state" db:"state" validate:"oneof=fire skip neutral"`
 }
 
-// Battle modèle pour les battles musicales
-type Battle struct {
-	BaseModel
-	Title      string         `json:"title" validate:"required"`
-	Options    []BattleOption `json:"options" validate:"required,len=2"`
-	TotalVotes int            `json:"total_votes"`
-	Status     string         `json:"status" validate:"oneof=active ended"`
-	EndDate    time.Time      `json:"end_date"`
-	CreatorID  uint           `json:"creator_id"`
-}
+// Battle modèle pour les battles de rap
 
-// BattleOption option dans une battle (artiste, album, etc.)
-type BattleOption struct {
-	ID    uint   `json:"id"`
-	Name  string `json:"name" validate:"required"`
-	Image string `json:"image"`
-	Votes int    `json:"votes"`
+// BattleState représente les différents états possibles d'une battle
+const (
+	BattleStateActive    = "active"
+	BattleStateFinished  = "finished"
+	BattleStateCancelled = "cancelled"
+)
+
+// ValidateBattleState vérifie si l'état de la battle est valide
+func ValidateBattleState(state string) bool {
+	switch state {
+	case BattleStateActive, BattleStateFinished, BattleStateCancelled:
+		return true
+	default:
+		return false
+	}
 }
 
 // PaginationParams paramètres de pagination

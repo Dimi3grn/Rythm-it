@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -14,8 +13,6 @@ import (
 	"rythmitbackend/internal/utils"
 	"rythmitbackend/pkg/database"
 	customjwt "rythmitbackend/pkg/jwt"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 // Logger middleware pour logger toutes les requêtes
@@ -67,85 +64,9 @@ func JSONMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// AuthMiddleware vérifie l'authentification JWT et injecte l'utilisateur dans le contexte
+// AuthMiddleware is a middleware that handles authentication for API routes
 func AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Extraire le token du header Authorization
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			log.Println("❌ Token manquant")
-			utils.Unauthorized(w, "Token d'authentification requis")
-			return
-		}
-
-		// Vérifier le format "Bearer <token>"
-		tokenParts := strings.Split(authHeader, " ")
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			log.Println("❌ Format token invalide")
-			utils.Unauthorized(w, "Format du token invalide")
-			return
-		}
-
-		tokenString := tokenParts[1]
-
-		// Validation JWT simple avec github.com/golang-jwt/jwt/v5
-		cfg := configs.Get()
-
-		// Parser le token
-		token, err := jwt.NewParser().Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// Vérifier la méthode de signature
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("méthode de signature invalide")
-			}
-			return []byte(cfg.JWT.Secret), nil
-		})
-
-		if err != nil {
-			log.Printf("❌ Erreur validation token: %v", err)
-			utils.Unauthorized(w, "Token invalide ou expiré")
-			return
-		}
-
-		// Vérifier que le token est valide
-		if !token.Valid {
-			log.Println("❌ Token non valide")
-			utils.Unauthorized(w, "Token invalide")
-			return
-		}
-
-		// Extraire les claims
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			log.Println("❌ Claims invalides")
-			utils.Unauthorized(w, "Token invalide")
-			return
-		}
-
-		// Vérifier l'expiration manuellement
-		if exp, ok := claims["exp"].(float64); ok {
-			if time.Now().Unix() > int64(exp) {
-				log.Println("❌ Token expiré")
-				utils.Unauthorized(w, "Token expiré")
-				return
-			}
-		}
-
-		// Extraire les infos utilisateur
-		userID, _ := claims["user_id"].(float64) // JWT stocke les nombres en float64
-		username, _ := claims["username"].(string)
-		email, _ := claims["email"].(string)
-		isAdmin, _ := claims["is_admin"].(bool)
-
-		log.Printf("✅ Auth réussie - User: %s (ID: %.0f)", username, userID)
-
-		// Injecter dans le contexte
-		ctx := context.WithValue(r.Context(), "user_id", uint(userID))
-		ctx = context.WithValue(ctx, "username", username)
-		ctx = context.WithValue(ctx, "email", email)
-		ctx = context.WithValue(ctx, "is_admin", isAdmin)
-
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+	return RequireAPIAuth(next)
 }
 
 // AdminMiddleware vérifie les droits administrateur

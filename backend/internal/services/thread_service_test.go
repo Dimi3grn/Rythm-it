@@ -35,9 +35,10 @@ func TestThreadService(t *testing.T) {
 	// Créer les repositories
 	threadRepo := repositories.NewThreadRepository(database.DB)
 	tagRepo := repositories.NewTagRepository(database.DB)
+	messageRepo := repositories.NewMessageRepository(database.DB)
 
 	// Créer le service
-	service := NewThreadService(threadRepo, tagRepo, database.DB)
+	service := NewThreadService(threadRepo, tagRepo, messageRepo, database.DB)
 
 	// Test 1: Créer un thread avec tags
 	t.Run("Create Thread With Tags", func(t *testing.T) {
@@ -424,7 +425,8 @@ func TestThreadService_EdgeCases(t *testing.T) {
 
 	threadRepo := repositories.NewThreadRepository(database.DB)
 	tagRepo := repositories.NewTagRepository(database.DB)
-	service := NewThreadService(threadRepo, tagRepo, database.DB)
+	messageRepo := repositories.NewMessageRepository(database.DB)
+	service := NewThreadService(threadRepo, tagRepo, messageRepo, database.DB)
 
 	// Test: Thread inexistant
 	t.Run("Get Non-Existent Thread", func(t *testing.T) {
