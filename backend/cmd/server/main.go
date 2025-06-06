@@ -1,3 +1,4 @@
+// Fichier: backend/cmd/server/main.go
 package main
 
 import (
@@ -7,7 +8,6 @@ import (
 
 	"rythmitbackend/configs"
 	"rythmitbackend/internal/router"
-	"rythmitbackend/internal/utils"
 	"rythmitbackend/pkg/database"
 )
 
@@ -25,7 +25,7 @@ func main() {
 	defer database.Close()
 	log.Println("✅ Base de données connectée")
 
-	// Configuration du router
+	// Configuration du router avec support des templates
 	handler := router.Init(cfg)
 
 	// Configuration du serveur avec timeouts
@@ -40,70 +40,12 @@ func main() {
 	// Démarrage du serveur
 	log.Printf("🚀 %s démarré sur http://localhost:%s\n", cfg.App.Name, cfg.App.Port)
 	log.Printf("📝 Environment: %s\n", cfg.App.Environment)
+	log.Printf("🌐 Templates: Chargés depuis ../frontend/\n")
+	log.Printf("📁 Fichiers statiques: /styles/ → ../frontend/styles/\n")
 
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("❌ Erreur démarrage serveur: %v", err)
 	}
-}
-
-// homeHandler - Route racine
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	cfg := configs.Get()
-
-	data := map[string]string{
-		"message": fmt.Sprintf("Bienvenue sur %s API", cfg.App.Name),
-		"version": cfg.App.Version,
-		"docs":    "/api/docs",
-	}
-
-	utils.Success(w, "API Rythmit opérationnelle", data)
-}
-
-// healthHandler - Endpoint de santé
-func healthHandler(w http.ResponseWriter, r *http.Request) {
-	cfg := configs.Get()
-
-	health := map[string]interface{}{
-		"status":      "healthy",
-		"service":     cfg.App.Name,
-		"version":     cfg.App.Version,
-		"environment": cfg.App.Environment,
-	}
-
-	utils.Success(w, "Service en bonne santé", health)
-}
-
-// apiHandler - Handler temporaire pour toutes les routes /api/
-func apiHandler(w http.ResponseWriter, r *http.Request) {
-	// Pour l'instant, retourne la liste des endpoints disponibles
-	endpoints := map[string][]string{
-		"authentification": {
-			"POST /api/register - Inscription",
-			"POST /api/login - Connexion",
-			"GET /api/profile - Profil utilisateur",
-		},
-		"threads": {
-			"GET /api/threads - Liste des threads",
-			"POST /api/threads - Créer un thread",
-			"GET /api/threads/:id - Détails d'un thread",
-			"PUT /api/threads/:id - Modifier un thread",
-			"DELETE /api/threads/:id - Supprimer un thread",
-		},
-		"messages": {
-			"GET /api/threads/:id/messages - Messages d'un thread",
-			"POST /api/threads/:id/messages - Poster un message",
-			"POST /api/messages/:id/fire - Fire un message",
-			"POST /api/messages/:id/skip - Skip un message",
-		},
-		"battles": {
-			"POST /api/battles - Créer une battle",
-			"GET /api/battles/:id - Détails d'une battle",
-			"POST /api/battles/:id/vote - Voter dans une battle",
-			"GET /api/battles/active - Battles actives",
-		},
-	}
-
-	utils.Success(w, "Endpoints API Rythmit", endpoints)
 }
 
 // displayBanner - Affiche la bannière ASCII au démarrage
@@ -118,5 +60,6 @@ func displayBanner(cfg *configs.Config) {
 	`
 	fmt.Println(banner)
 	fmt.Printf("🎵 %s v%s - Forum Musical Interactif\n", cfg.App.Name, cfg.App.Version)
+	fmt.Printf("🔗 Templates Go + Frontend intégrés\n")
 	fmt.Println("================================================")
 }
