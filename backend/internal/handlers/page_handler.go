@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"rythmitbackend/configs"
 	"rythmitbackend/internal/repositories"
 	"rythmitbackend/internal/services"
 	"rythmitbackend/pkg/database"
@@ -124,6 +125,9 @@ type Trend struct {
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("🏠 IndexHandler appelé pour: %s", r.URL.Path)
 
+	// Vérifier l'authentification
+	user, isLoggedIn := getUserFromCookie(r)
+
 	// Créer le service pour récupérer les threads de la DB
 	threadsFromDB, err := getThreadsFromDatabase()
 	var threads []Thread
@@ -140,28 +144,28 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		Title:       "Accueil - Rythm'it",
 		CurrentPage: "index",
-		IsLoggedIn:  true,
-		User: &User{
-			ID:       1,
-			Username: "MonProfil",
-			Avatar:   "MO",
-		},
-		Friends: []Friend{
-			{ID: 1, Username: "MixMaster", Avatar: "MX", Status: "online", Activity: "Écoute: Techno Vibes"},
-			{ID: 2, Username: "SoundBliss", Avatar: "SB", Status: "online", Activity: "Écoute: Jazz Evening"},
-			{ID: 3, Username: "VibeWave", Avatar: "VW", Status: "away", Activity: "Absent - il y a 2h"},
-		},
-		Threads: threads, // Utiliser les threads de la DB
-		Messages: []Message{
-			{ID: 1, From: "MixMaster", Content: "Salut ! Tu as écouté le dernier album de...", TimeAgo: "il y a 5min", Unread: true},
-			{ID: 2, From: "SoundBliss", Content: "Cette playlist jazz est incroyable ! 🎷", TimeAgo: "il y a 1h", Unread: true},
-			{ID: 3, From: "RhythmHunter", Content: "On fait une session d'écoute ce soir ?", TimeAgo: "il y a 3h", Unread: false},
-		},
+		IsLoggedIn:  isLoggedIn,
+		User:        user,
+		Threads:     threads, // Utiliser les threads de la DB
 		Trends: []Trend{
 			{Name: "Synthwave Summer", Category: "Electronic", Discussions: 1200},
 			{Name: "Indie Folk Revival", Category: "Folk", Discussions: 890},
 			{Name: "Techno Underground", Category: "Electronic", Discussions: 654},
 		},
+	}
+
+	// Ajouter des données supplémentaires si l'utilisateur est connecté
+	if isLoggedIn {
+		data.Friends = []Friend{
+			{ID: 1, Username: "MixMaster", Avatar: "MX", Status: "online", Activity: "Écoute: Techno Vibes"},
+			{ID: 2, Username: "SoundBliss", Avatar: "SB", Status: "online", Activity: "Écoute: Jazz Evening"},
+			{ID: 3, Username: "VibeWave", Avatar: "VW", Status: "away", Activity: "Absent - il y a 2h"},
+		}
+		data.Messages = []Message{
+			{ID: 1, From: "MixMaster", Content: "Salut ! Tu as écouté le dernier album de...", TimeAgo: "il y a 5min", Unread: true},
+			{ID: 2, From: "SoundBliss", Content: "Cette playlist jazz est incroyable ! 🎷", TimeAgo: "il y a 1h", Unread: true},
+			{ID: 3, From: "RhythmHunter", Content: "On fait une session d'écoute ce soir ?", TimeAgo: "il y a 3h", Unread: false},
+		}
 	}
 
 	log.Printf("📊 Données préparées: %d amis, %d threads, %d messages", len(data.Friends), len(data.Threads), len(data.Messages))
@@ -310,7 +314,7 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 		IsLoggedIn:  false,
 	}
 
-	renderTemplate(w, "signin.html", data)
+	renderTemplate(w, "signin", data)
 }
 
 // SignupHandler gère la page d'inscription
@@ -350,6 +354,93 @@ func ProfileAPIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(response)
+}
+
+// RegisterAPIHandler gère l'inscription via API
+func RegisterAPIHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("📝 RegisterAPIHandler appelé")
+
+	var dto services.RegisterDTO
+	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Format JSON invalide",
+		})
+		return
+	}
+
+	// Créer le service d'authentification
+	db := database.DB
+	userRepo := repositories.NewUserRepository(db)
+	cfg := configs.Get() // Récupérer la configuration
+	authService := services.NewAuthService(userRepo, cfg)
+
+	user, err := authService.Register(dto)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Inscription réussie",
+		"data":    services.ToUserResponseDTO(user),
+	})
+}
+
+// LoginAPIHandler gère la connexion via API
+func LoginAPIHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("🔑 LoginAPIHandler appelé")
+
+	var dto services.LoginDTO
+	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Format JSON invalide",
+		})
+		return
+	}
+
+	// Créer le service d'authentification
+	db := database.DB
+	userRepo := repositories.NewUserRepository(db)
+	cfg := configs.Get() // Récupérer la configuration
+	authService := services.NewAuthService(userRepo, cfg)
+
+	token, user, err := authService.Login(dto)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	authResponse := services.AuthResponseDTO{
+		Token: token,
+		User:  services.ToUserResponseDTO(user),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Connexion réussie",
+		"data":    authResponse,
+	})
 }
 
 // renderTemplate fonction helper pour rendre les templates
@@ -468,4 +559,39 @@ func formatTimeAgo(t time.Time) string {
 		return fmt.Sprintf("il y a %.0f mois", diff.Hours()/24/30)
 	}
 	return fmt.Sprintf("il y a %.0f ans", diff.Hours()/24/365)
+}
+
+// getUserFromCookie vérifie l'authentification depuis le cookie et retourne l'utilisateur
+func getUserFromCookie(r *http.Request) (*User, bool) {
+	// Récupérer le cookie d'authentification
+	cookie, err := r.Cookie("auth_token")
+	if err != nil {
+		log.Printf("🔒 Aucun cookie d'authentification trouvé")
+		return nil, false
+	}
+
+	// Créer le service d'authentification pour valider le token
+	db := database.DB
+	userRepo := repositories.NewUserRepository(db)
+	cfg := configs.Get() // Récupérer la configuration
+	authService := services.NewAuthService(userRepo, cfg)
+
+	// Valider le token
+	claims, err := authService.ParseToken(cookie.Value)
+	if err != nil {
+		log.Printf("🔒 Token invalide ou expiré: %v", err)
+		return nil, false
+	}
+
+	// Créer l'utilisateur à partir des claims
+	user := &User{
+		ID:       claims.UserID,
+		Username: claims.Username,
+		Email:    claims.Email,
+		IsAdmin:  claims.IsAdmin,
+		Avatar:   generateInitials(claims.Username),
+	}
+
+	log.Printf("👤 Utilisateur connecté: %s (ID: %d)", claims.Username, claims.UserID)
+	return user, true
 }

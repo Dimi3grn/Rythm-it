@@ -88,6 +88,7 @@ func setupPageRoutes() {
 
 	// Pages d'authentification
 	Router.HandleFunc("/signin", signinHandler).Methods("GET")
+	Router.HandleFunc("/login", signinHandler).Methods("GET") // Alias pour /signin
 	Router.HandleFunc("/signup", signupHandler).Methods("GET")
 }
 
@@ -100,9 +101,9 @@ func registerRoutes(router *mux.Router, controller controllers.BaseController) {
 
 // setupPublicRoutes configure les routes publiques
 func setupPublicRoutes(router *mux.Router) {
-	// Auth routes (inscription/connexion)
-	router.HandleFunc("/register", handleNotImplemented).Methods("POST")
-	router.HandleFunc("/login", handleNotImplemented).Methods("POST")
+	// Auth routes (inscription/connexion) - utiliser les vrais controllers
+	router.HandleFunc("/register", registerAPIHandler).Methods("POST")
+	router.HandleFunc("/login", loginAPIHandler).Methods("POST")
 
 	// Threads publics
 	router.HandleFunc("/threads", handleNotImplemented).Methods("GET")
@@ -188,4 +189,12 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 // API handlers
 func profileAPIHandler(w http.ResponseWriter, r *http.Request) {
 	handlers.ProfileAPIHandler(w, r)
+}
+
+func registerAPIHandler(w http.ResponseWriter, r *http.Request) {
+	handlers.RegisterAPIHandler(w, r)
+}
+
+func loginAPIHandler(w http.ResponseWriter, r *http.Request) {
+	handlers.LoginAPIHandler(w, r)
 }
