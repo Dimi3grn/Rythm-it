@@ -397,6 +397,10 @@ func convertDBThreadsToPageThreads(dbThreads []services.ThreadDTO) []Thread {
 	var pageThreads []Thread
 
 	for _, dbThread := range dbThreads {
+		// Debug: afficher les données du thread
+		log.Printf("🔍 Thread ID=%d, Title='%s', Content='%s', User='%s'",
+			dbThread.ID, dbThread.Title, dbThread.Content, dbThread.Username)
+
 		// Générer les initiales pour l'avatar
 		initials := generateInitials(dbThread.Username)
 
@@ -424,6 +428,7 @@ func convertDBThreadsToPageThreads(dbThreads []services.ThreadDTO) []Thread {
 			MusicTrack:   nil, // Pas de piste musicale pour l'instant
 		}
 
+		log.Printf("✅ Thread converti: Title='%s', Content='%s'", pageThread.Title, pageThread.Content)
 		pageThreads = append(pageThreads, pageThread)
 	}
 
