@@ -1,5 +1,7 @@
 // JavaScript pour la page Découverte - discover.js
 
+// JavaScript pour la page Découverte - discover.js (VERSION MISE À JOUR)
+
 document.addEventListener('DOMContentLoaded', function() {
     
     // Variables globales
@@ -33,9 +35,104 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Charger le contenu initial
         loadDiscoverContent();
+        
+        // Initialiser la navigation améliorée
+        if (typeof initializeEnhancedNavigation === 'function') {
+            initializeEnhancedNavigation();
+        }
+        
+        // Gérer les paramètres URL pour les genres
+        handleURLParams();
     }
     
-    // Gestion des événements
+    // NOUVELLE FONCTION: Gérer les paramètres URL
+    function handleURLParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const genreParam = urlParams.get('genre');
+        
+        if (genreParam) {
+            setTimeout(() => {
+                setActiveGenre(genreParam);
+                showNotification(`🎵 Filtre de genre "${genreParam}" appliqué`, 'info');
+            }, 1000);
+        }
+        
+        // Gérer les ancres
+        if (window.location.hash) {
+            setTimeout(() => {
+                handlePageAnchor(window.location.hash);
+            }, 1500);
+        }
+    }
+    
+    // NOUVELLE FONCTION: Gérer les ancres de page
+    function handlePageAnchor(anchor) {
+        switch(anchor) {
+            case '#trending':
+                scrollToTrending();
+                break;
+            case '#live-sessions':
+                scrollToLiveSessions();
+                break;
+            default:
+                const element = document.querySelector(anchor);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+        }
+    }
+    
+    // NOUVELLE FONCTION: Scroll vers les tendances
+    function scrollToTrending() {
+        const trendingSection = document.getElementById('trending') || 
+                              document.querySelector('.trending-carousel')?.closest('.discover-section');
+        
+        if (trendingSection) {
+            trendingSection.scrollIntoView({ behavior: 'smooth' });
+            
+            // Mettre en évidence temporairement
+            trendingSection.style.border = '2px solid rgba(255, 107, 107, 0.5)';
+            setTimeout(() => {
+                trendingSection.style.border = '';
+            }, 3000);
+            
+            showNotification('🔥 Section Tendances mise en évidence', 'info');
+        }
+    }
+    
+    // NOUVELLE FONCTION: Scroll vers les sessions live
+    function scrollToLiveSessions() {
+        const liveSection = document.querySelector('.live-sessions') || 
+                           document.querySelector('[id*="live"]');
+        
+        if (liveSection) {
+            liveSection.scrollIntoView({ behavior: 'smooth' });
+            showNotification('🎵 Sessions Live affichées', 'info');
+        } else {
+            showNotification('🎵 Sessions Live bientôt disponibles !', 'info');
+        }
+    }
+    
+    // FONCTION MODIFIÉE: Rendre setActiveGenre globale
+    window.setActiveGenre = function(genre) {
+        // Mettre à jour la navigation
+        document.querySelectorAll('.nav-item[data-genre]').forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('data-genre') === genre) {
+                item.classList.add('active');
+            }
+        });
+        
+        currentGenre = genre;
+        applyFilters();
+        
+        // Mettre à jour l'URL sans recharger la page
+        const url = new URL(window.location);
+        url.searchParams.set('genre', genre);
+        window.history.replaceState({}, '', url);
+    };
+    
+    // Gestion des événements (code existant avec modifications)
     function attachEventListeners() {
         // Recherche globale
         if (globalSearch) {
@@ -63,21 +160,22 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
+        // MODIFIÉ: Filtres de genres avec gestion URL
+        document.querySelectorAll('.nav-item[data-genre]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const genre = this.getAttribute('data-genre');
+                setActiveGenre(genre);
+                showNotification(`🎵 Filtre ${genre} appliqué`, 'info');
+            });
+        });
+        
         // Filtres de catégories
         categoryFilters.forEach(filter => {
             filter.addEventListener('click', function(e) {
                 e.preventDefault();
                 const category = this.getAttribute('data-category');
                 setActiveCategory(category);
-            });
-        });
-        
-        // Filtres de genres
-        genreFilters.forEach(filter => {
-            filter.addEventListener('click', function(e) {
-                e.preventDefault();
-                const genre = this.getAttribute('data-genre');
-                setActiveGenre(genre);
             });
         });
         
@@ -140,6 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // [RESTE DU CODE EXISTANT - toutes les autres fonctions restent identiques]
     // Gestion de la recherche
     function handleSearch() {
         const query = globalSearch.value;
@@ -269,15 +368,6 @@ document.addEventListener('DOMContentLoaded', function() {
         applyFilters();
     }
     
-    function setActiveGenre(genre) {
-        // Mettre à jour la navigation
-        genreFilters.forEach(filter => filter.classList.remove('active'));
-        document.querySelector(`[data-genre="${genre}"]`).classList.add('active');
-        
-        currentGenre = genre;
-        applyFilters();
-    }
-    
     function applyFilters() {
         // Filtrer les éléments visibles
         const allItems = document.querySelectorAll('.artist-card, .album-card, .playlist-discover-card');
@@ -319,6 +409,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         showNotification(`Filtres appliqués: ${currentCategory} ${currentGenre ? '• ' + currentGenre : ''}`, 'info');
     }
+    
+    // [TOUTES LES AUTRES FONCTIONS RESTENT IDENTIQUES]
+    // Actions de lecture, artistes, playlists, etc... (code existant)
     
     // Actions de lecture
     function handlePlay(e) {
@@ -705,5 +798,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     console.log('🔍 Page Découverte Rythm\'it initialisée avec succès !');
-    console.log('🎵 Fonctionnalités: Recherche avancée, Filtres dynamiques, Recommandations personnalisées');
+    console.log('🎵 Fonctionnalités: Recherche avancée, Filtres dynamiques, Navigation améliorée');
 });
+
+// Export pour utilisation dans d'autres scripts
+window.initializeEnhancedNavigation = initializeEnhancedNavigation;
+window.handleInternalAnchor = handleInternalAnchor;
+window.updateActiveNavigation = updateActiveNavigation;
