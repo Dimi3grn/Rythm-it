@@ -739,3 +739,58 @@ if (document.readyState === 'loading') {
 window.initializeEnhancedNavigation = initializeEnhancedNavigation;
 window.handleInternalAnchor = handleInternalAnchor;
 window.updateActiveNavigation = updateActiveNavigation;
+
+// Gestion de l'engagement
+        post.querySelectorAll('.engagement-btn').forEach(btn => {
+            btn.addEventListener('click', handleEngagement);
+        });
+        
+        // Gestion du menu du post
+        const menuBtn = post.querySelector('.post-menu');
+        if (menuBtn) {
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showPostMenu(e);
+            });
+        }
+        
+        // Clic sur le post pour ouvrir le thread
+        post.addEventListener('click', (e) => {
+            // Éviter la redirection si on clique sur un bouton d'engagement ou le menu
+            if (e.target.closest('.engagement-btn') || 
+                e.target.closest('.post-menu') || 
+                e.target.closest('.play-control') ||
+                e.target.closest('.follow-btn')) {
+                return;
+            }
+            
+            // Récupérer l'ID du post (simulé avec l'index ou un ID aléatoire)
+            const postId = post.dataset.postId || Math.floor(Math.random() * 10000);
+            
+            // Feedback visuel de chargement
+            post.style.opacity = '0.7';
+            showNotification('📖 Ouverture du thread...', 'info');
+            
+            // Rediriger vers la page thread après un court délai
+            setTimeout(() => {
+                window.location.href = `thread.html?id=${postId}`;
+            }, 300);
+        });
+        
+        // Ajouter le style curseur pointer pour indiquer que c'est cliquable
+        post.style.cursor = 'pointer';
+        
+        // Effet de survol pour indiquer que c'est cliquable
+        post.addEventListener('mouseenter', () => {
+            if (!post.classList.contains('post-hover')) {
+                post.style.transform = 'translateY(-2px)';
+                post.style.boxShadow = '0 4px 20px rgba(102, 126, 234, 0.15)';
+            }
+        });
+        
+        post.addEventListener('mouseleave', () => {
+            if (!post.classList.contains('post-hover')) {
+                post.style.transform = '';
+                post.style.boxShadow = '';
+            }
+        });
