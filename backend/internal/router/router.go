@@ -6,9 +6,10 @@ import (
 	"text/template"
 
 	"rythmitbackend/configs"
-	"rythmitbackend/internal/controllers"
 	"rythmitbackend/internal/handlers"
 	"rythmitbackend/internal/middleware"
+	"rythmitbackend/internal/services"
+	"rythmitbackend/pkg/database"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -37,25 +38,15 @@ func Init(cfg *configs.Config) *mux.Router {
 	Router.PathPrefix("/styles/").Handler(http.StripPrefix("/styles/",
 		http.FileServer(http.Dir("../frontend/styles/"))))
 
+	// Servir les images uploadées
+	Router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/",
+		http.FileServer(http.Dir("uploads/"))))
+
 	// Routes pour les pages HTML
 	setupPageRoutes()
 
-	// Routes API
-	api := Router.PathPrefix("/api").Subrouter()
-	api.Use(middleware.JSONMiddleware)
-
-	// Health routes (toujours accessibles)
-	healthController := &controllers.HealthController{}
-	registerRoutes(api, healthController)
-
-	// Routes publiques (pas besoin d'auth)
-	public := api.PathPrefix("/public").Subrouter()
-	setupPublicRoutes(public)
-
-	// Routes protégées (auth requise)
-	protected := api.PathPrefix("/v1").Subrouter()
-	protected.Use(middleware.AuthMiddleware)
-	setupProtectedRoutes(protected)
+	// Routes API publiques
+	setupAPIRoutes()
 
 	// Configuration CORS
 	c := cors.New(cors.Options{
@@ -76,125 +67,140 @@ func Init(cfg *configs.Config) *mux.Router {
 // setupPageRoutes configure les routes pour les pages HTML
 func setupPageRoutes() {
 	// Page d'accueil - index.html
-	Router.HandleFunc("/", indexHandler).Methods("GET")
+	Router.HandleFunc("/", handlers.IndexHandler).Methods("GET")
+
+	// Actions sur les posts
+	Router.HandleFunc("/post", handlers.PostHandler).Methods("POST")
+	Router.HandleFunc("/new-post", handlers.NewPostHandler).Methods("POST")
 
 	// Autres pages
-	Router.HandleFunc("/discover", discoverHandler).Methods("GET")
-	Router.HandleFunc("/friends", friendsHandler).Methods("GET")
-	Router.HandleFunc("/messages", messagesHandler).Methods("GET")
-	Router.HandleFunc("/profile", profileHandler).Methods("GET")
-	Router.HandleFunc("/settings", settingsHandler).Methods("GET")
-	Router.HandleFunc("/hub", hubHandler).Methods("GET")
+	Router.HandleFunc("/discover", handlers.DiscoverHandler).Methods("GET")
+	Router.HandleFunc("/friends", handlers.FriendsHandler).Methods("GET")
+	Router.HandleFunc("/messages", handlers.MessagesHandler).Methods("GET")
+	Router.HandleFunc("/profile", handlers.ProfileHandler).Methods("GET", "POST")
+	Router.HandleFunc("/settings", handlers.SettingsHandler).Methods("GET")
+	Router.HandleFunc("/hub", handlers.HubHandler).Methods("GET")
+
+	// Page thread individuel
+	Router.HandleFunc("/thread/{id:[0-9]+}", handlers.ThreadHandler).Methods("GET", "POST")
+	Router.HandleFunc("/thread/{id:[0-9]+}/delete", handlers.DeleteThreadHandler).Methods("POST")
+	Router.HandleFunc("/thread/{id:[0-9]+}/edit", handlers.EditThreadHandler).Methods("GET", "POST")
 
 	// Pages d'authentification
-	Router.HandleFunc("/signin", signinHandler).Methods("GET")
-	Router.HandleFunc("/login", signinHandler).Methods("GET") // Alias pour /signin
-	Router.HandleFunc("/signup", signupHandler).Methods("GET")
+	Router.HandleFunc("/signin", handlers.SigninHandler).Methods("GET", "POST")
+	Router.HandleFunc("/login", handlers.SigninHandler).Methods("GET", "POST") // Alias pour /signin
+	Router.HandleFunc("/signup", handlers.SignupHandler).Methods("GET", "POST")
+	Router.HandleFunc("/logout", handlers.LogoutHandler).Methods("GET", "POST")
+
+	// Upload d'images
+	Router.HandleFunc("/upload/image", handlers.UploadImageHandler).Methods("POST")
+
+	// Actions de profil simples (sans JavaScript)
+	Router.HandleFunc("/profile/action", handlers.SimpleProfileUpdateHandler).Methods("POST")
+
+	// WebSocket pour notifications temps réel
+	Router.HandleFunc("/ws", handlers.WebSocketHandler).Methods("GET")
 }
 
-// registerRoutes enregistre les routes d'un controller
-func registerRoutes(router *mux.Router, controller controllers.BaseController) {
-	for _, route := range controller.Routes() {
-		router.HandleFunc(route.Pattern, route.HandlerFunc).Methods(route.Method).Name(route.Name)
-	}
+// setupAPIRoutes configure les routes API
+func setupAPIRoutes() {
+	// Routes API avec préfixe /api
+	api := Router.PathPrefix("/api").Subrouter()
+	api.Use(middleware.JSONMiddleware)
+
+	// Routes publiques
+	public := api.PathPrefix("/public").Subrouter()
+
+	// Tags disponibles (pour autocomplete)
+	public.HandleFunc("/tags", handlers.TagsAPIHandler).Methods("GET")
+
+	// Threads publics avec pagination
+	public.HandleFunc("/threads", handlers.ThreadsAPIHandler).Methods("GET")
+
+	// Recherche publique
+	public.HandleFunc("/search", handlers.SearchAPIHandler).Methods("GET")
+
+	// Recherche de threads spécifique
+	public.HandleFunc("/threads/search", handlers.ThreadSearchAPIHandler).Methods("GET")
+
+	// Routes avec authentification optionnelle (sans préfixe v1)
+	mixed := api.NewRoute().Subrouter()
+	mixed.Use(middleware.OptionalAuthMiddleware)
+
+	// Likes sur threads et messages
+	mixed.HandleFunc("/threads/{id:[0-9]+}/like", handlers.ToggleLikeHandler).Methods("POST")
+	mixed.HandleFunc("/messages/{id:[0-9]+}/like", handlers.MessageLikeHandler).Methods("POST")
+
+	// Messages dans les threads
+	mixed.HandleFunc("/threads/{id:[0-9]+}/messages", handlers.ThreadMessagesHandler).Methods("GET", "POST")
+	mixed.HandleFunc("/messages/{id:[0-9]+}/vote", handlers.MessageVoteHandler).Methods("POST")
+
+	// Profil utilisateur
+	mixed.HandleFunc("/profile", handlers.ProfileAPIHandler).Methods("GET")
+
+	// Notifications
+	mixed.HandleFunc("/notifications", handlers.NotificationAPIHandler).Methods("GET", "POST")
+	mixed.HandleFunc("/activity", handlers.ActivityAPIHandler).Methods("POST")
+
+	// Validation et traitement de formulaires
+	mixed.HandleFunc("/validate", handlers.ValidationAPIHandler).Methods("POST")
+	mixed.HandleFunc("/form-processing", handlers.FormProcessingAPIHandler).Methods("POST")
+	mixed.HandleFunc("/preprocess", handlers.PreprocessDataAPIHandler).Methods("POST")
+
+	// Routes d'amitiés (authentification requise)
+	setupFriendshipRoutes(mixed)
+
+	// Routes avec préfixe v1 (pour compatibilité frontend)
+	v1 := api.PathPrefix("/v1").Subrouter()
+	v1.Use(middleware.OptionalAuthMiddleware)
+
+	// Mêmes routes que mixed mais avec préfixe v1
+	v1.HandleFunc("/threads/{id:[0-9]+}/like", handlers.ToggleLikeHandler).Methods("POST")
+	v1.HandleFunc("/messages/{id:[0-9]+}/like", handlers.MessageLikeHandler).Methods("POST")
+	v1.HandleFunc("/threads/{id:[0-9]+}/messages", handlers.ThreadMessagesHandler).Methods("GET", "POST")
+	v1.HandleFunc("/messages/{id:[0-9]+}/vote", handlers.MessageVoteHandler).Methods("POST")
+	v1.HandleFunc("/profile", handlers.ProfileAPIHandler).Methods("GET")
+	v1.HandleFunc("/notifications", handlers.NotificationAPIHandler).Methods("GET", "POST")
+	v1.HandleFunc("/activity", handlers.ActivityAPIHandler).Methods("POST")
+	v1.HandleFunc("/validate", handlers.ValidationAPIHandler).Methods("POST")
+	v1.HandleFunc("/form-processing", handlers.FormProcessingAPIHandler).Methods("POST")
+	v1.HandleFunc("/preprocess", handlers.PreprocessDataAPIHandler).Methods("POST")
+
+	// Routes d'amitiés pour v1 aussi
+	setupFriendshipRoutes(v1)
 }
 
-// setupPublicRoutes configure les routes publiques
-func setupPublicRoutes(router *mux.Router) {
-	// Auth routes (inscription/connexion) - utiliser les vrais controllers
-	router.HandleFunc("/register", registerAPIHandler).Methods("POST")
-	router.HandleFunc("/login", loginAPIHandler).Methods("POST")
+// setupFriendshipRoutes configure les routes pour l'API des amitiés
+func setupFriendshipRoutes(router *mux.Router) {
+	// Créer le handler d'amitiés
+	db := database.DB
+	friendshipService := services.NewFriendshipServiceWithDB(db)
+	friendshipHandler := handlers.NewFriendshipHandler(friendshipService)
 
-	// Threads publics
-	router.HandleFunc("/threads", handleNotImplemented).Methods("GET")
-	router.HandleFunc("/threads/{id:[0-9]+}", handleNotImplemented).Methods("GET")
+	// Routes pour les demandes d'amitié
+	router.HandleFunc("/friends/request", friendshipHandler.SendFriendRequest).Methods("POST")
+	router.HandleFunc("/friends/request/accept", friendshipHandler.AcceptFriendRequest).Methods("POST")
+	router.HandleFunc("/friends/request/reject", friendshipHandler.RejectFriendRequest).Methods("POST")
+	router.HandleFunc("/friends/request/cancel", friendshipHandler.CancelFriendRequest).Methods("POST")
 
-	// Battles publiques
-	router.HandleFunc("/battles/active", handleNotImplemented).Methods("GET")
-	router.HandleFunc("/battles/{id:[0-9]+}", handleNotImplemented).Methods("GET")
-}
+	// Routes pour la gestion des amis
+	router.HandleFunc("/friends", friendshipHandler.GetFriends).Methods("GET")
+	router.HandleFunc("/friends/{friendId:[0-9]+}", friendshipHandler.RemoveFriend).Methods("DELETE")
+	router.HandleFunc("/friends/requests", friendshipHandler.GetFriendRequests).Methods("GET")
+	router.HandleFunc("/friends/requests/sent", friendshipHandler.GetSentRequests).Methods("GET")
 
-// setupProtectedRoutes configure les routes protégées
-func setupProtectedRoutes(router *mux.Router) {
-	// User routes
-	router.HandleFunc("/profile", profileAPIHandler).Methods("GET")
-	router.HandleFunc("/profile", handleNotImplemented).Methods("PUT")
+	// Routes pour les amis mutuels
+	router.HandleFunc("/friends/mutual/{userId:[0-9]+}", friendshipHandler.GetMutualFriends).Methods("GET")
 
-	// Thread management
-	router.HandleFunc("/threads", handleNotImplemented).Methods("POST")
-	router.HandleFunc("/threads/{id:[0-9]+}", handleNotImplemented).Methods("PUT", "DELETE")
+	// Routes pour la recherche et suggestions
+	router.HandleFunc("/users/search", friendshipHandler.SearchUsers).Methods("GET")
+	router.HandleFunc("/friends/suggestions", friendshipHandler.GetSuggestedFriends).Methods("GET")
 
-	// Messages
-	router.HandleFunc("/threads/{id:[0-9]+}/messages", handleNotImplemented).Methods("GET", "POST")
-	router.HandleFunc("/messages/{id:[0-9]+}/fire", handleNotImplemented).Methods("POST")
-	router.HandleFunc("/messages/{id:[0-9]+}/skip", handleNotImplemented).Methods("POST")
+	// Routes pour les statistiques et statuts
+	router.HandleFunc("/friends/stats", friendshipHandler.GetFriendshipStats).Methods("GET")
+	router.HandleFunc("/friends/status/{userId:[0-9]+}", friendshipHandler.GetFriendshipStatus).Methods("GET")
 
-	// Battles
-	router.HandleFunc("/battles", handleNotImplemented).Methods("POST")
-	router.HandleFunc("/battles/{id:[0-9]+}/vote", handleNotImplemented).Methods("POST")
-
-	// Admin routes
-	admin := router.PathPrefix("/admin").Subrouter()
-	admin.Use(middleware.AdminMiddleware)
-
-	admin.HandleFunc("/dashboard", handleNotImplemented).Methods("GET")
-	admin.HandleFunc("/users/{id:[0-9]+}/ban", handleNotImplemented).Methods("POST")
-	admin.HandleFunc("/threads/{id:[0-9]+}/state", handleNotImplemented).Methods("PUT")
-}
-
-// handleNotImplemented pour les routes pas encore implémentées
-func handleNotImplemented(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusNotImplemented)
-	w.Write([]byte(`{"error": "Cette fonctionnalité n'est pas encore implémentée", "status": 501}`))
-}
-
-// Page handlers - utilisant les handlers existants du package handlers
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.IndexHandler(w, r)
-}
-
-func discoverHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.DiscoverHandler(w, r)
-}
-
-func friendsHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.FriendsHandler(w, r)
-}
-
-func messagesHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.MessagesHandler(w, r)
-}
-
-func profileHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.ProfileHandler(w, r)
-}
-
-func settingsHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.SettingsHandler(w, r)
-}
-
-func hubHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.HubHandler(w, r)
-}
-
-func signinHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.SigninHandler(w, r)
-}
-
-func signupHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.SignupHandler(w, r)
-}
-
-// API handlers
-func profileAPIHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.ProfileAPIHandler(w, r)
-}
-
-func registerAPIHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.RegisterAPIHandler(w, r)
-}
-
-func loginAPIHandler(w http.ResponseWriter, r *http.Request) {
-	handlers.LoginAPIHandler(w, r)
+	// Routes pour bloquer/débloquer
+	router.HandleFunc("/users/{userId:[0-9]+}/block", friendshipHandler.BlockUser).Methods("POST")
+	router.HandleFunc("/users/{userId:[0-9]+}/unblock", friendshipHandler.UnblockUser).Methods("POST")
 }

@@ -1,0 +1,63 @@
+{{define "edit-thread-debug.html"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Modifier le thread</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Page de Debug - Édition de Thread</h1>
+    
+    <div class="debug">
+        <h2>Données reçues :</h2>
+        <p><strong>Titre :</strong> {{.Title}}</p>
+        <p><strong>Utilisateur connecté :</strong> {{.IsLoggedIn}}</p>
+        {{if .User}}
+        <p><strong>Nom d'utilisateur :</strong> {{.User.Username}}</p>
+        {{end}}
+        {{if .Thread}}
+        <p><strong>Thread ID :</strong> {{.Thread.ID}}</p>
+        <p><strong>Thread Titre :</strong> {{.Thread.Title}}</p>
+        <p><strong>Thread Contenu :</strong> {{.Thread.Content}}</p>
+        <p><strong>Thread Visibilité :</strong> {{.Thread.Visibility}}</p>
+        <p><strong>Thread État :</strong> {{.Thread.State}}</p>
+        {{else}}
+        <p><strong>❌ Aucun thread trouvé</strong></p>
+        {{end}}
+    </div>
+
+    <div class="debug">
+        <h2>Formulaire de test :</h2>
+        <form method="POST" action="/thread/{{if .Thread}}{{.Thread.ID}}{{end}}/edit">
+            <p>
+                <label>Titre :</label><br>
+                <input type="text" name="title" value="{{if .Thread}}{{.Thread.Title}}{{end}}" style="width: 300px;">
+            </p>
+            <p>
+                <label>Description :</label><br>
+                <textarea name="description" style="width: 300px; height: 100px;">{{if .Thread}}{{.Thread.Content}}{{end}}</textarea>
+            </p>
+            <p>
+                <button type="submit">Sauvegarder</button>
+                <a href="/thread/{{if .Thread}}{{.Thread.ID}}{{end}}">Annuler</a>
+            </p>
+        </form>
+    </div>
+
+    <div class="debug">
+        <h2>Messages :</h2>
+        {{if .ErrorMessage}}
+        <p style="color: red;"><strong>Erreur :</strong> {{.ErrorMessage}}</p>
+        {{end}}
+        {{if .SuccessMessage}}
+        <p style="color: green;"><strong>Succès :</strong> {{.SuccessMessage}}</p>
+        {{end}}
+    </div>
+</body>
+</html>
+{{end}} 

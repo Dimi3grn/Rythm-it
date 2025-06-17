@@ -5,8 +5,12 @@ import (
 	"net/http"
 	"strings"
 
+	"rythmitbackend/configs"
+	"rythmitbackend/internal/repositories"
 	"rythmitbackend/internal/services"
 	"rythmitbackend/internal/utils"
+	"rythmitbackend/pkg/database"
+	customjwt "rythmitbackend/pkg/jwt"
 )
 
 // AuthMiddlewareFunc is a middleware that handles authentication for both API and web routes
@@ -41,9 +45,15 @@ func AuthMiddlewareFunc(next http.Handler, isWebRoute bool) http.Handler {
 			tokenString = tokenParts[1]
 		}
 
-		// Validate the token using the auth service
-		authService := services.NewAuthService(nil, nil) // TODO: Pass proper dependencies
-		claims, err := authService.ParseToken(tokenString)
+		// Validate the token using JWT directly
+		cfg := configs.Get()
+		tokenManager := customjwt.NewTokenManager(customjwt.Config{
+			Secret:          cfg.JWT.Secret,
+			ExpirationHours: cfg.JWT.ExpirationHours,
+			Issuer:          "rythmit-api",
+		})
+
+		claims, err := tokenManager.ValidateToken(tokenString)
 		if err != nil {
 			if isWebRoute {
 				// Clear the invalid cookie
@@ -53,8 +63,8 @@ func AuthMiddlewareFunc(next http.Handler, isWebRoute bool) http.Handler {
 					Path:     "/",
 					MaxAge:   -1,
 					HttpOnly: true,
-					Secure:   true,
-					SameSite: http.SameSiteStrictMode,
+					Secure:   false, // Pour le développement local
+					SameSite: http.SameSiteLaxMode,
 				})
 				http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 			} else {
@@ -63,11 +73,27 @@ func AuthMiddlewareFunc(next http.Handler, isWebRoute bool) http.Handler {
 			return
 		}
 
-		// Add claims to context
-		ctx := context.WithValue(r.Context(), "user_id", claims.UserID)
-		ctx = context.WithValue(ctx, "username", claims.Username)
-		ctx = context.WithValue(ctx, "email", claims.Email)
-		ctx = context.WithValue(ctx, "is_admin", claims.IsAdmin)
+		// Get user from database to verify it still exists
+		userRepo := repositories.NewUserRepository(database.DB)
+		user, err := userRepo.FindByID(claims.UserID)
+		if err != nil {
+			if isWebRoute {
+				http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+			} else {
+				utils.Unauthorized(w, "Utilisateur non trouvé")
+			}
+			return
+		}
+
+		// Convert to DTO
+		userDTO := services.ToUserResponseDTO(user)
+
+		// Add user info to context
+		ctx := context.WithValue(r.Context(), "user", userDTO)
+		ctx = context.WithValue(ctx, "user_id", user.ID)
+		ctx = context.WithValue(ctx, "username", user.Username)
+		ctx = context.WithValue(ctx, "email", user.Email)
+		ctx = context.WithValue(ctx, "is_admin", user.IsAdmin)
 
 		// Continue with the next handler
 		next.ServeHTTP(w, r.WithContext(ctx))

@@ -1,3 +1,4 @@
+{{define "messages.html"}}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -11,7 +12,7 @@
 <body>
     <div class="app-container">
        <header class="header">
-    <a href="index.html" class="brand">
+    <a href="/" class="brand">
         <div class="brand-icon">
             <div class="wave-animation">
                 <div class="wave-bar"></div>
@@ -23,27 +24,28 @@
         <span class="brand-text">Rythm'it</span>
     </a>
     <div class="header-actions">
-        <a href="hub.html" class="header-btn">
+        <a href="/hub" class="header-btn">
             <span class="nav-icon">🎯</span>
             Hub
         </a>
-        <a href="index.html" class="header-btn">
+        <a href="/" class="header-btn">
             <span class="nav-icon">🏠</span>
             Accueil
         </a>
-        <a href="discover.html" class="header-btn">
+        <a href="/discover" class="header-btn">
             <span class="nav-icon">🔍</span>
             Découvrir
         </a>
-        <a href="friends.html" class="header-btn">
+        <a href="/friends" class="header-btn">
             <span class="nav-icon">👥</span>
             Amis
         </a>
-        <a href="messages.html" class="header-btn notification-btn active">
+        <a href="/messages" class="header-btn notification-btn active">
             <span class="nav-icon">💬</span>
             Messages
         </a>
-        <a href="profile.html" class="header-btn primary">Profil</a>
+        <a href="/profile" class="header-btn primary">Profil</a>
+        <a href="/logout" class="header-btn logout-btn" title="Se déconnecter">🚪</a>
     </div>
 </header>
 
@@ -416,3 +418,4 @@
     <script src="styles/js/messages.js"></script>
 </body>
 </html>
+{{end}}

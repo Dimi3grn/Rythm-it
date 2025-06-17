@@ -1,5 +1,7 @@
 // JavaScript pour la page Découverte - discover.js
 
+// JavaScript pour la page Découverte - discover.js (VERSION MISE À JOUR)
+
 document.addEventListener('DOMContentLoaded', function() {
     
     // Variables globales
@@ -8,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentGenre = '';
     let searchTimeout;
     let isVoiceSearchActive = false;
+    let selectedTags = [];
     
     // Éléments DOM
     const globalSearch = document.querySelector('.global-search');
@@ -17,6 +20,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryFilters = document.querySelectorAll('.filter-category');
     const genreFilters = document.querySelectorAll('.filter-genre');
     const refreshBtn = document.querySelector('.refresh-recommendations');
+    const tagSelector = document.getElementById('tag-selector');
+    const selectedTagsContainer = document.getElementById('selected-tags');
+    const searchResults = document.getElementById('search-results');
+    const discoverSections = document.getElementById('discover-sections');
     
     // Initialisation
     init();
@@ -33,9 +40,319 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Charger le contenu initial
         loadDiscoverContent();
+        
+        // Initialiser la navigation améliorée
+        if (typeof initializeEnhancedNavigation === 'function') {
+            initializeEnhancedNavigation();
+        }
+        
+        // Gérer les paramètres URL pour les genres
+        handleURLParams();
+        
+        // Charger les tags depuis l'API
+        loadTagsFromAPI();
     }
     
-    // Gestion des événements
+    // NOUVELLE FONCTION: Charger les tags depuis l'API
+    function loadTagsFromAPI() {
+        fetch('/api/public/tags')
+            .then(response => response.json())
+            .then(data => {
+                console.log('🏷️ Réponse API tags:', data);
+                
+                // L'API retourne {success: true, data: [...]}
+                const tags = data.success && data.data ? data.data : [];
+                
+                const tagButtons = document.getElementById('tag-buttons');
+                if (tagButtons && tags.length > 0) {
+                    tagButtons.innerHTML = '';
+                    
+                    // Créer une grille de tags
+                    const tagGrid = document.createElement('div');
+                    tagGrid.className = 'tag-grid';
+                    
+                    tags.forEach(tag => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'tag-option';
+                        button.textContent = tag.name || tag.Name || tag;
+                        button.onclick = () => addTag(tag.name || tag.Name || tag);
+                        tagGrid.appendChild(button);
+                    });
+                    
+                    tagButtons.appendChild(tagGrid);
+                    console.log('🏷️ Tags chargés depuis l\'API:', tags.length);
+                    showNotification(`🏷️ ${tags.length} tags chargés`, 'success');
+                } else {
+                    console.warn('⚠️ Aucun tag trouvé dans la réponse');
+                    showNotification('⚠️ Aucun tag disponible', 'warning');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Erreur lors du chargement des tags:', error);
+                showNotification('❌ Erreur lors du chargement des tags', 'error');
+            });
+    }
+    
+    // NOUVELLE FONCTION: Toggle du sélecteur de tags
+    window.toggleTagSelector = function() {
+        if (!tagSelector) {
+            console.error('❌ Élément tag-selector non trouvé');
+            return;
+        }
+        
+        const isVisible = tagSelector.style.display !== 'none';
+        
+        if (isVisible) {
+            tagSelector.style.display = 'none';
+            showNotification('🏷️ Sélecteur de tags fermé', 'info');
+        } else {
+            tagSelector.style.display = 'block';
+            showNotification('🏷️ Sélecteur de tags ouvert', 'info');
+        }
+    };
+    
+    // NOUVELLE FONCTION: Ajouter un tag
+    window.addTag = function(tagName) {
+        if (!tagName || selectedTags.includes(tagName)) {
+            return;
+        }
+        
+        selectedTags.push(tagName);
+        updateSelectedTagsDisplay();
+        applyTagFilters();
+        showNotification(`🏷️ Tag "${tagName}" ajouté`, 'success');
+    };
+    
+    // NOUVELLE FONCTION: Supprimer un tag
+    window.removeTag = function(tagName) {
+        const index = selectedTags.indexOf(tagName);
+        if (index > -1) {
+            selectedTags.splice(index, 1);
+            updateSelectedTagsDisplay();
+            applyTagFilters();
+            showNotification(`🏷️ Tag "${tagName}" supprimé`, 'info');
+        }
+    };
+    
+    // NOUVELLE FONCTION: Mettre à jour l'affichage des tags sélectionnés
+    function updateSelectedTagsDisplay() {
+        if (!selectedTagsContainer) return;
+        
+        if (selectedTags.length === 0) {
+            selectedTagsContainer.innerHTML = '<p class="no-tags">Aucun tag sélectionné</p>';
+        } else {
+            selectedTagsContainer.innerHTML = selectedTags.map(tag => 
+                `<span class="selected-tag">
+                    ${tag}
+                    <button onclick="removeTag('${tag}')" class="remove-tag-btn">×</button>
+                </span>`
+            ).join('');
+        }
+    }
+    
+    // NOUVELLE FONCTION: Appliquer les filtres par tags
+    function applyTagFilters() {
+        if (selectedTags.length === 0) {
+            // Réinitialiser l'affichage si aucun tag sélectionné
+            resetSearch();
+            return;
+        }
+        
+        // Rechercher automatiquement les threads avec les tags sélectionnés
+        searchThreadsByTags(selectedTags);
+    }
+    
+    // NOUVELLE FONCTION: Rechercher les threads par tags
+    async function searchThreadsByTags(tags) {
+        try {
+            showNotification(`🔍 Recherche de threads avec TOUS les tags: ${tags.join(', ')}`, 'info');
+            
+            // Afficher la section des résultats et masquer les sections de découverte
+            if (searchResults) {
+                searchResults.style.display = 'block';
+                const resultsTitle = document.getElementById('results-title');
+                if (resultsTitle) {
+                    resultsTitle.textContent = `Résultats pour les tags: ${tags.join(' + ')}`;
+                }
+            }
+            
+            if (discoverSections) {
+                discoverSections.style.display = 'none';
+            }
+            
+            // Afficher le loading
+            const searchLoading = document.getElementById('search-loading');
+            if (searchLoading) {
+                searchLoading.style.display = 'block';
+            }
+            
+            // Construire l'URL avec les tags séparés par des virgules
+            const tagsParam = tags.join(',');
+            const url = `/api/public/threads/search?tags=${encodeURIComponent(tagsParam)}`;
+            
+            console.log('🔍 Recherche par tags URL:', url);
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            console.log('🔍 Réponse recherche par tags:', data);
+            
+            // Masquer le loading
+            if (searchLoading) {
+                searchLoading.style.display = 'none';
+            }
+            
+            if (data.success && data.data && data.data.threads) {
+                const threads = data.data.threads;
+                displayThreadSearchResults(threads, `Tags: ${tags.join(' + ')}`);
+                showNotification(`🏷️ ${threads.length} thread(s) trouvé(s) avec TOUS ces tags`, 'success');
+            } else {
+                displayNoResults(`Tags: ${tags.join(' + ')}`);
+                showNotification('🏷️ Aucun thread trouvé avec TOUS ces tags', 'warning');
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recherche par tags:', error);
+            
+            // Masquer le loading en cas d'erreur
+            const searchLoading = document.getElementById('search-loading');
+            if (searchLoading) {
+                searchLoading.style.display = 'none';
+            }
+            
+            showNotification('❌ Erreur lors de la recherche par tags', 'error');
+            displayNoResults(`Tags: ${tags.join(' + ')}`);
+        }
+    }
+    
+    // NOUVELLE FONCTION: Réinitialiser la recherche
+    function resetSearch() {
+        if (searchResults) {
+            searchResults.style.display = 'none';
+        }
+        
+        if (discoverSections) {
+            discoverSections.style.display = 'block';
+        }
+        
+        showNotification('🔄 Affichage réinitialisé', 'info');
+    }
+    
+    // NOUVELLE FONCTION: Effacer la recherche
+    window.clearSearch = function() {
+        if (globalSearch) {
+            globalSearch.value = '';
+        }
+        
+        selectedTags = [];
+        updateSelectedTagsDisplay();
+        
+        resetSearch();
+        showNotification('🔍 Recherche effacée', 'info');
+    };
+    
+    // FONCTION MODIFIÉE: Recherche améliorée
+    window.performSearch = function() {
+        const query = globalSearch ? globalSearch.value.trim() : '';
+        
+        if (query) {
+            performSearchWithQuery(query);
+        } else if (selectedTags.length > 0) {
+            // Recherche par tags seulement
+            searchThreadsByTags(selectedTags);
+        } else {
+            showNotification('🔍 Veuillez saisir un terme de recherche ou sélectionner des tags', 'warning');
+        }
+    };
+    
+    // NOUVELLE FONCTION: Gérer les paramètres URL
+    function handleURLParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const genreParam = urlParams.get('genre');
+        
+        if (genreParam) {
+            setTimeout(() => {
+                setActiveGenre(genreParam);
+                showNotification(`🎵 Filtre de genre "${genreParam}" appliqué`, 'info');
+            }, 1000);
+        }
+        
+        // Gérer les ancres
+        if (window.location.hash) {
+            setTimeout(() => {
+                handlePageAnchor(window.location.hash);
+            }, 1500);
+        }
+    }
+    
+    // NOUVELLE FONCTION: Gérer les ancres de page
+    function handlePageAnchor(anchor) {
+        switch(anchor) {
+            case '#trending':
+                scrollToTrending();
+                break;
+            case '#live-sessions':
+                scrollToLiveSessions();
+                break;
+            default:
+                const element = document.querySelector(anchor);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+        }
+    }
+    
+    // NOUVELLE FONCTION: Scroll vers les tendances
+    function scrollToTrending() {
+        const trendingSection = document.getElementById('trending') || 
+                              document.querySelector('.trending-carousel')?.closest('.discover-section');
+        
+        if (trendingSection) {
+            trendingSection.scrollIntoView({ behavior: 'smooth' });
+            
+            // Mettre en évidence temporairement
+            trendingSection.style.border = '2px solid rgba(255, 107, 107, 0.5)';
+            setTimeout(() => {
+                trendingSection.style.border = '';
+            }, 3000);
+            
+            showNotification('🔥 Section Tendances mise en évidence', 'info');
+        }
+    }
+    
+    // NOUVELLE FONCTION: Scroll vers les sessions live
+    function scrollToLiveSessions() {
+        const liveSection = document.querySelector('.live-sessions') || 
+                           document.querySelector('[id*="live"]');
+        
+        if (liveSection) {
+            liveSection.scrollIntoView({ behavior: 'smooth' });
+            showNotification('🎵 Sessions Live affichées', 'info');
+        } else {
+            showNotification('🎵 Sessions Live bientôt disponibles !', 'info');
+        }
+    }
+    
+    // FONCTION MODIFIÉE: Rendre setActiveGenre globale
+    window.setActiveGenre = function(genre) {
+        // Mettre à jour la navigation
+        document.querySelectorAll('.nav-item[data-genre]').forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('data-genre') === genre) {
+                item.classList.add('active');
+            }
+        });
+        
+        currentGenre = genre;
+        applyFilters();
+        
+        // Mettre à jour l'URL sans recharger la page
+        const url = new URL(window.location);
+        url.searchParams.set('genre', genre);
+        window.history.replaceState({}, '', url);
+    };
+    
+    // Gestion des événements (code existant avec modifications)
     function attachEventListeners() {
         // Recherche globale
         if (globalSearch) {
@@ -63,21 +380,22 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
+        // MODIFIÉ: Filtres de genres avec gestion URL
+        document.querySelectorAll('.nav-item[data-genre]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const genre = this.getAttribute('data-genre');
+                setActiveGenre(genre);
+                showNotification(`🎵 Filtre ${genre} appliqué`, 'info');
+            });
+        });
+        
         // Filtres de catégories
         categoryFilters.forEach(filter => {
             filter.addEventListener('click', function(e) {
                 e.preventDefault();
                 const category = this.getAttribute('data-category');
                 setActiveCategory(category);
-            });
-        });
-        
-        // Filtres de genres
-        genreFilters.forEach(filter => {
-            filter.addEventListener('click', function(e) {
-                e.preventDefault();
-                const genre = this.getAttribute('data-genre');
-                setActiveGenre(genre);
             });
         });
         
@@ -140,6 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // [RESTE DU CODE EXISTANT - toutes les autres fonctions restent identiques]
     // Gestion de la recherche
     function handleSearch() {
         const query = globalSearch.value;
@@ -155,44 +474,235 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function performSearch() {
-        const query = globalSearch.value.trim();
+        const query = globalSearch ? globalSearch.value.trim() : '';
+        
         if (query) {
             performSearchWithQuery(query);
+        } else if (selectedTags.length > 0) {
+            // Recherche par tags seulement
+            searchThreadsByTags(selectedTags);
+        } else {
+            showNotification('🔍 Veuillez saisir un terme de recherche ou sélectionner des tags', 'warning');
         }
     }
     
     function performSearchWithQuery(query) {
         showNotification(`🔍 Recherche: "${query}"`, 'info');
         
-        // Simuler les résultats de recherche
-        setTimeout(() => {
-            highlightSearchResults(query);
-            showNotification(`✅ ${Math.floor(Math.random() * 50) + 10} résultats trouvés`, 'success');
-        }, 800);
-    }
-    
-    function highlightSearchResults(query) {
-        // Animer les cartes qui correspondent à la recherche
-        const allCards = document.querySelectorAll('.trending-item, .artist-card, .album-card, .playlist-discover-card');
-        allCards.forEach((card, index) => {
-            if (Math.random() < 0.3) { // 30% de correspondance simulée
-                card.style.border = '2px solid rgba(102, 126, 234, 0.5)';
-                card.style.transform = 'scale(1.02)';
-                
-                setTimeout(() => {
-                    card.style.border = '';
-                    card.style.transform = '';
-                }, 2000);
+        // Afficher la section des résultats et masquer les sections de découverte
+        if (searchResults) {
+            searchResults.style.display = 'block';
+            const resultsTitle = document.getElementById('results-title');
+            if (resultsTitle) {
+                resultsTitle.textContent = `Résultats pour "${query}"`;
             }
-        });
+        }
+        
+        if (discoverSections) {
+            discoverSections.style.display = 'none';
+        }
+        
+        // Afficher le loading
+        const searchLoading = document.getElementById('search-loading');
+        if (searchLoading) {
+            searchLoading.style.display = 'block';
+        }
+        
+        // Effectuer la recherche réelle dans les threads via l'API
+        searchThreadsInDatabase(query)
+            .then(results => {
+                if (searchLoading) {
+                    searchLoading.style.display = 'none';
+                }
+                
+                // Construire le message de recherche
+                let searchMessage = `"${query}"`;
+                if (selectedTags.length > 0) {
+                    searchMessage += ` + tags: ${selectedTags.join(' + ')}`;
+                }
+                
+                displayThreadSearchResults(results, searchMessage);
+                
+                if (selectedTags.length > 0) {
+                    showNotification(`✅ ${results.length} thread(s) trouvé(s) avec le texte ET tous les tags`, 'success');
+                } else {
+                    showNotification(`✅ ${results.length} thread(s) trouvé(s)`, 'success');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Erreur lors de la recherche:', error);
+                if (searchLoading) {
+                    searchLoading.style.display = 'none';
+                }
+                showNotification('❌ Erreur lors de la recherche', 'error');
+                displayNoResults(query);
+            });
     }
     
-    function resetSearch() {
-        // Réinitialiser l'affichage
-        const allCards = document.querySelectorAll('.trending-item, .artist-card, .album-card, .playlist-discover-card');
-        allCards.forEach(card => {
-            card.style.display = 'block';
-            card.style.opacity = '1';
+    // NOUVELLE FONCTION: Rechercher les threads dans la base de données
+    async function searchThreadsInDatabase(query) {
+        try {
+            // Construire l'URL de recherche avec les paramètres
+            const searchParams = new URLSearchParams();
+            searchParams.append('q', query);
+            
+            // Ajouter les tags sélectionnés
+            if (selectedTags.length > 0) {
+                searchParams.append('tags', selectedTags.join(','));
+            }
+            
+            const response = await fetch(`/api/public/threads/search?${searchParams.toString()}`);
+            
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('🔍 Résultats de recherche reçus:', data);
+            
+            // L'API retourne {success: true, data: {threads: [...], count: ...}}
+            if (data.success && data.data && data.data.threads) {
+                return data.data.threads;
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('❌ Erreur lors de la recherche de threads:', error);
+            throw error;
+        }
+    }
+    
+    // NOUVELLE FONCTION: Afficher les résultats de recherche de threads
+    function displayThreadSearchResults(threads, query) {
+        const resultsList = document.getElementById('results-list');
+        if (!resultsList) return;
+        
+        if (threads.length === 0) {
+            displayNoResults(query);
+            return;
+        }
+        
+        let html = `
+            <div class="results-section">
+                <h3>🧵 Discussions trouvées (${threads.length})</h3>
+                <div class="results-grid thread-results">
+        `;
+        
+        threads.forEach(thread => {
+            html += createThreadResultHTML(thread);
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        resultsList.innerHTML = html;
+        
+        // Réattacher les événements aux nouveaux éléments
+        reattachThreadEventListeners();
+    }
+    
+    // NOUVELLE FONCTION: Créer le HTML pour un thread dans les résultats
+    function createThreadResultHTML(thread) {
+        const timeAgo = formatTimeAgo(thread.created_at || thread.CreatedAt);
+        const likes = thread.likes || thread.Likes || 0;
+        const comments = thread.comments || thread.Comments || 0;
+        const author = thread.author || thread.Author || 'Utilisateur';
+        const title = thread.title || thread.Title || 'Sans titre';
+        const content = thread.content || thread.Content || '';
+        const threadId = thread.id || thread.ID;
+        
+        // Extraire les tags si disponibles
+        let tagsHTML = '';
+        if (thread.tags && Array.isArray(thread.tags)) {
+            tagsHTML = thread.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+        }
+        
+        return `
+            <div class="thread-result-item" data-thread-id="${threadId}">
+                <div class="thread-result-header">
+                    <div class="user-pic">${author.substring(0, 2).toUpperCase()}</div>
+                    <div class="thread-result-meta">
+                        <h4>${author}</h4>
+                        <span class="thread-result-time">${timeAgo}</span>
+                    </div>
+                </div>
+                <div class="thread-result-content">
+                    <h3 class="thread-result-title">${title}</h3>
+                    <p class="thread-result-text">${content.substring(0, 150)}${content.length > 150 ? '...' : ''}</p>
+                    ${tagsHTML ? `<div class="thread-result-tags">${tagsHTML}</div>` : ''}
+                </div>
+                <div class="thread-result-stats">
+                    <span class="stat">❤️ ${likes}</span>
+                    <span class="stat">💬 ${comments}</span>
+                    <a href="/thread/${threadId}" class="view-thread-btn">Voir le thread →</a>
+                </div>
+            </div>
+        `;
+    }
+    
+    // NOUVELLE FONCTION: Afficher "aucun résultat"
+    function displayNoResults(query) {
+        const resultsList = document.getElementById('results-list');
+        if (!resultsList) return;
+        
+        resultsList.innerHTML = `
+            <div class="no-results">
+                <h3>Aucun thread trouvé</h3>
+                <p>Aucun thread ne correspond à votre recherche "${query}".</p>
+                <div class="search-suggestions">
+                    <h4>Suggestions :</h4>
+                    <ul>
+                        <li>Vérifiez l'orthographe de vos mots-clés</li>
+                        <li>Essayez des termes plus généraux</li>
+                        <li>Utilisez les filtres par tags</li>
+                        <li>Recherchez par nom d'artiste ou genre musical</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+    
+    // NOUVELLE FONCTION: Formater le temps relatif
+    function formatTimeAgo(dateString) {
+        if (!dateString) return 'Récemment';
+        
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) return 'À l\'instant';
+        if (diffInSeconds < 3600) return `il y a ${Math.floor(diffInSeconds / 60)}min`;
+        if (diffInSeconds < 86400) return `il y a ${Math.floor(diffInSeconds / 3600)}h`;
+        if (diffInSeconds < 2592000) return `il y a ${Math.floor(diffInSeconds / 86400)}j`;
+        
+        return date.toLocaleDateString('fr-FR');
+    }
+    
+    // NOUVELLE FONCTION: Réattacher les événements pour les threads
+    function reattachThreadEventListeners() {
+        // Gérer les clics sur les threads pour navigation
+        document.querySelectorAll('.thread-result-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Ne pas naviguer si on clique sur le bouton "Voir le thread"
+                if (e.target.classList.contains('view-thread-btn')) {
+                    return;
+                }
+                
+                const threadId = this.getAttribute('data-thread-id');
+                if (threadId) {
+                    window.location.href = `/thread/${threadId}`;
+                }
+            });
+        });
+        
+        // Gérer les boutons "Voir le thread"
+        document.querySelectorAll('.view-thread-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // La navigation se fait via le href
+            });
         });
     }
     
@@ -269,15 +779,6 @@ document.addEventListener('DOMContentLoaded', function() {
         applyFilters();
     }
     
-    function setActiveGenre(genre) {
-        // Mettre à jour la navigation
-        genreFilters.forEach(filter => filter.classList.remove('active'));
-        document.querySelector(`[data-genre="${genre}"]`).classList.add('active');
-        
-        currentGenre = genre;
-        applyFilters();
-    }
-    
     function applyFilters() {
         // Filtrer les éléments visibles
         const allItems = document.querySelectorAll('.artist-card, .album-card, .playlist-discover-card');
@@ -319,6 +820,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         showNotification(`Filtres appliqués: ${currentCategory} ${currentGenre ? '• ' + currentGenre : ''}`, 'info');
     }
+    
+    // [TOUTES LES AUTRES FONCTIONS RESTENT IDENTIQUES]
+    // Actions de lecture, artistes, playlists, etc... (code existant)
     
     // Actions de lecture
     function handlePlay(e) {
@@ -705,5 +1209,64 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     console.log('🔍 Page Découverte Rythm\'it initialisée avec succès !');
-    console.log('🎵 Fonctionnalités: Recherche avancée, Filtres dynamiques, Recommandations personnalisées');
+    console.log('🎵 Fonctionnalités: Recherche avancée, Filtres dynamiques, Navigation améliorée');
 });
+
+// Fonctions pour la navigation dans la sidebar
+function scrollToSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+        showNotification(`📍 Navigation vers ${sectionId}`, 'info');
+    }
+}
+
+function filterByGenre(genre) {
+    // Activer le filtre de genre
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => btn.classList.remove('active'));
+    
+    // Chercher s'il y a un bouton de filtre pour ce genre
+    const genreBtn = Array.from(filterBtns).find(btn => 
+        btn.textContent.toLowerCase().includes(genre.toLowerCase())
+    );
+    
+    if (genreBtn) {
+        genreBtn.classList.add('active');
+    }
+    
+    // Filtrer les éléments par genre
+    const allItems = document.querySelectorAll('.trending-item, .artist-card, .album-card, .playlist-discover-card');
+    allItems.forEach(item => {
+        const itemGenre = item.getAttribute('data-genre');
+        if (!itemGenre || itemGenre.toLowerCase().includes(genre.toLowerCase())) {
+            item.style.display = 'block';
+            item.style.opacity = '1';
+        } else {
+            item.style.opacity = '0.3';
+        }
+    });
+    
+    showNotification(`🎵 Filtré par genre: ${genre}`, 'success');
+    
+    // Scroll vers la section des résultats
+    setTimeout(() => {
+        const firstSection = document.querySelector('.discover-section');
+        if (firstSection) {
+            firstSection.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    }, 300);
+}
+
+// Export pour utilisation dans d'autres scripts
+window.initializeEnhancedNavigation = initializeEnhancedNavigation;
+window.handleInternalAnchor = handleInternalAnchor;
+window.updateActiveNavigation = updateActiveNavigation;
+window.scrollToSection = scrollToSection;
+window.filterByGenre = filterByGenre;

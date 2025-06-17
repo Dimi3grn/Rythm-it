@@ -1,0 +1,481 @@
+{{define "thread.html"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/styles/css/index.css">
+    <link rel="stylesheet" href="/styles/css/friends.css">
+    <link rel="stylesheet" href="/styles/css/thread.css">
+    
+    <!-- CSS INLINE POUR FORCER LE DROPDOWN -->
+    <style>
+        /* DROPDOWN FORCE BRUTALE */
+        .comments-filter {
+            position: relative !important;
+            z-index: 1001 !important;
+        }
+        
+        .comments-filter .custom-dropdown {
+            position: relative !important;
+            z-index: 1001 !important;
+        }
+        
+        .comments-filter .custom-dropdown .dropdown-trigger {
+            all: unset !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            background: #2a2d3a !important;
+            border: 1px solid #3d4354 !important;
+            color: #e4e6ea !important;
+            padding: 10px 14px !important;
+            border-radius: 10px !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            min-width: 140px !important;
+            justify-content: space-between !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+            outline: none !important;
+            text-decoration: none !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+            z-index: 1001 !important;
+        }
+        
+        .comments-filter .custom-dropdown .dropdown-trigger:hover {
+            background: #343849 !important;
+            border-color: #667eea !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
+        }
+        
+        .comments-filter .dropdown-menu {
+            position: absolute !important;
+            top: calc(100% + 8px) !important;
+            right: 0 !important;
+            z-index: 9999 !important;
+            background: #242731 !important;
+            border: 1px solid #3d4354 !important;
+            border-radius: 12px !important;
+            padding: 8px 0 !important;
+            min-width: 180px !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            transform: translateY(-12px) scale(0.95) !important;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+            backdrop-filter: blur(20px) !important;
+            box-sizing: border-box !important;
+        }
+        
+        .comments-filter .dropdown-menu.active {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateY(0) scale(1) !important;
+        }
+        
+        .comments-filter .dropdown-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding: 12px 16px !important;
+            color: #b3b6c5 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            position: relative !important;
+            overflow: hidden !important;
+            background: transparent !important;
+            text-decoration: none !important;
+            border: none !important;
+            outline: none !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+            text-align: left !important;
+            font-family: inherit !important;
+        }
+        
+        .comments-filter .dropdown-item:hover {
+            background: rgba(102, 126, 234, 0.08) !important;
+            color: #e4e6ea !important;
+            transform: translateX(4px) !important;
+            text-decoration: none !important;
+        }
+        
+        /* S'assurer que les commentaires n'interfèrent pas */
+        .comments-list {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        .comment-item {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <a href="/" class="brand">
+                <div class="brand-icon">
+                    <div class="wave-animation">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                </div>
+                <span class="brand-text">Rythm'it</span>
+            </a>
+            <div class="header-actions">
+                <a href="/hub" class="header-btn">
+                    <span class="nav-icon">🎯</span>
+                    Hub
+                </a>
+                <a href="/" class="header-btn">
+                    <span class="nav-icon">🏠</span>
+                    Accueil
+                </a>
+                <a href="/discover" class="header-btn">
+                    <span class="nav-icon">🔍</span>
+                    Découvrir
+                </a>
+                <a href="/friends" class="header-btn">
+                    <span class="nav-icon">👥</span>
+                    Amis
+                </a>
+                <div class="notification-container">
+                    <a href="/messages" class="header-btn notification-btn">
+                        <span class="nav-icon">💬</span>
+                        Messages
+                        {{if .Messages}}
+                        <span class="notification-badge">{{len .Messages}}</span>
+                        {{end}}
+                    </a>
+                </div>
+                {{if .IsLoggedIn}}
+                <a href="/profile" class="header-btn primary">Profil</a>
+                <a href="/logout" class="header-btn logout-btn" title="Se déconnecter">🚪</a>
+                {{else}}
+                <a href="/signin" class="header-btn primary">Connexion</a>
+                {{end}}
+            </div>
+        </header>
+
+        <div class="thread-layout">
+            <!-- Bouton retour -->
+            <div class="back-navigation">
+                <a href="/" class="back-btn">
+                    <span class="back-icon">←</span>
+                    Retour au feed
+                </a>
+            </div>
+
+            <main class="thread-main">
+                {{if .ErrorMessage}}
+                <div class="error-message">{{.ErrorMessage}}</div>
+                {{end}}
+                
+                {{if .SuccessMessage}}
+                <div class="success-message">{{.SuccessMessage}}</div>
+                {{end}}
+
+                <!-- Thread principal -->
+                {{if .Thread}}
+                <article class="main-thread">
+                    <div class="thread-header">
+                        <div class="user-pic large">{{.Thread.AuthorAvatar}}</div>
+                        <div class="user-details">
+                            <h2>{{.Thread.Author}}</h2>
+                            <div class="thread-meta">
+                                <span class="post-time">{{.Thread.TimeAgo}}</span>
+                                <span class="separator">•</span>
+                                <span class="genre-tag">{{.Thread.Genre}}</span>
+                                {{if ne .Thread.Author "YOU"}}
+                                <span class="separator">•</span>
+                                <span class="friend-badge">Ami</span>
+                                {{end}}
+                            </div>
+                        </div>
+                        <div class="thread-actions">
+                            {{if or (eq .Thread.Author "YOU") (and .User .User.IsAdmin)}}
+                            <a href="/thread/{{.Thread.ID}}/edit" class="action-btn edit-btn" title="Modifier le thread">✏️</a>
+                            <button class="action-btn delete-btn" title="Supprimer le thread" onclick="deleteThread('{{.Thread.ID}}')">🗑️</button>
+                            {{end}}
+                            <button class="action-btn" title="Partager">📤</button>
+                            <button class="action-btn" title="Signaler">⚠️</button>
+                            <button class="action-btn" title="Plus">⋯</button>
+                        </div>
+                    </div>
+
+                    <div class="thread-content">
+                        <div class="thread-title">
+                            <h1>{{.Thread.Title}}</h1>
+                        </div>
+                        <div class="thread-text">
+                            <p>{{.Thread.Content}}</p>
+                        </div>
+                        {{if .Thread.ImageURL}}
+                        <div class="thread-image">
+                            <img src="{{.Thread.ImageURL}}" alt="Image du thread" style="max-width: 100%; border-radius: 8px; margin: 15px 0;">
+                        </div>
+                        {{end}}
+
+                        <div class="music-card">
+                            <div class="album-art">
+                                <div class="play-overlay">
+                                    <button class="play-control large">▶️</button>
+                                </div>
+                                <div class="track-duration">8:47</div>
+                            </div>
+                            <div class="track-info">
+                                <h3>Ethereal Landscapes</h3>
+                                <p class="artist">Ambient Dreams</p>
+                                <p class="album">Celestial Echoes • 2024</p>
+                                <div class="track-tags">
+                                    <span class="tag">Ambient</span>
+                                    <span class="tag">Atmospheric</span>
+                                    <span class="tag">Chill</span>
+                                </div>
+                            </div>
+                            <div class="track-actions">
+                                <button class="track-btn" title="Ajouter aux favoris">❤️</button>
+                                <button class="track-btn" title="Ajouter à une playlist">➕</button>
+                                <button class="track-btn" title="Partager">📤</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="thread-engagement">
+                        <div class="engagement-stats">
+                            <button class="engagement-btn {{if .Thread.IsLiked}}liked{{end}}" data-thread-id="{{.Thread.ID}}" onclick="toggleLike('{{.Thread.ID}}')">
+                                <span class="btn-icon">❤️</span>
+                                <span class="btn-count">{{.Thread.Likes}}</span>
+                                <span class="btn-label">J'aime</span>
+                            </button>
+                            <button class="engagement-btn">
+                                <span class="btn-icon">💬</span>
+                                <span class="btn-count">{{.Thread.Comments}}</span>
+                                <span class="btn-label">Commentaires</span>
+                            </button>
+                            <button class="engagement-btn">
+                                <span class="btn-icon">🔄</span>
+                                <span class="btn-count">{{.Thread.Shares}}</span>
+                                <span class="btn-label">Partages</span>
+                            </button>
+                            <button class="engagement-btn">
+                                <span class="btn-icon">🔖</span>
+                                <span class="btn-label">Sauvegarder</span>
+                            </button>
+                        </div>
+                        
+                        <div class="engagement-details">
+                            <div class="liked-by">
+                                <span class="liked-text">Aimé par</span>
+                                <div class="liked-avatars">
+                                    <div class="user-pic tiny">MX</div>
+                                    <div class="user-pic tiny">SB</div>
+                                    <div class="user-pic tiny">RH</div>
+                                    <span class="more-likes">et 31 autres</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Compositeur de commentaire -->
+                {{if .IsLoggedIn}}
+                <div class="comment-composer">
+                    <div class="composer-header">
+                        <h3>Ajouter un commentaire</h3>
+                    </div>
+                    <form method="POST" action="/thread/{{.Thread.ID}}" class="composer-content" id="comment-form">
+                        <div class="user-pic">{{if .User}}{{.User.Avatar}}{{else}}??{{end}}</div>
+                        <div class="composer-input-area">
+                            <textarea name="comment" class="comment-input" placeholder="Partagez votre avis sur cette découverte musicale..." required></textarea>
+                            <div class="composer-toolbar">
+                                <div class="toolbar-left">
+                                    <button type="button" class="tool-btn" title="Ajouter une piste">🎵</button>
+                                    <button type="button" class="tool-btn" title="Joindre une image">📷</button>
+                                    <button type="button" class="tool-btn" title="Emoji">😊</button>
+                                </div>
+                                <button type="submit" class="comment-btn">Commenter</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {{else}}
+                <div class="comment-composer">
+                    <div class="composer-content">
+                        <p style="text-align: center; padding: 20px;">
+                            <a href="/signin">Connectez-vous</a> pour ajouter un commentaire
+                        </p>
+                    </div>
+                </div>
+                {{end}}
+
+                <!-- Commentaires -->
+                <div class="comments-section">
+                    <div class="comments-header">
+                        <h3>Commentaires ({{len .Comments}})</h3>
+                        <div class="comments-filter">
+                            <div class="custom-dropdown" id="sortDropdown">
+                                <button class="dropdown-trigger" id="sortTrigger">
+                                    <span class="dropdown-text">Plus récents</span>
+                                    <span class="dropdown-arrow">▼</span>
+                                </button>
+                                <div class="dropdown-menu" id="sortMenu">
+                                    <div class="dropdown-item active" data-value="newest">
+                                        <span class="item-icon">🕒</span>
+                                        <span class="item-text">Plus récents</span>
+                                    </div>
+                                    <div class="dropdown-item" data-value="oldest">
+                                        <span class="item-icon">📅</span>
+                                        <span class="item-text">Plus anciens</span>
+                                    </div>
+                                    <div class="dropdown-item" data-value="most_liked">
+                                        <span class="item-icon">❤️</span>
+                                        <span class="item-text">Les plus aimés</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comments-list">
+                        {{range .Comments}}
+                        <div class="comment-item" data-likes="{{.Likes}}" data-timestamp="{{.ID}}">
+                            <div class="comment-avatar">
+                                <div class="user-pic">{{.AuthorAvatar}}</div>
+                            </div>
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <h4>{{.Author}}</h4>
+                                    <span class="comment-time">{{.TimeAgo}}</span>
+                                    {{if .IsOP}}
+                                            <span class="op-badge">OP</span>
+                                    {{end}}
+                                </div>
+                                <div class="comment-text">
+                                    {{.Content}}
+                                </div>
+                                {{if .ImageURL}}
+                                <div class="comment-image">
+                                    <img src="{{.ImageURL}}" alt="Image du commentaire" style="max-width: 100%; border-radius: 6px; margin: 8px 0;">
+                                </div>
+                                {{end}}
+                                <div class="comment-actions">
+                                    <button class="comment-action like-btn {{if .IsLiked}}liked{{end}}" 
+                                            data-message-id="{{.ID}}">
+                                        <span class="action-icon">❤️</span>
+                                        <span class="action-count">{{.Likes}}</span>
+                                        <span class="action-label">J'aime</span>
+                                    </button>
+                                    <button class="comment-action reply-btn">
+                                        <span class="action-icon">💬</span>
+                                        <span class="action-label">Répondre</span>
+                                    </button>
+                                    <button class="comment-action share-btn">
+                                        <span class="action-icon">📤</span>
+                                        <span class="action-label">Partager</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+
+                    {{if gt (len .Comments) 10}}
+                    <div class="load-more-comments">
+                        <button class="load-more-btn">Charger plus de commentaires</button>
+                    </div>
+                    {{end}}
+                </div>
+                {{end}}
+            </main>
+
+            <!-- Sidebar droite -->
+            <aside class="thread-sidebar">
+                <div class="widget">
+                    <h3>🎵 Posts similaires</h3>
+                    <div class="similar-posts">
+                        <div class="similar-post">
+                            <div class="similar-avatar">
+                                <div class="user-pic small">VW</div>
+                            </div>
+                            <div class="similar-content">
+                                <h5>VibeWave</h5>
+                                <p>Une autre perle ambient...</p>
+                                <span class="similar-time">il y a 2h</span>
+                            </div>
+                        </div>
+                        
+                        <div class="similar-post">
+                            <div class="similar-avatar">
+                                <div class="user-pic small">DS</div>
+                            </div>
+                            <div class="similar-content">
+                                <h5>DeepSounds</h5>
+                                <p>Collection ambient 2024</p>
+                                <span class="similar-time">il y a 4h</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <h3>🎧 Profil de AudioSeeker</h3>
+                    <div class="user-profile-mini">
+                        <div class="profile-stats">
+                            <div class="stat">
+                                <span class="stat-number">157</span>
+                                <span class="stat-label">Posts</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">2.3k</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">892</span>
+                                <span class="stat-label">Following</span>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="follow-btn">✓ Suivi</button>
+                            <button class="message-btn">💬 Message</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <h3>🔥 Tendances</h3>
+                    <div class="trending-tags">
+                        <a href="#" class="trend-tag">#ambient</a>
+                        <a href="#" class="trend-tag">#atmospheric</a>
+                        <a href="#" class="trend-tag">#chill</a>
+                        <a href="#" class="trend-tag">#meditation</a>
+                        <a href="#" class="trend-tag">#electronic</a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+
+    <script src="/styles/js/image-upload.js"></script>
+    <script src="/styles/js/index.js"></script>
+    <script src="/styles/js/friends.js"></script>
+    <script src="/styles/js/thread.js"></script>
+</body>
+</html>
+{{end}}

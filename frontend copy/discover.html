@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Découvrir - Rythm'it</title>
+    <link rel="stylesheet" href="styles/css/index.css">
+    <link rel="stylesheet" href="styles/css/friends.css">
+    <link rel="stylesheet" href="styles/css/discover.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+    <a href="index.html" class="brand">
+        <div class="brand-icon">
+            <div class="wave-animation">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+        </div>
+        <span class="brand-text">Rythm'it</span>
+    </a>
+    <div class="header-actions">
+        <a href="hub.html" class="header-btn">
+            <span class="nav-icon">🎯</span>
+            Hub
+        </a>
+        <a href="index.html" class="header-btn">
+            <span class="nav-icon">🏠</span>
+            Accueil
+        </a>
+        <a href="discover.html" class="header-btn active">
+            <span class="nav-icon">🔍</span>
+            Découvrir
+        </a>
+        <a href="friends.html" class="header-btn">
+            <span class="nav-icon">👥</span>
+            Amis
+        </a>
+        <div class="notification-container">
+            <a href="messages.html" class="header-btn notification-btn">
+                <span class="nav-icon">💬</span>
+                Messages
+                <span class="notification-badge">3</span>
+            </a>
+        </div>
+        <a href="profile.html" class="header-btn primary">Profil</a>
+    </div>
+</header>
+
+        <div class="discover-layout">
+            <aside class="sidebar-left">
+    <div class="nav-section">
+    <h3>Navigation</h3>
+    <a href="index.html" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        Accueil
+    </a>
+    <a href="discover.html" class="nav-item active">
+        <span class="nav-icon">🔍</span>
+        Découvrir
+    </a>
+    <a href="#" class="nav-item">
+        <span class="nav-icon">🔥</span>
+        Tendances
+    </a>
+    <a href="#" class="nav-item">
+        <span class="nav-icon">📚</span>
+        Playlists
+    </a>
+</div>
+
+    <div class="nav-section">
+        <h3>Social</h3>
+        <a href="friends.html" class="nav-item">
+            <span class="nav-icon">👥</span>
+            Mes Amis
+            <span class="status-indicator online"></span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="nav-icon">💬</span>
+            Messages
+            <span class="message-count">3</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎵</span>
+            Sessions Live
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <h3>Genres</h3>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎵</span>
+            Électronique
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎸</span>
+            Rock/Metal
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎷</span>
+            Jazz/Blues
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎤</span>
+            Hip-Hop
+        </a>
+    </div>
+</aside>
+
+            <main class="discover-content">
+                <div class="discover-header">
+                    <div class="search-section">
+                        <h1>Découvrir la musique</h1>
+                        <div class="search-container">
+                            <input type="text" class="global-search" placeholder="Rechercher des artistes, albums, playlists...">
+                            <button class="search-btn">🔍</button>
+                            <button class="voice-search-btn" title="Recherche vocale">🎤</button>
+                        </div>
+                    </div>
+                    <div class="discover-filters">
+                        <button class="filter-btn active" data-filter="all">Tout</button>
+                        <button class="filter-btn" data-filter="artists">Artistes</button>
+                        <button class="filter-btn" data-filter="albums">Albums</button>
+                        <button class="filter-btn" data-filter="playlists">Playlists</button>
+                        <button class="filter-btn" data-filter="users">Utilisateurs</button>
+                    </div>
+                </div>
+
+                <div class="discover-sections">
+                    <!-- Section Trending Now -->
+                    <section class="discover-section" id="trending">
+                        <div class="section-header">
+                            <h2>🔥 Tendances du moment</h2>
+                            <a href="#" class="see-all-btn">Voir tout →</a>
+                        </div>
+                        <div class="trending-carousel">
+                            <div class="trending-item featured">
+                                <div class="trending-cover">
+                                    <div class="play-overlay">
+                                        <button class="play-btn-large">▶️</button>
+                                    </div>
+                                    <div class="trending-rank">#1</div>
+                                </div>
+                                <div class="trending-info">
+                                    <h3>Synthwave Dreams</h3>
+                                    <p>Electronic Mix</p>
+                                    <div class="trending-stats">
+                                        <span>🔥 2.3M écoutes</span>
+                                        <span>📈 +45% cette semaine</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="trending-item">
+                                <div class="trending-cover">
+                                    <div class="play-overlay">
+                                        <button class="play-btn-large">▶️</button>
+                                    </div>
+                                    <div class="trending-rank">#2</div>
+                                </div>
+                                <div class="trending-info">
+                                    <h3>Midnight Jazz</h3>
+                                    <p>Smooth Collection</p>
+                                    <div class="trending-stats">
+                                        <span>🔥 1.8M écoutes</span>
+                                        <span>📈 +32% cette semaine</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="trending-item">
+                                <div class="trending-cover">
+                                    <div class="play-overlay">
+                                        <button class="play-btn-large">▶️</button>
+                                    </div>
+                                    <div class="trending-rank">#3</div>
+                                </div>
+                                <div class="trending-info">
+                                    <h3>Indie Vibes 2025</h3>
+                                    <p>Alternative Rock</p>
+                                    <div class="trending-stats">
+                                        <span>🔥 1.5M écoutes</span>
+                                        <span>📈 +28% cette semaine</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section Nouveaux Artistes -->
+                    <section class="discover-section" id="new-artists">
+                        <div class="section-header">
+                            <h2>✨ Artistes émergents</h2>
+                            <a href="#" class="see-all-btn">Voir tout →</a>
+                        </div>
+                        <div class="artists-grid">
+                            <div class="artist-card" data-category="new" data-genre="electronic">
+                                <div class="artist-avatar">
+                                    <div class="artist-pic">LW</div>
+                                    <div class="artist-status online"></div>
+                                </div>
+                                <div class="artist-info">
+                                    <h4>Luna Waves</h4>
+                                    <p>Electronic • 3.4k followers</p>
+                                    <div class="artist-tags">
+                                        <span class="tag">Ambient</span>
+                                        <span class="tag">Chill</span>
+                                    </div>
+                                </div>
+                                <div class="artist-actions">
+                                    <button class="follow-btn">+ Suivre</button>
+                                    <button class="play-artist-btn">▶️</button>
+                                </div>
+                            </div>
+
+                            <div class="artist-card" data-category="new" data-genre="electronic">
+                                <div class="artist-avatar">
+                                    <div class="artist-pic">DF</div>
+                                    <div class="artist-status online"></div>
+                                </div>
+                                <div class="artist-info">
+                                    <h4>Digital Forest</h4>
+                                    <p>Synthwave • 2.1k followers</p>
+                                    <div class="artist-tags">
+                                        <span class="tag">Synthwave</span>
+                                        <span class="tag">Retro</span>
+                                    </div>
+                                </div>
+                                <div class="artist-actions">
+                                    <button class="follow-btn">+ Suivre</button>
+                                    <button class="play-artist-btn">▶️</button>
+                                </div>
+                            </div>
+
+                            <div class="artist-card" data-category="new" data-genre="jazz">
+                                <div class="artist-avatar">
+                                    <div class="artist-pic">NS</div>
+                                    <div class="artist-status away"></div>
+                                </div>
+                                <div class="artist-info">
+                                    <h4>Neon Saxophone</h4>
+                                    <p>Jazz Fusion • 1.8k followers</p>
+                                    <div class="artist-tags">
+                                        <span class="tag">Jazz</span>
+                                        <span class="tag">Fusion</span>
+                                    </div>
+                                </div>
+                                <div class="artist-actions">
+                                    <button class="follow-btn">+ Suivre</button>
+                                    <button class="play-artist-btn">▶️</button>
+                                </div>
+                            </div>
+
+                            <div class="artist-card" data-category="new" data-genre="rock">
+                                <div class="artist-avatar">
+                                    <div class="artist-pic">CR</div>
+                                    <div class="artist-status offline"></div>
+                                </div>
+                                <div class="artist-info">
+                                    <h4>Cosmic Rush</h4>
+                                    <p>Progressive Rock • 2.7k followers</p>
+                                    <div class="artist-tags">
+                                        <span class="tag">Progressive</span>
+                                        <span class="tag">Space Rock</span>
+                                    </div>
+                                </div>
+                                <div class="artist-actions">
+                                    <button class="follow-btn">+ Suivre</button>
+                                    <button class="play-artist-btn">▶️</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section Albums Populaires -->
+                    <section class="discover-section" id="popular-albums">
+                        <div class="section-header">
+                            <h2>💿 Albums populaires</h2>
+                            <a href="#" class="see-all-btn">Voir tout →</a>
+                        </div>
+                        <div class="albums-grid">
+                            <div class="album-card" data-category="trending" data-genre="electronic">
+                                <div class="album-cover">
+                                    <div class="play-overlay">
+                                        <button class="play-btn-medium">▶️</button>
+                                    </div>
+                                </div>
+                                <div class="album-info">
+                                    <h4>Discovery</h4>
+                                    <p>Daft Punk</p>
+                                    <div class="album-stats">
+                                        <span>14 titres</span>
+                                        <span>61 min</span>
+                                    </div>
+                                    <div class="album-rating">
+                                        <span class="stars">⭐⭐⭐⭐⭐</span>
+                                        <span class="rating-count">(1.2k)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="album-card" data-category="trending" data-genre="rock">
+                                <div class="album-cover">
+                                    <div class="play-overlay">
+                                        <button class="play-btn-medium">▶️</button>
+                                    </div>
+                                </div>
+                                <div class="album-info">
+                                    <h4>The Dark Side of the Moon</h4>
+                                    <p>Pink Floyd</p>
+                                    <div class="album-stats">
+                                        <span>10 titres</span>
+                                        <span>43 min</span>
+                                    </div>
+                                    <div class="album-rating">
+                                        <span class="stars">⭐⭐⭐⭐⭐</span>
+                                        <span class="rating-count">(2.8k)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="album-card" data-category="new" data-genre="jazz">
+                                <div class="album-cover">
+                                    <div class="play-overlay">
+                                        <button class="play-btn-medium">▶️</button>
+                                    </div>
+                                </div>
+                                <div class="album-info">
+                                    <h4>Kind of Blue</h4>
+                                    <p>Miles Davis</p>
+                                    <div class="album-stats">
+                                        <span>5 titres</span>
+                                        <span>46 min</span>
+                                    </div>
+                                    <div class="album-rating">
+                                        <span class="stars">⭐⭐⭐⭐⭐</span>
+                                        <span class="rating-count">(987)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="album-card" data-category="recommended" data-genre="ambient">
+                                <div class="album-cover">
+                                    <div class="play-overlay">
+                                        <button class="play-btn-medium">▶️</button>
+                                    </div>
+                                </div>
+                                <div class="album-info">
+                                    <h4>Music for Airports</h4>
+                                    <p>Brian Eno</p>
+                                    <div class="album-stats">
+                                        <span>4 titres</span>
+                                        <span>48 min</span>
+                                    </div>
+                                    <div class="album-rating">
+                                        <span class="stars">⭐⭐⭐⭐⭐</span>
+                                        <span class="rating-count">(654)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section Playlists Communautaires -->
+                    <section class="discover-section" id="community-playlists">
+                        <div class="section-header">
+                            <h2>👥 Playlists de la communauté</h2>
+                            <a href="#" class="see-all-btn">Voir tout →</a>
+                        </div>
+                        <div class="playlists-grid">
+                            <div class="playlist-discover-card" data-category="trending">
+                                <div class="playlist-cover-discover">
+                                    <div class="play-overlay">
+                                        <button class="play-btn-medium">▶️</button>
+                                    </div>
+                                    <div class="playlist-duration">2h 45min</div>
+                                </div>
+                                <div class="playlist-info">
+                                    <h4>🌙 Late Night Coding</h4>
+                                    <p>par <strong>DevBeats</strong></p>
+                                    <div class="playlist-stats">
+                                        <span>42 titres</span>
+                                        <span>❤️ 1.2k likes</span>
+                                    </div>
+                                    <div class="playlist-tags">
+                                        <span class="tag">Chill</span>
+                                        <span class="tag">Focus</span>
+                                        <span class="tag">Electronic</span>
+                                    </div>
+                                </div>
+                                <div class="playlist-actions">
+                                    <button class="like-playlist-btn">❤️</button>
+                                    <button class="save-playlist-btn">💾</button>
+                                    <button class="share-playlist-btn">📤</button>
+                                </div>
+                            </div>
+
+                            <div class="playlist-discover-card" data-category="recommended">
+                                <div class="playlist-cover-discover">
+                                    <div class="play-overlay">
+                                        <button class="play-btn-medium">▶️</button>
+                                    </div>
+                                    <div class="playlist-duration">1h 23min</div>
+                                </div>
+                                <div class="playlist-info">
+                                    <h4>🎷 Sunday Jazz Brunch</h4>
+                                    <p>par <strong>JazzMaster</strong></p>
+                                    <div class="playlist-stats">
+                                        <span>23 titres</span>
+                                        <span>❤️ 856 likes</span>
+                                    </div>
+                                    <div class="playlist-tags">
+                                        <span class="tag">Jazz</span>
+                                        <span class="tag">Relax</span>
+                                        <span class="tag">Brunch</span>
+                                    </div>
+                                </div>
+                                <div class="playlist-actions">
+                                    <button class="like-playlist-btn">❤️</button>
+                                    <button class="save-playlist-btn">💾</button>
+                                    <button class="share-playlist-btn">📤</button>
+                                </div>
+                            </div>
+
+                            <div class="playlist-discover-card" data-category="new">
+                                <div class="playlist-cover-discover">
+                                    <div class="play-overlay">
+                                        <button class="play-btn-medium">▶️</button>
+                                    </div>
+                                    <div class="playlist-duration">3h 12min</div>
+                                </div>
+                                <div class="playlist-info">
+                                    <h4>🚗 Road Trip Classics</h4>
+                                    <p>par <strong>WanderlustBeats</strong></p>
+                                    <div class="playlist-stats">
+                                        <span>67 titres</span>
+                                        <span>❤️ 2.1k likes</span>
+                                    </div>
+                                    <div class="playlist-tags">
+                                        <span class="tag">Rock</span>
+                                        <span class="tag">Classic</span>
+                                        <span class="tag">Road Trip</span>
+                                    </div>
+                                </div>
+                                <div class="playlist-actions">
+                                    <button class="like-playlist-btn">❤️</button>
+                                    <button class="save-playlist-btn">💾</button>
+                                    <button class="share-playlist-btn">📤</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section Recommandations Personnalisées -->
+                    <section class="discover-section" id="recommendations">
+                        <div class="section-header">
+                            <h2>🎯 Recommandé pour vous</h2>
+                            <button class="refresh-recommendations">🔄 Actualiser</button>
+                        </div>
+                        <div class="recommendations-container">
+                            <div class="recommendation-card">
+                                <div class="rec-header">
+                                    <h4>🎵 Basé sur vos écoutes récentes</h4>
+                                    <span class="rec-confidence">94% de correspondance</span>
+                                </div>
+                                <div class="rec-content">
+                                    <div class="rec-tracks">
+                                        <div class="rec-track">
+                                            <div class="track-cover-small"></div>
+                                            <div class="track-details">
+                                                <h5>Strobe</h5>
+                                                <p>Deadmau5</p>
+                                            </div>
+                                            <button class="play-rec-btn">▶️</button>
+                                        </div>
+                                        <div class="rec-track">
+                                            <div class="track-cover-small"></div>
+                                            <div class="track-details">
+                                                <h5>Ghosts 'n' Stuff</h5>
+                                                <p>Deadmau5</p>
+                                            </div>
+                                            <button class="play-rec-btn">▶️</button>
+                                        </div>
+                                    </div>
+                                    <button class="explore-rec-btn">Explorer ces recommandations →</button>
+                                </div>
+                            </div>
+
+                            <div class="recommendation-card">
+                                <div class="rec-header">
+                                    <h4>👥 Populaire parmi vos amis</h4>
+                                    <span class="rec-confidence">87% de correspondance</span>
+                                </div>
+                                <div class="rec-content">
+                                    <div class="friend-listening">
+                                        <div class="friend-activity">
+                                            <div class="user-pic tiny">MX</div>
+                                            <span>MixMaster écoute</span>
+                                        </div>
+                                        <div class="activity-track">
+                                            <div class="track-cover-small"></div>
+                                            <div class="track-details">
+                                                <h5>Harder Better Faster Stronger</h5>
+                                                <p>Daft Punk</p>
+                                            </div>
+                                            <button class="play-rec-btn">▶️</button>
+                                        </div>
+                                    </div>
+                                    <button class="explore-rec-btn">Voir l'activité de vos amis →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            <aside class="sidebar-right">
+                <div class="widget">
+                    <h3>🎯 Découverte du jour</h3>
+                    <div class="daily-discovery">
+                        <div class="discovery-cover"></div>
+                        <div class="discovery-info">
+                            <h4>Genre: Synthwave</h4>
+                            <p>Explorez les sonorités rétro-futuristes</p>
+                            <button class="discover-genre-btn">🚀 Explorer</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <h3>📊 Vos statistiques</h3>
+                    <div class="user-stats-summary">
+                        <div class="stat-row">
+                            <span class="stat-label">Cette semaine</span>
+                            <span class="stat-value">12h 34min</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Nouveaux artistes</span>
+                            <span class="stat-value">+3</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Genre favori</span>
+                            <span class="stat-value">Electronic</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <h3>🔮 Tendances à venir</h3>
+                    <div class="upcoming-trends">
+                        <div class="trend-preview">
+                            <div class="trend-icon">🌊</div>
+                            <div class="trend-info">
+                                <h5>Vaporwave Revival</h5>
+                                <p>+234% cette semaine</p>
+                            </div>
+                        </div>
+                        <div class="trend-preview">
+                            <div class="trend-icon">🎮</div>
+                            <div class="trend-info">
+                                <h5>Chiptune 2025</h5>
+                                <p>+189% cette semaine</p>
+                            </div>
+                        </div>
+                        <div class="trend-preview">
+                            <div class="trend-icon">🌙</div>
+                            <div class="trend-info">
+                                <h5>Dark Ambient</h5>
+                                <p>+156% cette semaine</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <h3>🎤 Sessions Live</h3>
+                    <div class="live-sessions">
+                        <div class="live-session">
+                            <div class="live-indicator">🔴 LIVE</div>
+                            <div class="session-info">
+                                <h5>DJ Mix Session</h5>
+                                <p>234 auditeurs</p>
+                            </div>
+                            <button class="join-live-btn">Rejoindre</button>
+                        </div>
+                        <div class="live-session">
+                            <div class="live-indicator">🟡 Bientôt</div>
+                            <div class="session-info">
+                                <h5>Jazz Jam Session</h5>
+                                <p>Dans 15min</p>
+                            </div>
+                            <button class="notify-live-btn">Notifier</button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Modal de recherche avancée -->
+    <div class="advanced-search-modal" id="advancedSearchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Recherche avancée</h3>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-filters">
+                    <div class="filter-group">
+                        <label>Genre</label>
+                        <select class="filter-select">
+                            <option value="">Tous les genres</option>
+                            <option value="electronic">Electronic</option>
+                            <option value="rock">Rock</option>
+                            <option value="jazz">Jazz</option>
+                            <option value="pop">Pop</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Année</label>
+                        <div class="year-range">
+                            <input type="number" placeholder="De" min="1900" max="2025">
+                            <span>à</span>
+                            <input type="number" placeholder="À" min="1900" max="2025">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>Durée</label>
+                        <select class="filter-select">
+                            <option value="">Toutes durées</option>
+                            <option value="short">Moins de 3 min</option>
+                            <option value="medium">3-6 min</option>
+                            <option value="long">Plus de 6 min</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="apply-filters-btn">Appliquer les filtres</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="styles/js/index.js"></script>
+    <script src="styles/js/friends.js"></script>
+    <script src="styles/js/discover.js"></script>
+</body>
+</html>

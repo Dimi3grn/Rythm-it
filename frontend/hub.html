@@ -1,3 +1,4 @@
+{{define "hub.html"}}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -31,7 +32,7 @@
 
         <!-- Grille des pages -->
         <div class="pages-grid">
-            <a href="index.html" class="page-card">
+            <a href="/" class="page-card">
                 <span class="page-icon">🏠</span>
                 <h3>Accueil</h3>
                 <p>Feed principal avec les threads musicaux de votre communauté. Partagez vos découvertes et interagissez avec vos amis.</p>
@@ -46,7 +47,7 @@
                 </div>
             </a>
 
-            <a href="discover.html" class="page-card">
+            <a href="/discover" class="page-card">
                 <span class="page-icon">🔍</span>
                 <h3>Découvrir</h3>
                 <p>Explorez de nouveaux artistes, albums et playlists. Système de recommandations personnalisées et recherche avancée.</p>
@@ -61,7 +62,7 @@
                 </div>
             </a>
 
-            <a href="friends.html" class="page-card">
+            <a href="/friends" class="page-card">
                 <span class="page-icon">👥</span>
                 <h3>Amis</h3>
                 <p>Gérez vos connexions sociales. Voyez qui est en ligne, ce qu'ils écoutent et lancez des sessions d'écoute partagée.</p>
@@ -76,7 +77,7 @@
                 </div>
             </a>
 
-            <a href="messages.html" class="page-card">
+            <a href="/messages" class="page-card">
                 <span class="page-icon">💬</span>
                 <h3>Messages</h3>
                 <p>Système de messagerie complet avec partage de musique, sessions d'écoute collaborative et notifications en temps réel.</p>
@@ -91,7 +92,7 @@
                 </div>
             </a>
 
-            <a href="profile.html" class="page-card">
+            <a href="/profile" class="page-card">
                 <span class="page-icon">👤</span>
                 <h3>Profil</h3>
                 <p>Votre espace personnel avec statistiques d'écoute, gestion des playlists, badges et objectifs musicaux.</p>
@@ -106,7 +107,7 @@
                 </div>
             </a>
 
-            <a href="settings.html" class="page-card">
+            <a href="/settings" class="page-card">
                 <span class="page-icon">⚙️</span>
                 <h3>Paramètres</h3>
                 <p>Configuration complète de l'application. Thèmes, notifications, égaliseur, confidentialité et bien plus.</p>
@@ -207,3 +208,4 @@
     <script src="styles/js/hub.js"></script>
 </body>
 </html>
+{{end}}

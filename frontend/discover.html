@@ -1,3 +1,4 @@
+{{define "discover.html"}}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,11 +8,12 @@
     <link rel="stylesheet" href="styles/css/index.css">
     <link rel="stylesheet" href="styles/css/friends.css">
     <link rel="stylesheet" href="styles/css/discover.css">
+    <link rel="stylesheet" href="styles/css/thread.css">
 </head>
 <body>
     <div class="app-container">
         <header class="header">
-    <a href="index.html" class="brand">
+    <a href="/" class="brand">
         <div class="brand-icon">
             <div class="wave-animation">
                 <div class="wave-bar"></div>
@@ -23,30 +25,31 @@
         <span class="brand-text">Rythm'it</span>
     </a>
     <div class="header-actions">
-        <a href="hub.html" class="header-btn">
+        <a href="/hub" class="header-btn">
             <span class="nav-icon">🎯</span>
             Hub
         </a>
-        <a href="index.html" class="header-btn">
+        <a href="/" class="header-btn">
             <span class="nav-icon">🏠</span>
             Accueil
         </a>
-        <a href="discover.html" class="header-btn active">
+        <a href="/discover" class="header-btn active">
             <span class="nav-icon">🔍</span>
             Découvrir
         </a>
-        <a href="friends.html" class="header-btn">
+        <a href="/friends" class="header-btn">
             <span class="nav-icon">👥</span>
             Amis
         </a>
         <div class="notification-container">
-            <a href="messages.html" class="header-btn notification-btn">
+            <a href="/messages" class="header-btn notification-btn">
                 <span class="nav-icon">💬</span>
                 Messages
                 <span class="notification-badge">3</span>
             </a>
         </div>
-        <a href="profile.html" class="header-btn primary">Profil</a>
+        <a href="/profile" class="header-btn primary">Profil</a>
+        <a href="/logout" class="header-btn logout-btn" title="Se déconnecter">🚪</a>
     </div>
 </header>
 
@@ -54,19 +57,23 @@
             <aside class="sidebar-left">
     <div class="nav-section">
     <h3>Navigation</h3>
-    <a href="index.html" class="nav-item">
+    <a href="/hub" class="nav-item" onclick="window.location.href='/hub'; return false;">
+        <span class="nav-icon">🎯</span>
+        Hub
+    </a>
+    <a href="/" class="nav-item" onclick="window.location.href='/'; return false;">
         <span class="nav-icon">🏠</span>
         Accueil
     </a>
-    <a href="discover.html" class="nav-item active">
+    <a href="/discover" class="nav-item active">
         <span class="nav-icon">🔍</span>
         Découvrir
     </a>
-    <a href="#" class="nav-item">
+    <a href="/friends" class="nav-item" onclick="window.location.href='/friends'; return false;">
         <span class="nav-icon">🔥</span>
         Tendances
     </a>
-    <a href="#" class="nav-item">
+    <a href="/profile" class="nav-item" onclick="window.location.href='/profile'; return false;">
         <span class="nav-icon">📚</span>
         Playlists
     </a>
@@ -74,17 +81,17 @@
 
     <div class="nav-section">
         <h3>Social</h3>
-        <a href="friends.html" class="nav-item">
+        <a href="/friends" class="nav-item">
             <span class="nav-icon">👥</span>
             Mes Amis
             <span class="status-indicator online"></span>
         </a>
-        <a href="messages.html" class="nav-item">
+        <a href="/messages" class="nav-item">
             <span class="nav-icon">💬</span>
             Messages
             <span class="message-count">3</span>
         </a>
-        <a href="#" class="nav-item">
+        <a href="/hub" class="nav-item">
             <span class="nav-icon">🎵</span>
             Sessions Live
         </a>
@@ -92,19 +99,19 @@
 
     <div class="nav-section">
         <h3>Genres</h3>
-        <a href="#" class="nav-item">
+        <a href="/discover" class="nav-item">
             <span class="nav-icon">🎵</span>
             Électronique
         </a>
-        <a href="#" class="nav-item">
+        <a href="/friends" class="nav-item">
             <span class="nav-icon">🎸</span>
             Rock/Metal
         </a>
-        <a href="#" class="nav-item">
+        <a href="/messages" class="nav-item">
             <span class="nav-icon">🎷</span>
             Jazz/Blues
         </a>
-        <a href="#" class="nav-item">
+        <a href="/profile" class="nav-item">
             <span class="nav-icon">🎤</span>
             Hip-Hop
         </a>
@@ -116,9 +123,24 @@
                     <div class="search-section">
                         <h1>Découvrir la musique</h1>
                         <div class="search-container">
-                            <input type="text" class="global-search" placeholder="Rechercher des artistes, albums, playlists...">
-                            <button class="search-btn">🔍</button>
-                            <button class="voice-search-btn" title="Recherche vocale">🎤</button>
+                            <input type="text" id="thread-search" class="global-search" placeholder="Rechercher des discussions musicales...">
+                            <button class="search-btn" onclick="performSearch()">🔍</button>
+                            <button class="add-tag-btn" onclick="toggleTagSelector()" title="Ajouter des tags">+</button>
+                        </div>
+                        <div class="tag-selector" id="tag-selector" style="display: none;">
+                            <div class="tag-selector-header">
+                                <h4>Filtrer par tags</h4>
+                                <button class="close-tag-selector" onclick="toggleTagSelector()">×</button>
+                            </div>
+                            <div class="selected-tags" id="selected-tags">
+                                <p class="no-tags">Aucun tag sélectionné</p>
+                            </div>
+                            <div class="tag-buttons" id="tag-buttons">
+                                <!-- Les tags seront chargés dynamiquement depuis l'API -->
+                                <div class="loading-tags">
+                                    <p>🔄 Chargement des tags...</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="discover-filters">
@@ -130,7 +152,22 @@
                     </div>
                 </div>
 
-                <div class="discover-sections">
+                <!-- Section des résultats de recherche -->
+                <div class="search-results" id="search-results" style="display: none;">
+                    <div class="section-header">
+                        <h2 id="results-title">Résultats de recherche</h2>
+                        <button class="clear-search-btn" onclick="clearSearch()">Effacer</button>
+                    </div>
+                    <div class="results-list" id="results-list">
+                        <!-- Les résultats seront injectés ici -->
+                    </div>
+                    <div class="loading" id="search-loading" style="display: none;">
+                        <div class="loading-spinner">🔄</div>
+                        <p>Recherche en cours...</p>
+                    </div>
+                </div>
+
+                <div class="discover-sections" id="discover-sections">
                     <!-- Section Trending Now -->
                     <section class="discover-section" id="trending">
                         <div class="section-header">
@@ -648,3 +685,4 @@
     <script src="styles/js/discover.js"></script>
 </body>
 </html>
+{{end}}

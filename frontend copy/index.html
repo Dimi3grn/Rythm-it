@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rythm'it</title>
+    <link rel="stylesheet" href="styles/css/index.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+    <a href="index.html" class="brand">
+        <div class="brand-icon">
+            <div class="wave-animation">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+        </div>
+        <span class="brand-text">Rythm'it</span>
+    </a>
+    <div class="header-actions">
+        <a href="hub.html" class="header-btn">
+            <span class="nav-icon">🎯</span>
+            Hub
+        </a>
+        <a href="index.html" class="header-btn active">
+            <span class="nav-icon">🏠</span>
+            Accueil
+        </a>
+        <a href="discover.html" class="header-btn">
+            <span class="nav-icon">🔍</span>
+            Découvrir
+        </a>
+        <a href="friends.html" class="header-btn">
+            <span class="nav-icon">👥</span>
+            Amis
+        </a>
+        <div class="notification-container">
+            <a href="messages.html" class="header-btn notification-btn">
+                <span class="nav-icon">💬</span>
+                Messages
+                <span class="notification-badge">3</span>
+            </a>
+        </div>
+        <a href="profile.html" class="header-btn primary">Profil</a>
+    </div>
+</header>
+
+        <div class="main-layout">
+            <aside class="sidebar-left">
+    <div class="nav-section">
+        <h3>Navigation</h3>
+        <a href="hub.html" class="nav-item">
+            <span class="nav-icon">🎯</span>
+            Hub
+        </a>
+        <a href="index.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            Accueil
+        </a>
+        <a href="discover.html" class="nav-item">
+            <span class="nav-icon">🔍</span>
+            Découvrir
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🔥</span>
+            Tendances
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">📚</span>
+            Playlists
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <h3>Social</h3>
+        <a href="friends.html" class="nav-item">
+            <span class="nav-icon">👥</span>
+            Mes Amis
+            <span class="status-indicator online"></span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="nav-icon">💬</span>
+            Messages
+            <span class="message-count">3</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎵</span>
+            Sessions Live
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <h3>Genres</h3>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎵</span>
+            Électronique
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎸</span>
+            Rock/Metal
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎷</span>
+            Jazz/Blues
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎤</span>
+            Hip-Hop
+        </a>
+    </div>
+</aside>
+
+            <main class="content-area">
+                <div class="composer">
+                    <textarea class="composer-input" placeholder="Partagez votre passion musicale avec la communauté..."></textarea>
+                    <div class="composer-toolbar">
+                        <div class="toolbar-left">
+                            <button class="tool-btn" title="Ajouter une piste">🎵</button>
+                            <button class="tool-btn" title="Joindre une image">📷</button>
+                            <button class="tool-btn" title="Créer un sondage">📊</button>
+                            <button class="tool-btn" title="Localisation">📍</button>
+                            <button class="tool-btn" title="Partager avec des amis">👥</button>
+                        </div>
+                        <button class="publish-btn">Publier</button>
+                    </div>
+                </div>
+
+                <article class="thread-item">
+                    <div class="thread-header">
+                        <div class="user-pic">AS</div>
+                        <div class="user-details">
+                            <h4>AudioSeeker</h4>
+                            <span class="meta">il y a 1h • Ambient</span>
+                            <span class="friend-badge">Ami</span>
+                        </div>
+                    </div>
+                    <div class="thread-text">
+                        Une découverte absolument magique pour les amateurs d'ambient. Cette composition nous transporte dans un univers onirique avec des textures sonores d'une richesse incroyable. 🌌✨
+                    </div>
+                    <div class="music-card">
+                        <div class="album-art"></div>
+                        <div class="track-info">
+                            <h5>Ethereal Landscapes</h5>
+                            <p>Ambient Dreams • 8:47</p>
+                        </div>
+                        <button class="play-control">▶️</button>
+                    </div>
+                    <div class="thread-engagement">
+                        <button class="engagement-btn">❤️ 34</button>
+                        <button class="engagement-btn">💬 8</button>
+                        <button class="engagement-btn">🔄 12</button>
+                        <button class="engagement-btn">📩</button>
+                        <button class="engagement-btn">🔖</button>
+                    </div>
+                </article>
+
+                <article class="thread-item">
+                    <div class="thread-header">
+                        <div class="user-pic">BR</div>
+                        <div class="user-details">
+                            <h4>BeatReflections</h4>
+                            <span class="meta">il y a 3h • Lo-Fi Hip Hop</span>
+                        </div>
+                    </div>
+                    <div class="thread-text">
+                        Perfect study music ! Ces beats lo-fi ont cette qualité nostalgique qui aide vraiment à se concentrer. Le sample de piano est juste parfait 🎹📚
+                    </div>
+                    <div class="music-card">
+                        <div class="album-art"></div>
+                        <div class="track-info">
+                            <h5>Rainy Day Study</h5>
+                            <p>Chill Beats • 3:24</p>
+                        </div>
+                        <button class="play-control">▶️</button>
+                    </div>
+                    <div class="thread-engagement">
+                        <button class="engagement-btn liked">❤️ 67</button>
+                        <button class="engagement-btn">💬 23</button>
+                        <button class="engagement-btn">🔄 15</button>
+                        <button class="engagement-btn">📩</button>
+                        <button class="engagement-btn">🔖</button>
+                    </div>
+                </article>
+            </main>
+
+            <aside class="sidebar-right">
+                <div class="widget">
+                    <h3>👥 Amis en ligne</h3>
+                    <div class="friend-online">
+                        <div class="friend-avatar">
+                            <div class="user-pic small">MX</div>
+                            <span class="online-status"></span>
+                        </div>
+                        <div class="friend-info">
+                            <h5>MixMaster</h5>
+                            <p>Écoute: Techno Vibes</p>
+                        </div>
+                        <button class="message-btn">💬</button>
+                    </div>
+                    <div class="friend-online">
+                        <div class="friend-avatar">
+                            <div class="user-pic small">SB</div>
+                            <span class="online-status"></span>
+                        </div>
+                        <div class="friend-info">
+                            <h5>SoundBliss</h5>
+                            <p>Écoute: Jazz Evening</p>
+                        </div>
+                        <button class="message-btn">💬</button>
+                    </div>
+                    <div class="friend-online">
+                        <div class="friend-avatar">
+                            <div class="user-pic small">VW</div>
+                            <span class="online-status away"></span>
+                        </div>
+                        <div class="friend-info">
+                            <h5>VibeWave</h5>
+                            <p>Absent - il y a 2h</p>
+                        </div>
+                        <button class="message-btn">💬</button>
+                    </div>
+                    <a href="friends.html" class="see-all-link">Voir tous mes amis →</a>
+                </div>
+
+                <div class="widget">
+                    <h3>🔥 Trending Now</h3>
+                    <div class="trend-item">
+                        <div class="trend-cover"></div>
+                        <div class="trend-info">
+                            <h5>Synthwave Summer</h5>
+                            <p>1.2k discussions</p>
+                        </div>
+                    </div>
+                    <div class="trend-item">
+                        <div class="trend-cover"></div>
+                        <div class="trend-info">
+                            <h5>Indie Folk Revival</h5>
+                            <p>890 discussions</p>
+                        </div>
+                    </div>
+                    <div class="trend-item">
+                        <div class="trend-cover"></div>
+                        <div class="trend-info">
+                            <h5>Techno Underground</h5>
+                            <p>654 discussions</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <h3>🎧 Artistes Émergents</h3>
+                    <div class="trend-item">
+                        <div class="trend-cover"></div>
+                        <div class="trend-info">
+                            <h5>Luna Waves</h5>
+                            <p>3.4k followers</p>
+                        </div>
+                    </div>
+                    <div class="trend-item">
+                        <div class="trend-cover"></div>
+                        <div class="trend-info">
+                            <h5>Digital Forest</h5>
+                            <p>2.1k followers</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script src="styles/js/index.js"></script>
+</body>
+</html>

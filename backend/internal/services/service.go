@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"rythmitbackend/internal/repositories"
 )
 
@@ -25,4 +26,11 @@ func NewBaseService(repo repositories.Repository) *BaseService {
 // GetRepository retourne le repository
 func (s *BaseService) GetRepository() repositories.Repository {
 	return s.repo
+}
+
+// NewFriendshipServiceWithDB crée un nouveau service d'amitiés avec une connexion DB
+func NewFriendshipServiceWithDB(db *sql.DB) FriendshipService {
+	friendshipRepo := repositories.NewFriendshipRepository(db)
+	userRepo := repositories.NewUserRepository(db)
+	return NewFriendshipService(friendshipRepo, userRepo)
 }

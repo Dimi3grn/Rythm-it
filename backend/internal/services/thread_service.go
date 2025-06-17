@@ -33,6 +33,7 @@ type ThreadService interface {
 	DeleteThread(id uint, userID uint, isAdmin bool) error
 	ChangeThreadState(id uint, state string, userID uint, isAdmin bool) error
 	SearchThreads(query string, params models.PaginationParams) (*PaginatedThreadsResponseDTO, error)
+	SearchThreadsWithTags(query string, tags []string, params models.PaginationParams) (*PaginatedThreadsResponseDTO, error)
 	GetThreadsByTag(tagName string, params models.PaginationParams) (*PaginatedThreadsResponseDTO, error)
 	GetAllThreads() ([]ThreadDTO, error)
 }
@@ -41,21 +42,25 @@ type ThreadService interface {
 type CreateThreadDTO struct {
 	Title       string   `json:"title" validate:"required,min=5,max=200"`
 	Description string   `json:"description" validate:"required,min=10"`
+	ImageURL    *string  `json:"image_url" validate:"omitempty"`
 	Tags        []string `json:"tags" validate:"required,min=1,max=10"`
 	Visibility  string   `json:"visibility" validate:"oneof=public privé"`
 }
 
 type UpdateThreadDTO struct {
-	Title       string `json:"title" validate:"required,min=5,max=200"`
-	Description string `json:"description" validate:"required,min=10"`
-	State       string `json:"state" validate:"oneof=ouvert fermé archivé"`
-	Visibility  string `json:"visibility" validate:"oneof=public privé"`
+	Title       string   `json:"title" validate:"required,min=5,max=200"`
+	Description string   `json:"description" validate:"required,min=10"`
+	ImageURL    *string  `json:"image_url" validate:"omitempty"`
+	Tags        []string `json:"tags" validate:"omitempty,max=10"`
+	State       string   `json:"state" validate:"oneof=ouvert fermé archivé"`
+	Visibility  string   `json:"visibility" validate:"oneof=public privé"`
 }
 
 type ThreadResponseDTO struct {
 	ID           uint             `json:"id"`
 	Title        string           `json:"title"`
 	Description  string           `json:"description"`
+	ImageURL     *string          `json:"image_url"`
 	State        string           `json:"state"`
 	Visibility   string           `json:"visibility"`
 	CreatedAt    string           `json:"created_at"`
@@ -132,6 +137,7 @@ func (s *threadService) CreateThread(dto CreateThreadDTO, userID uint) (*ThreadR
 	thread := &models.Thread{
 		Title:       strings.TrimSpace(dto.Title),
 		Description: strings.TrimSpace(dto.Description),
+		ImageURL:    dto.ImageURL,
 		State:       models.ThreadStateOpen,
 		Visibility:  dto.Visibility,
 		UserID:      userID,
@@ -318,13 +324,51 @@ func (s *threadService) UpdateThread(id uint, dto UpdateThreadDTO, userID uint, 
 		return utils.ErrUnauthorized
 	}
 
-	// Mettre à jour les champs
-	thread.Title = strings.TrimSpace(dto.Title)
-	thread.Description = strings.TrimSpace(dto.Description)
-	thread.State = dto.State
-	thread.Visibility = dto.Visibility
+	// Transaction pour mettre à jour le thread et ses tags
+	return s.threadRepo.Transaction(func(tx *sql.Tx) error {
+		// Mettre à jour les champs du thread
+		thread.Title = strings.TrimSpace(dto.Title)
+		thread.Description = strings.TrimSpace(dto.Description)
+		thread.ImageURL = dto.ImageURL
+		thread.State = dto.State
+		thread.Visibility = dto.Visibility
 
-	return s.threadRepo.Update(thread)
+		// Mettre à jour le thread
+		if err := s.threadRepo.Update(thread); err != nil {
+			return fmt.Errorf("erreur mise à jour thread: %w", err)
+		}
+
+		// Traiter les tags si fournis
+		if len(dto.Tags) > 0 {
+			var tagIDs []uint
+			for _, tagName := range dto.Tags {
+				tagName = strings.TrimSpace(tagName)
+				if tagName == "" {
+					continue
+				}
+
+				// Déterminer le type de tag
+				tagType := determineTagType(tagName)
+
+				// FindOrCreate pour chaque tag
+				tag, err := s.tagRepo.FindOrCreate(tagName, tagType)
+				if err != nil {
+					return fmt.Errorf("erreur gestion tag '%s': %w", tagName, err)
+				}
+
+				tagIDs = append(tagIDs, tag.ID)
+			}
+
+			// Mettre à jour les tags du thread
+			if len(tagIDs) > 0 {
+				if err := s.threadRepo.AttachTags(thread.ID, tagIDs); err != nil {
+					return fmt.Errorf("erreur mise à jour tags: %w", err)
+				}
+			}
+		}
+
+		return nil
+	})
 }
 
 // DeleteThread supprime un thread
@@ -390,6 +434,58 @@ func (s *threadService) SearchThreads(query string, params models.PaginationPara
 	}, nil
 }
 
+// SearchThreadsWithTags recherche des threads par titre et/ou tags
+func (s *threadService) SearchThreadsWithTags(query string, tags []string, params models.PaginationParams) (*PaginatedThreadsResponseDTO, error) {
+	ValidatePagination(&params)
+
+	query = strings.TrimSpace(query)
+
+	// Si pas de query ni de tags, retourner tous les threads publics
+	if query == "" && len(tags) == 0 {
+		return s.GetPublicThreads(params, ThreadFilters{})
+	}
+
+	// Si seulement des tags, utiliser la nouvelle méthode optimisée
+	if query == "" && len(tags) > 0 {
+		threads, total, err := s.threadRepo.FindByTags(tags, params)
+		if err != nil {
+			return nil, fmt.Errorf("erreur recherche par tags: %w", err)
+		}
+
+		var threadDTOs []ThreadResponseDTO
+		for _, thread := range threads {
+			threadDTOs = append(threadDTOs, *s.threadToDTO(thread))
+		}
+
+		return &PaginatedThreadsResponseDTO{
+			Threads:    threadDTOs,
+			Pagination: s.buildPaginationInfo(params, total),
+		}, nil
+	}
+
+	// Si seulement une query, utiliser la recherche normale
+	if query != "" && len(tags) == 0 {
+		return s.SearchThreads(query, params)
+	}
+
+	// Recherche combinée query + tags - utiliser la nouvelle méthode optimisée
+	threads, total, err := s.threadRepo.SearchWithTags(query, tags, params)
+	if err != nil {
+		return nil, fmt.Errorf("erreur recherche combinée: %w", err)
+	}
+
+	// Convertir en DTOs
+	var threadDTOs []ThreadResponseDTO
+	for _, thread := range threads {
+		threadDTOs = append(threadDTOs, *s.threadToDTO(thread))
+	}
+
+	return &PaginatedThreadsResponseDTO{
+		Threads:    threadDTOs,
+		Pagination: s.buildPaginationInfo(params, total),
+	}, nil
+}
+
 // GetThreadsByTag récupère les threads d'un tag spécifique
 func (s *threadService) GetThreadsByTag(tagName string, params models.PaginationParams) (*PaginatedThreadsResponseDTO, error) {
 	filters := ThreadFilters{TagName: tagName}
@@ -404,6 +500,7 @@ func (s *threadService) threadToDTO(thread *models.Thread) *ThreadResponseDTO {
 		ID:          thread.ID,
 		Title:       thread.Title,
 		Description: thread.Description,
+		ImageURL:    thread.ImageURL,
 		State:       thread.State,
 		Visibility:  thread.Visibility,
 		CreatedAt:   thread.CreatedAt.Format("2006-01-02T15:04:05Z"),

@@ -84,6 +84,49 @@ body {
     transform: translateY(-1px);
 }
 
+.header-btn.logout-btn {
+    background: rgba(255, 69, 58, 0.1);
+    border-color: rgba(255, 69, 58, 0.3);
+    color: #ff453a;
+    padding: 10px 12px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-btn.logout-btn:hover {
+    background: rgba(255, 69, 58, 0.2);
+    border-color: rgba(255, 69, 58, 0.5);
+    transform: translateY(-1px);
+}
+
+/* Fix pour uniformiser la taille du bouton Messages */
+.notification-container {
+    position: relative;
+}
+
+.notification-container .header-btn {
+    padding: 10px 20px;
+    height: auto;
+    min-height: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-badge {
+    background: #ff6b6b;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.2;
+}
+
 .main-layout {
     display: grid;
     grid-template-columns: 300px 1fr 360px; /* Augmenté les tailles : 280px->300px et 320px->360px */
@@ -131,7 +174,7 @@ body {
 }
 
 .nav-icon {
-    font-size: 18px;
+    font-size: 16px;
     width: 20px;
 }
 
@@ -204,6 +247,12 @@ body {
     transform: scale(1.05);
 }
 
+.tool-btn.active {
+    background: rgba(102, 126, 234, 0.3);
+    color: #667eea;
+    border-color: rgba(102, 126, 234, 0.5);
+}
+
 .publish-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
@@ -220,18 +269,178 @@ body {
     box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
 }
 
+/* Styles pour les options avancées du composer */
+.composer-advanced {
+    margin-bottom: 20px;
+    animation: slideDown 0.3s ease-out;
+}
+
+.composer-title {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 15px 18px;
+    color: #f0f0f0;
+    font-size: 15px;
+    font-family: inherit;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+
+.composer-title::placeholder {
+    color: #666;
+}
+
+.composer-title:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.4);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Styles pour le sélecteur de tags */
+.tag-selector {
+    position: relative;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.selected-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+    min-height: 32px;
+    align-items: center;
+}
+
+.selected-tag {
+    background: rgba(102, 126, 234, 0.2);
+    border: 1px solid rgba(102, 126, 234, 0.4);
+    border-radius: 16px;
+    padding: 4px 12px;
+    color: #667eea;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.selected-tag button {
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.selected-tag button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.tag-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 15px 18px;
+    color: #f0f0f0;
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.tag-input::placeholder {
+    color: #666;
+}
+
+.tag-input:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.4);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.tag-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(30, 30, 35, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    margin-top: 4px;
+}
+
+.tag-suggestion {
+    padding: 12px 18px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.tag-suggestion:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tag-suggestion:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tag-name {
+    color: #f0f0f0;
+    font-weight: 500;
+}
+
+.tag-type {
+    color: #888;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 8px;
+    text-transform: uppercase;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .thread-item {
+    cursor: pointer;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 24px;
     padding: 35px; /* Augmenté de 30px à 35px */
     transition: all 0.3s ease;
+    text-decoration: none;
 }
 
 .thread-item:hover {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.1);
     transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
 }
 
 .thread-header {
@@ -265,8 +474,19 @@ body {
     color: #888;
 }
 
-.thread-text {
+.thread-content {
     margin-bottom: 20px;
+}
+
+.thread-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.thread-text {
     font-size: 16px;
     line-height: 1.7;
     color: #e0e0e0;
@@ -497,6 +717,15 @@ body {
         padding: 20px;
         border-radius: 16px;
     }
+    
+    .thread-image img {
+        border-radius: 6px;
+    }
+    
+    .image-preview img {
+        max-width: 150px;
+        max-height: 100px;
+    }
 }
 :root {
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -562,4 +791,174 @@ a {
 .profile-content {
     min-width: 0;
     overflow-x: hidden;
+}
+
+/* Tags dans les threads */
+.thread-tags {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.thread-tag {
+    display: inline-block;
+    background: rgba(108, 99, 255, 0.2);
+    color: #6c63ff;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid rgba(108, 99, 255, 0.3);
+}
+
+/* Bouton "Afficher plus" */
+.load-more-container {
+    display: flex;
+    justify-content: center;
+    margin: 40px 0;
+}
+
+.load-more-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 16px 32px;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 200px;
+    justify-content: center;
+}
+
+.load-more-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.load-more-btn:active {
+    transform: translateY(0);
+}
+
+.load-more-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.load-more-btn:disabled:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: none;
+}
+
+.btn-loader {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Styles pour les threads cliquables */
+.thread-item:hover .thread-title {
+    color: #6c63ff;
+}
+
+.thread-title {
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+/* Empêcher les interactions sur les boutons d'engagement depuis le clic sur l'article */
+.thread-engagement {
+    pointer-events: auto;
+}
+
+.thread-engagement button,
+.thread-engagement form {
+    pointer-events: auto;
+}
+
+/* S'assurer que le curseur pointer est visible sur tout le thread sauf les boutons */
+.thread-item * {
+    cursor: pointer;
+}
+
+.thread-engagement button,
+.thread-engagement form button,
+.thread-engagement input {
+    cursor: pointer;
+}
+
+/* Styles pour les images dans les threads */
+.thread-image {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.thread-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.thread-image img:hover {
+    transform: scale(1.02);
+    cursor: pointer;
+}
+
+/* Styles pour la prévisualisation d'upload */
+.image-preview {
+    margin: 10px 0;
+}
+
+.image-preview img {
+    border: 2px solid #e0e6ed;
+    transition: border-color 0.2s ease;
+}
+
+.image-preview img:hover {
+    border-color: #667eea;
+}
+
+.remove-image-btn {
+    transition: all 0.2s ease;
+}
+
+.remove-image-btn:hover {
+    background: #ff3742 !important;
+    transform: scale(1.1);
+}
+
+/* Styles pour les boutons d'upload actifs */
+.tool-btn.active {
+    background-color: #4CAF50 !important;
+    color: white !important;
+    transform: scale(1.05);
+}
+
+/* Notification d'upload */
+.upload-notification {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }

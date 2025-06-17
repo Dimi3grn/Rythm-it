@@ -397,27 +397,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     }
 
-    // Simulation d'activité en temps réel
-    function simulateRealTimeActivity() {
-        const activities = [
-            { user: 'MixMaster', action: 'a aimé votre post', type: 'like' },
-            { user: 'SoundBliss', action: 'vous a envoyé un message', type: 'message' },
-            { user: 'RhythmHunter', action: 'partage une nouvelle playlist', type: 'share' },
-            { user: 'EchoBeat', action: 'écoute la même musique que vous', type: 'music' }
-        ];
-        
-        setInterval(() => {
-            if (Math.random() < 0.3) { // 30% de chance toutes les 10 secondes
-                const activity = activities[Math.floor(Math.random() * activities.length)];
-                showNotification(`${activity.user} ${activity.action}`, activity.type);
-                
-                if (activity.type === 'message') {
-                    updateNotificationBadge();
-                }
-            }
-        }, 10000);
-    }
-
     // Mettre à jour le badge de notification
     function updateNotificationBadge() {
         notificationCount++;
@@ -428,8 +407,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Gestion du clic sur les notifications
-    document.querySelector('.notification-btn').addEventListener('click', function(e) {
-        e.preventDefault();
+   document.querySelector('.notification-btn').addEventListener('click', function(e) {
+    // Ne pas empêcher la navigation par défaut
+    // e.preventDefault(); ← SUPPRIMÉ
+    
+    // Si on est déjà sur la page messages, alors on gère les notifications
+    if (window.location.pathname.includes('messages.html')) {
+        e.preventDefault(); // Seulement si on est déjà sur la page
         notificationCount = 0;
         const badge = document.querySelector('.notification-badge');
         if (badge) {
@@ -439,10 +423,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 badge.style.display = 'none';
             }, 200);
         }
-        
-        // Ouvrir le panneau de messages (simulation)
-        showNotification('Panneau de messages ouvert', 'info');
-    });
+        showNotification('Notifications marquées comme lues', 'info');
+    } else {
+        // Laisser la navigation normale se faire
+        showNotification('Redirection vers Messages...', 'info');
+    }
+});
 
     // Détection d'inactivité
     function trackUserActivity() {
@@ -553,7 +539,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Initialisation des fonctionnalités
-    simulateRealTimeActivity();
     trackUserActivity();
     
     // Message de démarrage
@@ -564,3 +549,259 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🎵 Rythm\'it chargé avec succès !');
     console.log('🔥 Fonctionnalités activées: Amis, Messages, Notifications en temps réel');
 });
+
+function initializeEnhancedNavigation() {
+    
+    // Gérer les liens de navigation avec des ancres et paramètres
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Gestion des liens avec ancres (#)
+        const anchorLinks = document.querySelectorAll('a[href*="#"]');
+        anchorLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                
+                // Si c'est une ancre interne à la page courante
+                if (href.startsWith('#')) {
+                    e.preventDefault();
+                    handleInternalAnchor(href);
+                }
+                // Si c'est une autre page avec ancre (ex: discover.html#trending)
+                else if (href.includes('#')) {
+                    const [page, anchor] = href.split('#');
+                    const currentPage = window.location.pathname.split('/').pop();
+                    
+                    if (page === currentPage || page === '') {
+                        e.preventDefault();
+                        handleInternalAnchor('#' + anchor);
+                    }
+                    // Sinon laisser la navigation normale se faire
+                }
+            });
+        });
+        
+        // Gestion des paramètres de genre dans l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const genreParam = urlParams.get('genre');
+        
+        if (genreParam && window.location.pathname.includes('discover.html')) {
+            // Activer le filtre de genre automatiquement
+            setTimeout(() => {
+                if (typeof setActiveGenre === 'function') {
+                    setActiveGenre(genreParam);
+                }
+            }, 500);
+        }
+        
+        // Gérer les ancres au chargement de la page
+        if (window.location.hash) {
+            setTimeout(() => {
+                handleInternalAnchor(window.location.hash);
+            }, 1000);
+        }
+        
+        // Mettre à jour la navigation active
+        updateActiveNavigation();
+    });
+}
+
+// Gestion des ancres internes
+function handleInternalAnchor(anchor) {
+    const currentPage = window.location.pathname;
+    
+    switch(anchor) {
+        case '#trending':
+            if (currentPage.includes('discover.html')) {
+                scrollToSection('trending');
+                showNotification('🔥 Section Tendances affichée', 'info');
+            }
+            break;
+            
+        case '#playlists':
+            if (currentPage.includes('profile.html')) {
+                if (typeof showTab === 'function') {
+                    showTab('playlists');
+                }
+                showNotification('📚 Vos playlists affichées', 'info');
+            }
+            break;
+            
+        case '#live-sessions':
+            if (currentPage.includes('discover.html')) {
+                scrollToLiveSessions();
+                showNotification('🎵 Sessions Live affichées', 'info');
+            }
+            break;
+            
+        default:
+            // Scroll vers l'élément si il existe
+            const element = document.querySelector(anchor);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+    }
+}
+
+// Scroll vers une section spécifique
+function scrollToSection(sectionId) {
+    const section = document.getElementById(sectionId) || 
+                   document.querySelector(`[data-section="${sectionId}"]`) ||
+                   document.querySelector(`.${sectionId}`);
+    
+    if (section) {
+        section.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+        
+        // Highlight temporaire
+        section.style.border = '2px solid rgba(102, 126, 234, 0.5)';
+        setTimeout(() => {
+            section.style.border = '';
+        }, 2000);
+    }
+}
+
+// Scroll vers les sessions live
+function scrollToLiveSessions() {
+    // Chercher dans la sidebar droite
+    const liveSessions = document.querySelector('.live-sessions') || 
+                        document.querySelector('[id*="live"]') ||
+                        document.querySelector('.widget h3').filter(h => h.textContent.includes('Live'));
+    
+    if (liveSessions) {
+        liveSessions.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        showNotification('Sessions Live bientôt disponibles !', 'info');
+    }
+}
+
+// Mettre à jour la navigation active
+function updateActiveNavigation() {
+    const currentPage = window.location.pathname.split('/').pop();
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach(item => {
+        item.classList.remove('active');
+        const href = item.getAttribute('href');
+        
+        if (href) {
+            const linkPage = href.split('#')[0].split('?')[0];
+            if (linkPage === currentPage || 
+                (currentPage === '' && linkPage === 'index.html') ||
+                (currentPage === 'index.html' && linkPage === '')) {
+                item.classList.add('active');
+            }
+        }
+    });
+}
+
+// Gestion des clics sur les genres
+function handleGenreNavigation() {
+    const genreLinks = document.querySelectorAll('.nav-item[data-genre]');
+    
+    genreLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const genre = this.getAttribute('data-genre');
+            const currentPage = window.location.pathname;
+            
+            // Si on n'est pas sur la page discover, rediriger
+            if (!currentPage.includes('discover.html')) {
+                // Laisser la navigation normale se faire
+                return;
+            }
+            
+            // Sinon, appliquer le filtre directement
+            e.preventDefault();
+            if (typeof setActiveGenre === 'function') {
+                setActiveGenre(genre);
+                showNotification(`🎵 Filtre ${genre} appliqué`, 'info');
+            }
+        });
+    });
+}
+
+// Initialiser au chargement
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeEnhancedNavigation);
+} else {
+    initializeEnhancedNavigation();
+}
+
+// Initialiser la gestion des genres
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', handleGenreNavigation);
+} else {
+    handleGenreNavigation();
+}
+
+// Export pour utilisation dans d'autres scripts
+window.initializeEnhancedNavigation = initializeEnhancedNavigation;
+window.handleInternalAnchor = handleInternalAnchor;
+window.updateActiveNavigation = updateActiveNavigation;
+
+// Fonction pour attacher les événements aux posts
+function attachPostEventListeners(post) {
+    if (!post) return;
+    
+    // Gestion de l'engagement
+    post.querySelectorAll('.engagement-btn').forEach(btn => {
+        btn.addEventListener('click', handleEngagement);
+    });
+    
+    // Gestion du menu du post
+    const menuBtn = post.querySelector('.post-menu');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showPostMenu(e);
+        });
+    }
+    
+    // Clic sur le post pour ouvrir le thread
+    post.addEventListener('click', (e) => {
+        // Éviter la redirection si on clique sur un bouton d'engagement ou le menu
+        if (e.target.closest('.engagement-btn') || 
+            e.target.closest('.post-menu') || 
+            e.target.closest('.play-control') ||
+            e.target.closest('.follow-btn')) {
+            return;
+        }
+        
+        // Récupérer l'ID du post (simulé avec l'index ou un ID aléatoire)
+        const postId = post.dataset.postId || Math.floor(Math.random() * 10000);
+        
+        // Feedback visuel de chargement
+        post.style.opacity = '0.7';
+        showNotification('📖 Ouverture du thread...', 'info');
+        
+        // Rediriger vers la page thread après un court délai
+        setTimeout(() => {
+            window.location.href = `thread.html?id=${postId}`;
+        }, 300);
+    });
+    
+    // Ajouter le style curseur pointer pour indiquer que c'est cliquable
+    post.style.cursor = 'pointer';
+    
+    // Effet de survol pour indiquer que c'est cliquable
+    post.addEventListener('mouseenter', () => {
+        if (!post.classList.contains('post-hover')) {
+            post.style.transform = 'translateY(-2px)';
+            post.style.boxShadow = '0 4px 20px rgba(102, 126, 234, 0.15)';
+        }
+    });
+    
+    post.addEventListener('mouseleave', () => {
+        if (!post.classList.contains('post-hover')) {
+            post.style.transform = '';
+            post.style.boxShadow = '';
+        }
+    });
+}
+
+// Fonction showPostMenu si elle n'existe pas ailleurs
+function showPostMenu(e) {
+    console.log('Menu du post ouvert');
+    // Implémentation du menu du post
+}

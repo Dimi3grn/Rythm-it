@@ -31,24 +31,35 @@ type User struct {
 	FavoriteArtists []string   `json:"favorite_artists,omitempty"` // Spécifique Rythmit
 }
 
+// UserProfile modèle pour les profils utilisateur personnalisés
+type UserProfile struct {
+	BaseModel
+	UserID      uint    `json:"user_id" db:"user_id" validate:"required"`
+	DisplayName *string `json:"display_name" db:"display_name" validate:"omitempty,max=100"`
+	AvatarImage *string `json:"avatar_image" db:"avatar_image" validate:"omitempty"`
+	BannerImage *string `json:"banner_image" db:"banner_image" validate:"omitempty"`
+}
+
 // Thread modèle fil de discussion musical
 type Thread struct {
 	BaseModel
-	Title       string `json:"title" db:"title" validate:"required,min=5,max=200"`
-	Description string `json:"description" db:"desc_" validate:"required,min=10"`
-	State       string `json:"state" db:"state" validate:"oneof=ouvert fermé archivé"`
-	Visibility  string `json:"visibility" db:"visibility" validate:"oneof=public privé"`
-	UserID      uint   `json:"user_id" db:"user_id"`
-	Author      *User  `json:"author,omitempty"`
-	Tags        []*Tag `json:"tags,omitempty"`
-	FireCount   int    `json:"fire_count"` // Compteur Fire 🔥
-	SkipCount   int    `json:"skip_count"` // Compteur Skip ⏭️
+	Title       string  `json:"title" db:"title" validate:"required,min=5,max=200"`
+	Description string  `json:"description" db:"desc_" validate:"required,min=10"`
+	ImageURL    *string `json:"image_url" db:"image_url" validate:"omitempty"`
+	State       string  `json:"state" db:"state" validate:"oneof=ouvert fermé archivé"`
+	Visibility  string  `json:"visibility" db:"visibility" validate:"oneof=public privé"`
+	UserID      uint    `json:"user_id" db:"user_id"`
+	Author      *User   `json:"author,omitempty"`
+	Tags        []*Tag  `json:"tags,omitempty"`
+	FireCount   int     `json:"fire_count"` // Compteur Fire 🔥
+	SkipCount   int     `json:"skip_count"` // Compteur Skip ⏭️
 }
 
 // Message modèle pour les messages
 type Message struct {
 	BaseModel
 	Content         string         `json:"content" db:"content" validate:"required,min=1,max=5000,nohtml"`
+	ImageURL        *string        `json:"image_url" db:"image_url" validate:"omitempty"`
 	ThreadID        uint           `json:"thread_id" db:"thread_id" validate:"required"`
 	UserID          uint           `json:"user_id" db:"user_id" validate:"required"`
 	Author          *User          `json:"author,omitempty"`

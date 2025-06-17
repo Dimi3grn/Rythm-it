@@ -1,3 +1,4 @@
+{{define "friends.html"}}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -10,7 +11,7 @@
 <body>
     <div class="app-container">
        <header class="header">
-    <a href="index.html" class="brand">
+    <a href="/" class="brand">
         <div class="brand-icon">
             <div class="wave-animation">
                 <div class="wave-bar"></div>
@@ -22,30 +23,31 @@
         <span class="brand-text">Rythm'it</span>
     </a>
     <div class="header-actions">
-        <a href="hub.html" class="header-btn">
+        <a href="/hub" class="header-btn">
             <span class="nav-icon">🎯</span>
             Hub
         </a>
-        <a href="index.html" class="header-btn">
+        <a href="/" class="header-btn">
             <span class="nav-icon">🏠</span>
             Accueil
         </a>
-        <a href="discover.html" class="header-btn">
+        <a href="/discover" class="header-btn">
             <span class="nav-icon">🔍</span>
             Découvrir
         </a>
-        <a href="friends.html" class="header-btn active">
+        <a href="/friends" class="header-btn active">
             <span class="nav-icon">👥</span>
             Amis
         </a>
         <div class="notification-container">
-            <a href="messages.html" class="header-btn notification-btn">
+            <a href="/messages" class="header-btn notification-btn">
                 <span class="nav-icon">💬</span>
                 Messages
                 <span class="notification-badge">3</span>
             </a>
         </div>
-        <a href="profile.html" class="header-btn primary">Profil</a>
+        <a href="/profile" class="header-btn primary">Profil</a>
+        <a href="/logout" class="header-btn logout-btn" title="Se déconnecter">🚪</a>
     </div>
 </header>
 
@@ -53,15 +55,15 @@
            <aside class="sidebar-left">
     <div class="nav-section">
         <h3>Navigation</h3>
-        <a href="hub.html" class="nav-item">
+        <a href="/hub" class="nav-item">
             <span class="nav-icon">🎯</span>
             Hub
         </a>
-        <a href="index.html" class="nav-item">
+        <a href="/" class="nav-item">
             <span class="nav-icon">🏠</span>
             Accueil
         </a>
-        <a href="discover.html" class="nav-item">
+        <a href="/discover" class="nav-item">
             <span class="nav-icon">🔍</span>
             Découvrir
         </a>
@@ -77,12 +79,12 @@
 
     <div class="nav-section">
         <h3>Social</h3>
-        <a href="friends.html" class="nav-item">
+        <a href="/friends" class="nav-item">
             <span class="nav-icon">👥</span>
             Mes Amis
             <span class="status-indicator online"></span>
         </a>
-        <a href="messages.html" class="nav-item">
+        <a href="/messages" class="nav-item">
             <span class="nav-icon">💬</span>
             Messages
             <span class="message-count">3</span>
@@ -424,3 +426,4 @@
     <script src="styles/js/friends.js"></script>
 </body>
 </html>
+{{end}}

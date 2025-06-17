@@ -87,57 +87,73 @@ func AdminMiddleware(next http.Handler) http.Handler {
 // Utile pour les endpoints qui fonctionnent avec ou sans auth
 func OptionalAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Extraire le token du header Authorization
+		// Essayer d'abord le cookie (pour les requêtes web)
+		cookie, err := r.Cookie("auth_token")
+		if err == nil && cookie.Value != "" {
+			// Valider le token depuis le cookie
+			cfg := configs.Get()
+			tokenManager := customjwt.NewTokenManager(customjwt.Config{
+				Secret:          cfg.JWT.Secret,
+				ExpirationHours: cfg.JWT.ExpirationHours,
+				Issuer:          "rythmit-api",
+			})
+
+			claims, err := tokenManager.ValidateToken(cookie.Value)
+			if err == nil {
+				// Token valide, récupérer l'utilisateur
+				userRepo := repositories.NewUserRepository(database.DB)
+				user, err := userRepo.FindByID(claims.UserID)
+				if err == nil {
+					// Injecter l'utilisateur dans le contexte
+					userDTO := services.ToUserResponseDTO(user)
+					ctx := context.WithValue(r.Context(), "user", userDTO)
+					ctx = context.WithValue(ctx, "user_id", user.ID)
+					ctx = context.WithValue(ctx, "is_admin", user.IsAdmin)
+					next.ServeHTTP(w, r.WithContext(ctx))
+					return
+				}
+			}
+		}
+
+		// Sinon, essayer le header Authorization (pour les APIs)
 		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			// Pas de token, continuer sans utilisateur dans le contexte
-			next.ServeHTTP(w, r)
-			return
+		if authHeader != "" {
+			// Vérifier le format "Bearer <token>"
+			tokenParts := strings.Split(authHeader, " ")
+			if len(tokenParts) == 2 && tokenParts[0] == "Bearer" {
+				tokenString := tokenParts[1]
+
+				// Valider le token JWT
+				cfg := configs.Get()
+				tokenManager := customjwt.NewTokenManager(customjwt.Config{
+					Secret:          cfg.JWT.Secret,
+					ExpirationHours: cfg.JWT.ExpirationHours,
+					Issuer:          "rythmit-api",
+				})
+
+				claims, err := tokenManager.ValidateToken(tokenString)
+				if err == nil {
+					// Récupérer l'utilisateur depuis la base de données
+					userRepo := repositories.NewUserRepository(database.DB)
+					user, err := userRepo.FindByID(claims.UserID)
+					if err == nil {
+						// Convertir en DTO de réponse
+						userDTO := services.ToUserResponseDTO(user)
+
+						// Injecter l'utilisateur dans le contexte
+						ctx := context.WithValue(r.Context(), "user", userDTO)
+						ctx = context.WithValue(ctx, "user_id", user.ID)
+						ctx = context.WithValue(ctx, "is_admin", user.IsAdmin)
+
+						next.ServeHTTP(w, r.WithContext(ctx))
+						return
+					}
+				}
+			}
 		}
 
-		// Vérifier le format "Bearer <token>"
-		tokenParts := strings.Split(authHeader, " ")
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			// Format invalide, continuer sans utilisateur
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		tokenString := tokenParts[1]
-
-		// Valider le token JWT
-		cfg := configs.Get()
-		tokenManager := customjwt.NewTokenManager(customjwt.Config{
-			Secret:          cfg.JWT.Secret,
-			ExpirationHours: cfg.JWT.ExpirationHours,
-			Issuer:          "rythmit-api",
-		})
-
-		claims, err := tokenManager.ValidateToken(tokenString)
-		if err != nil {
-			// Token invalide, continuer sans utilisateur
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		// Récupérer l'utilisateur depuis la base de données
-		userRepo := repositories.NewUserRepository(database.DB)
-		user, err := userRepo.FindByID(claims.UserID)
-		if err != nil {
-			// Utilisateur non trouvé, continuer sans utilisateur
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		// Convertir en DTO de réponse
-		userDTO := services.ToUserResponseDTO(user)
-
-		// Injecter l'utilisateur dans le contexte
-		ctx := context.WithValue(r.Context(), "user", userDTO)
-		ctx = context.WithValue(ctx, "user_id", user.ID)
-		ctx = context.WithValue(ctx, "is_admin", user.IsAdmin)
-
-		next.ServeHTTP(w, r.WithContext(ctx))
+		// Aucun token valide trouvé, continuer sans utilisateur
+		next.ServeHTTP(w, r)
 	})
 }
 

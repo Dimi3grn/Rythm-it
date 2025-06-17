@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil - Rythm'it</title>
+    <link rel="stylesheet" href="styles/css/index.css">
+    <link rel="stylesheet" href="styles/css/friends.css">
+    <link rel="stylesheet" href="styles/css/profile.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+    <a href="index.html" class="brand">
+        <div class="brand-icon">
+            <div class="wave-animation">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+        </div>
+        <span class="brand-text">Rythm'it</span>
+    </a>
+    <div class="header-actions">
+        <a href="hub.html" class="header-btn">
+            <span class="nav-icon">🎯</span>
+            Hub
+        </a>
+        <a href="index.html" class="header-btn">
+            <span class="nav-icon">🏠</span>
+            Accueil
+        </a>
+        <a href="discover.html" class="header-btn">
+            <span class="nav-icon">🔍</span>
+            Découvrir
+        </a>
+        <a href="friends.html" class="header-btn">
+            <span class="nav-icon">👥</span>
+            Amis
+        </a>
+        <div class="notification-container">
+            <a href="messages.html" class="header-btn notification-btn">
+                <span class="nav-icon">💬</span>
+                Messages
+                <span class="notification-badge">3</span>
+            </a>
+        </div>
+        <a href="profile.html" class="header-btn primary active">Profil</a>
+    </div>
+</header>
+
+        <div class="profile-layout">
+            <main class="profile-content">
+                <!-- Section Cover & Avatar -->
+                <div class="profile-hero">
+                    <div class="profile-cover">
+                        <div class="cover-gradient"></div>
+                        <button class="edit-cover-btn">📷 Modifier la couverture</button>
+                    </div>
+                    <div class="profile-info-header">
+                        <div class="profile-avatar-section">
+                            <div class="profile-avatar">
+                                <div class="user-pic profile-size">MO</div>
+                                <button class="edit-avatar-btn">📷</button>
+                                <span class="online-status online"></span>
+                            </div>
+                            <div class="profile-basic-info">
+                                <h1>Mon Profil</h1>
+                                <p>@monprofil_rhythmit</p>
+                                <div class="profile-status">
+                                    <span class="status-text">🎵 Actuellement en écoute</span>
+                                    <span class="current-track">Digital Love - Daft Punk</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="profile-action-btn edit">✏️ Modifier le profil</button>
+                            <button class="profile-action-btn share">📤 Partager</button>
+                            <button class="profile-action-btn settings">⚙️ Paramètres</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation du profil -->
+                <nav class="profile-nav">
+                    <a href="#" class="profile-nav-item active" data-tab="overview">Aperçu</a>
+                    <a href="#" class="profile-nav-item" data-tab="playlists">Playlists (23)</a>
+                    <a href="#" class="profile-nav-item" data-tab="activity">Activité</a>
+                    <a href="#" class="profile-nav-item" data-tab="favorites">Favoris</a>
+                    <a href="#" class="profile-nav-item" data-tab="stats">Statistiques</a>
+                </nav>
+
+                <!-- Contenu des onglets -->
+                <div class="profile-tab-content">
+                    <!-- Onglet Aperçu -->
+                    <div class="tab-panel active" id="overview">
+                        <div class="profile-overview">
+                            <div class="overview-left">
+                                <div class="profile-card">
+                                    <h3>🎵 En écoute récemment</h3>
+                                    <div class="recent-tracks">
+                                        <div class="track-item">
+                                            <div class="track-cover"></div>
+                                            <div class="track-details">
+                                                <h5>One More Time</h5>
+                                                <p>Daft Punk • Discovery</p>
+                                                <span class="play-count">47 écoutes</span>
+                                            </div>
+                                            <button class="play-track-btn">▶️</button>
+                                        </div>
+                                        <div class="track-item">
+                                            <div class="track-cover"></div>
+                                            <div class="track-details">
+                                                <h5>Strobe</h5>
+                                                <p>Deadmau5 • For Lack of a Better Name</p>
+                                                <span class="play-count">32 écoutes</span>
+                                            </div>
+                                            <button class="play-track-btn">▶️</button>
+                                        </div>
+                                        <div class="track-item">
+                                            <div class="track-cover"></div>
+                                            <div class="track-details">
+                                                <h5>Midnight City</h5>
+                                                <p>M83 • Hurry Up, We're Dreaming</p>
+                                                <span class="play-count">28 écoutes</span>
+                                            </div>
+                                            <button class="play-track-btn">▶️</button>
+                                        </div>
+                                    </div>
+                                    <a href="#" class="see-all-link">Voir toute ma musique →</a>
+                                </div>
+
+                                <div class="profile-card">
+                                    <h3>📈 Mes genres favoris</h3>
+                                    <div class="genre-chart">
+                                        <div class="genre-item">
+                                            <span class="genre-name">Electronic</span>
+                                            <div class="genre-bar">
+                                                <div class="genre-progress" style="width: 85%"></div>
+                                            </div>
+                                            <span class="genre-percent">85%</span>
+                                        </div>
+                                        <div class="genre-item">
+                                            <span class="genre-name">House</span>
+                                            <div class="genre-bar">
+                                                <div class="genre-progress" style="width: 72%"></div>
+                                            </div>
+                                            <span class="genre-percent">72%</span>
+                                        </div>
+                                        <div class="genre-item">
+                                            <span class="genre-name">Ambient</span>
+                                            <div class="genre-bar">
+                                                <div class="genre-progress" style="width: 58%"></div>
+                                            </div>
+                                            <span class="genre-percent">58%</span>
+                                        </div>
+                                        <div class="genre-item">
+                                            <span class="genre-name">Jazz</span>
+                                            <div class="genre-bar">
+                                                <div class="genre-progress" style="width: 34%"></div>
+                                            </div>
+                                            <span class="genre-percent">34%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="profile-card">
+                                    <h3>🎯 Objectifs d'écoute</h3>
+                                    <div class="listening-goals">
+                                        <div class="goal-item">
+                                            <div class="goal-icon">🎵</div>
+                                            <div class="goal-info">
+                                                <h5>Découvrir 50 nouveaux artistes</h5>
+                                                <div class="goal-progress">
+                                                    <div class="progress-bar">
+                                                        <div class="progress-fill" style="width: 74%"></div>
+                                                    </div>
+                                                    <span class="progress-text">37/50</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="goal-item">
+                                            <div class="goal-icon">⏱️</div>
+                                            <div class="goal-info">
+                                                <h5>Écouter 100h ce mois-ci</h5>
+                                                <div class="goal-progress">
+                                                    <div class="progress-bar">
+                                                        <div class="progress-fill" style="width: 89%"></div>
+                                                    </div>
+                                                    <span class="progress-text">89h/100h</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="overview-right">
+                                <div class="profile-card">
+                                    <h3>📊 Statistiques générales</h3>
+                                    <div class="stats-grid">
+                                        <div class="stat-box">
+                                            <div class="stat-icon">🎵</div>
+                                            <div class="stat-value">1,247</div>
+                                            <div class="stat-label">Titres écoutés</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-icon">⏱️</div>
+                                            <div class="stat-value">342h</div>
+                                            <div class="stat-label">Temps d'écoute</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-icon">🎨</div>
+                                            <div class="stat-value">156</div>
+                                            <div class="stat-label">Artistes uniques</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-icon">📚</div>
+                                            <div class="stat-value">23</div>
+                                            <div class="stat-label">Playlists créées</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="profile-card">
+                                    <h3>🏆 Badges obtenus</h3>
+                                    <div class="badges-grid">
+                                        <div class="badge-item earned">
+                                            <div class="badge-icon">🎧</div>
+                                            <div class="badge-info">
+                                                <h5>Mélomane</h5>
+                                                <p>100h d'écoute</p>
+                                            </div>
+                                        </div>
+                                        <div class="badge-item earned">
+                                            <div class="badge-icon">🔍</div>
+                                            <div class="badge-info">
+                                                <h5>Explorateur</h5>
+                                                <p>50 nouveaux artistes</p>
+                                            </div>
+                                        </div>
+                                        <div class="badge-item earned">
+                                            <div class="badge-icon">👥</div>
+                                            <div class="badge-info">
+                                                <h5>Social</h5>
+                                                <p>10 amis ajoutés</p>
+                                            </div>
+                                        </div>
+                                        <div class="badge-item locked">
+                                            <div class="badge-icon">🌟</div>
+                                            <div class="badge-info">
+                                                <h5>Influenceur</h5>
+                                                <p>100 followers</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="profile-card">
+                                    <h3>🔥 Playlist tendance</h3>
+                                    <div class="trending-playlist">
+                                        <div class="playlist-cover-large"></div>
+                                        <div class="playlist-info">
+                                            <h4>🌙 Midnight Sessions</h4>
+                                            <p>Pour les nuits studieuses • 34 titres</p>
+                                            <div class="playlist-stats">
+                                                <span>🔥 1.2k écoutes</span>
+                                                <span>❤️ 89 likes</span>
+                                            </div>
+                                            <button class="playlist-action-btn">▶️ Écouter</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Playlists -->
+                    <div class="tab-panel" id="playlists">
+                        <div class="playlists-header">
+                            <div class="playlists-actions">
+                                <button class="create-playlist-btn">➕ Créer une playlist</button>
+                                <div class="playlist-filters">
+                                    <button class="filter-btn active" data-filter="all">Toutes</button>
+                                    <button class="filter-btn" data-filter="public">Publiques</button>
+                                    <button class="filter-btn" data-filter="private">Privées</button>
+                                    <button class="filter-btn" data-filter="collaborative">Collaboratives</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="playlists-grid">
+                            <div class="playlist-card" data-type="public">
+                                <div class="playlist-cover-card"></div>
+                                <div class="playlist-card-info">
+                                    <h4>🌙 Midnight Sessions</h4>
+                                    <p>34 titres • 2h 23min</p>
+                                    <div class="playlist-meta">
+                                        <span class="playlist-visibility">🌍 Publique</span>
+                                        <span class="playlist-plays">1.2k écoutes</span>
+                                    </div>
+                                </div>
+                                <div class="playlist-card-actions">
+                                    <button class="card-action-btn">▶️</button>
+                                    <button class="card-action-btn">📤</button>
+                                    <button class="card-action-btn">⋯</button>
+                                </div>
+                            </div>
+
+                            <div class="playlist-card" data-type="public">
+                                <div class="playlist-cover-card"></div>
+                                <div class="playlist-card-info">
+                                    <h4>🔥 Electronic Bangers</h4>
+                                    <p>67 titres • 4h 12min</p>
+                                    <div class="playlist-meta">
+                                        <span class="playlist-visibility">🌍 Publique</span>
+                                        <span class="playlist-plays">2.8k écoutes</span>
+                                    </div>
+                                </div>
+                                <div class="playlist-card-actions">
+                                    <button class="card-action-btn">▶️</button>
+                                    <button class="card-action-btn">📤</button>
+                                    <button class="card-action-btn">⋯</button>
+                                </div>
+                            </div>
+
+                            <div class="playlist-card" data-type="private">
+                                <div class="playlist-cover-card"></div>
+                                <div class="playlist-card-info">
+                                    <h4>🤫 Guilty Pleasures</h4>
+                                    <p>23 titres • 1h 34min</p>
+                                    <div class="playlist-meta">
+                                        <span class="playlist-visibility">🔒 Privée</span>
+                                        <span class="playlist-plays">127 écoutes</span>
+                                    </div>
+                                </div>
+                                <div class="playlist-card-actions">
+                                    <button class="card-action-btn">▶️</button>
+                                    <button class="card-action-btn">📤</button>
+                                    <button class="card-action-btn">⋯</button>
+                                </div>
+                            </div>
+
+                            <div class="playlist-card" data-type="collaborative">
+                                <div class="playlist-cover-card"></div>
+                                <div class="playlist-card-info">
+                                    <h4>👥 Session Amis</h4>
+                                    <p>89 titres • 5h 45min</p>
+                                    <div class="playlist-meta">
+                                        <span class="playlist-visibility">🤝 Collaborative</span>
+                                        <span class="playlist-plays">456 écoutes</span>
+                                    </div>
+                                </div>
+                                <div class="playlist-card-actions">
+                                    <button class="card-action-btn">▶️</button>
+                                    <button class="card-action-btn">📤</button>
+                                    <button class="card-action-btn">⋯</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Activité -->
+                    <div class="tab-panel" id="activity">
+                        <div class="activity-feed">
+                            <div class="activity-item">
+                                <div class="activity-icon">🎵</div>
+                                <div class="activity-content">
+                                    <p><strong>Vous</strong> avez ajouté "Digital Love" à <strong>Midnight Sessions</strong></p>
+                                    <span class="activity-time">Il y a 2 heures</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon">📚</div>
+                                <div class="activity-content">
+                                    <p><strong>Vous</strong> avez créé la playlist <strong>Electronic Bangers</strong></p>
+                                    <span class="activity-time">Il y a 1 jour</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon">❤️</div>
+                                <div class="activity-content">
+                                    <p><strong>Vous</strong> avez aimé "Strobe" de <strong>Deadmau5</strong></p>
+                                    <span class="activity-time">Il y a 2 jours</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Favoris -->
+                    <div class="tab-panel" id="favorites">
+                        <div class="favorites-sections">
+                            <div class="favorites-section">
+                                <h3>🎵 Titres favoris</h3>
+                                <div class="favorites-list">
+                                    <div class="favorite-item">
+                                        <div class="track-cover"></div>
+                                        <div class="track-info">
+                                            <h5>One More Time</h5>
+                                            <p>Daft Punk</p>
+                                        </div>
+                                        <button class="play-btn">▶️</button>
+                                    </div>
+                                    <!-- Plus d'éléments... -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Statistiques -->
+                    <div class="tab-panel" id="stats">
+                        <div class="stats-detailed">
+                            <div class="stats-chart">
+                                <h3>📈 Écoutes par mois</h3>
+                                <div class="chart-placeholder">
+                                    <!-- Ici pourrait aller un vrai graphique -->
+                                    <div class="chart-bars">
+                                        <div class="chart-bar" style="height: 60%"></div>
+                                        <div class="chart-bar" style="height: 80%"></div>
+                                        <div class="chart-bar" style="height: 45%"></div>
+                                        <div class="chart-bar" style="height: 90%"></div>
+                                        <div class="chart-bar" style="height: 70%"></div>
+                                        <div class="chart-bar" style="height: 95%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal d'édition de profil -->
+    <div class="edit-profile-modal" id="editProfileModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Modifier mon profil</h3>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="edit-form">
+                    <div class="form-group">
+                        <label>Nom d'affichage</label>
+                        <input type="text" value="Mon Profil" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Nom d'utilisateur</label>
+                        <input type="text" value="monprofil_rhythmit" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Bio</label>
+                        <textarea class="form-textarea" placeholder="Parlez-nous de vos goûts musicaux..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Statut actuel</label>
+                        <input type="text" value="🎵 Actuellement en écoute" class="form-input">
+                    </div>
+                    <div class="form-actions">
+                        <button class="cancel-btn">Annuler</button>
+                        <button class="save-btn">Sauvegarder</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="styles/js/index.js"></script>
+    <script src="styles/js/friends.js"></script>
+    <script src="styles/js/profile.js"></script>
+</body>
+</html>

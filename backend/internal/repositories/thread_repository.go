@@ -21,6 +21,8 @@ type ThreadRepository interface {
 	GetThreadTags(threadID uint) ([]*models.Tag, error)
 	FindByTag(tagID uint, params models.PaginationParams) ([]*models.Thread, int64, error)
 	Search(query string, params models.PaginationParams) ([]*models.Thread, int64, error)
+	SearchWithTags(query string, tags []string, params models.PaginationParams) ([]*models.Thread, int64, error)
+	FindByTags(tags []string, params models.PaginationParams) ([]*models.Thread, int64, error)
 	Transaction(fn func(*sql.Tx) error) error
 }
 
@@ -39,11 +41,11 @@ func NewThreadRepository(db *sql.DB) ThreadRepository {
 // Create crée un nouveau thread
 func (r *threadRepository) Create(thread *models.Thread) error {
 	query := `
-		INSERT INTO threads (title, desc_, state, visibility, user_id, created_at, updated_at) 
-		VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+		INSERT INTO threads (title, desc_, image_url, state, visibility, user_id, created_at, updated_at) 
+		VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
 	`
 
-	result, err := r.DB.Exec(query, thread.Title, thread.Description, thread.State, thread.Visibility, thread.UserID)
+	result, err := r.DB.Exec(query, thread.Title, thread.Description, thread.ImageURL, thread.State, thread.Visibility, thread.UserID)
 	if err != nil {
 		return fmt.Errorf("erreur création thread: %w", err)
 	}
@@ -60,7 +62,7 @@ func (r *threadRepository) Create(thread *models.Thread) error {
 // FindByID trouve un thread par son ID avec l'auteur
 func (r *threadRepository) FindByID(id uint) (*models.Thread, error) {
 	query := `
-		SELECT t.id, t.title, t.desc_, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
+		SELECT t.id, t.title, t.desc_, t.image_url, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
 		       u.id, u.username, u.email, u.profile_pic
 		FROM threads t
 		JOIN users u ON t.user_id = u.id
@@ -69,7 +71,7 @@ func (r *threadRepository) FindByID(id uint) (*models.Thread, error) {
 
 	thread := &models.Thread{Author: &models.User{}}
 	err := r.DB.QueryRow(query, id).Scan(
-		&thread.ID, &thread.Title, &thread.Description, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
+		&thread.ID, &thread.Title, &thread.Description, &thread.ImageURL, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
 		&thread.Author.ID, &thread.Author.Username, &thread.Author.Email, &thread.Author.ProfilePic,
 	)
 
@@ -106,7 +108,7 @@ func (r *threadRepository) FindPublicThreads(params models.PaginationParams) ([]
 	// Récupérer les threads avec l'auteur
 	offset := (params.Page - 1) * params.PerPage
 	query := `
-		SELECT t.id, t.title, t.desc_, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
+		SELECT t.id, t.title, t.desc_, t.image_url, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
 		       u.id, u.username, u.email, u.profile_pic
 		FROM threads t
 		JOIN users u ON t.user_id = u.id
@@ -125,7 +127,7 @@ func (r *threadRepository) FindPublicThreads(params models.PaginationParams) ([]
 	for rows.Next() {
 		thread := &models.Thread{Author: &models.User{}}
 		err := rows.Scan(
-			&thread.ID, &thread.Title, &thread.Description, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
+			&thread.ID, &thread.Title, &thread.Description, &thread.ImageURL, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
 			&thread.Author.ID, &thread.Author.Username, &thread.Author.Email, &thread.Author.ProfilePic,
 		)
 		if err != nil {
@@ -160,7 +162,7 @@ func (r *threadRepository) FindAll(params models.PaginationParams) ([]*models.Th
 	// Récupérer les threads
 	offset := (params.Page - 1) * params.PerPage
 	query := `
-		SELECT t.id, t.title, t.desc_, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
+		SELECT t.id, t.title, t.desc_, t.image_url, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
 		       u.id, u.username, u.email, u.profile_pic
 		FROM threads t
 		JOIN users u ON t.user_id = u.id
@@ -178,7 +180,7 @@ func (r *threadRepository) FindAll(params models.PaginationParams) ([]*models.Th
 	for rows.Next() {
 		thread := &models.Thread{Author: &models.User{}}
 		err := rows.Scan(
-			&thread.ID, &thread.Title, &thread.Description, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
+			&thread.ID, &thread.Title, &thread.Description, &thread.ImageURL, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
 			&thread.Author.ID, &thread.Author.Username, &thread.Author.Email, &thread.Author.ProfilePic,
 		)
 		if err != nil {
@@ -196,7 +198,7 @@ func (r *threadRepository) FindAll(params models.PaginationParams) ([]*models.Th
 // FindByUserID trouve les threads d'un utilisateur
 func (r *threadRepository) FindByUserID(userID uint) ([]*models.Thread, error) {
 	query := `
-		SELECT t.id, t.title, t.desc_, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
+		SELECT t.id, t.title, t.desc_, t.image_url, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
 		       u.id, u.username, u.email, u.profile_pic
 		FROM threads t
 		JOIN users u ON t.user_id = u.id
@@ -214,7 +216,7 @@ func (r *threadRepository) FindByUserID(userID uint) ([]*models.Thread, error) {
 	for rows.Next() {
 		thread := &models.Thread{Author: &models.User{}}
 		err := rows.Scan(
-			&thread.ID, &thread.Title, &thread.Description, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
+			&thread.ID, &thread.Title, &thread.Description, &thread.ImageURL, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
 			&thread.Author.ID, &thread.Author.Username, &thread.Author.Email, &thread.Author.ProfilePic,
 		)
 		if err != nil {
@@ -233,11 +235,11 @@ func (r *threadRepository) FindByUserID(userID uint) ([]*models.Thread, error) {
 func (r *threadRepository) Update(thread *models.Thread) error {
 	query := `
 		UPDATE threads 
-		SET title = ?, desc_ = ?, state = ?, visibility = ?, updated_at = NOW()
+		SET title = ?, desc_ = ?, image_url = ?, state = ?, visibility = ?, updated_at = NOW()
 		WHERE id = ?
 	`
 
-	_, err := r.DB.Exec(query, thread.Title, thread.Description, thread.State, thread.Visibility, thread.ID)
+	_, err := r.DB.Exec(query, thread.Title, thread.Description, thread.ImageURL, thread.State, thread.Visibility, thread.ID)
 	if err != nil {
 		return fmt.Errorf("erreur mise à jour thread: %w", err)
 	}
@@ -374,7 +376,7 @@ func (r *threadRepository) FindByTag(tagID uint, params models.PaginationParams)
 	// Récupérer les threads
 	offset := (params.Page - 1) * params.PerPage
 	query := `
-		SELECT DISTINCT t.id, t.title, t.desc_, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
+		SELECT DISTINCT t.id, t.title, t.desc_, t.image_url, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
 		       u.id, u.username, u.email, u.profile_pic
 		FROM threads t
 		JOIN thread_tags tt ON t.id = tt.thread_id
@@ -394,7 +396,7 @@ func (r *threadRepository) FindByTag(tagID uint, params models.PaginationParams)
 	for rows.Next() {
 		thread := &models.Thread{Author: &models.User{}}
 		err := rows.Scan(
-			&thread.ID, &thread.Title, &thread.Description, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
+			&thread.ID, &thread.Title, &thread.Description, &thread.ImageURL, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
 			&thread.Author.ID, &thread.Author.Username, &thread.Author.Email, &thread.Author.ProfilePic,
 		)
 		if err != nil {
@@ -409,20 +411,20 @@ func (r *threadRepository) FindByTag(tagID uint, params models.PaginationParams)
 	return threads, total, nil
 }
 
-// Search recherche dans les threads par titre
+// Search recherche dans les threads par titre et description
 func (r *threadRepository) Search(query string, params models.PaginationParams) ([]*models.Thread, int64, error) {
 	models.ValidatePagination(&params)
 
 	searchTerm := "%" + query + "%"
 
-	// Compter le total
+	// Compter le total - recherche dans titre ET description
 	countQuery := `
 		SELECT COUNT(*)
 		FROM threads t
-		WHERE t.title LIKE ? AND t.visibility = 'public' AND t.state != 'archivé'
+		WHERE (t.title LIKE ? OR t.desc_ LIKE ?) AND t.visibility = 'public' AND t.state != 'archivé'
 	`
 	var total int64
-	err := r.DB.QueryRow(countQuery, searchTerm).Scan(&total)
+	err := r.DB.QueryRow(countQuery, searchTerm, searchTerm).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("erreur comptage recherche threads: %w", err)
 	}
@@ -430,16 +432,16 @@ func (r *threadRepository) Search(query string, params models.PaginationParams) 
 	// Récupérer les threads
 	offset := (params.Page - 1) * params.PerPage
 	searchQuery := `
-		SELECT t.id, t.title, t.desc_, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
+		SELECT t.id, t.title, t.desc_, t.image_url, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
 		       u.id, u.username, u.email, u.profile_pic
 		FROM threads t
 		JOIN users u ON t.user_id = u.id
-		WHERE t.title LIKE ? AND t.visibility = 'public' AND t.state != 'archivé'
+		WHERE (t.title LIKE ? OR t.desc_ LIKE ?) AND t.visibility = 'public' AND t.state != 'archivé'
 		ORDER BY t.created_at DESC
 		LIMIT ? OFFSET ?
 	`
 
-	rows, err := r.DB.Query(searchQuery, searchTerm, params.PerPage, offset)
+	rows, err := r.DB.Query(searchQuery, searchTerm, searchTerm, params.PerPage, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("erreur recherche threads: %w", err)
 	}
@@ -449,7 +451,7 @@ func (r *threadRepository) Search(query string, params models.PaginationParams) 
 	for rows.Next() {
 		thread := &models.Thread{Author: &models.User{}}
 		err := rows.Scan(
-			&thread.ID, &thread.Title, &thread.Description, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
+			&thread.ID, &thread.Title, &thread.Description, &thread.ImageURL, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
 			&thread.Author.ID, &thread.Author.Username, &thread.Author.Email, &thread.Author.ProfilePic,
 		)
 		if err != nil {
@@ -458,6 +460,214 @@ func (r *threadRepository) Search(query string, params models.PaginationParams) 
 
 		tags, _ := r.GetThreadTags(thread.ID)
 		thread.Tags = tags
+		threads = append(threads, thread)
+	}
+
+	return threads, total, nil
+}
+
+// SearchWithTags recherche dans les threads par texte ET tags (logique ET)
+func (r *threadRepository) SearchWithTags(query string, tags []string, params models.PaginationParams) ([]*models.Thread, int64, error) {
+	models.ValidatePagination(&params)
+
+	if len(tags) == 0 {
+		return r.Search(query, params)
+	}
+
+	searchTerm := "%" + query + "%"
+	tagCount := len(tags)
+
+	// Construire la requête avec placeholders pour les tags
+	tagPlaceholders := ""
+	for i := 0; i < tagCount; i++ {
+		if i > 0 {
+			tagPlaceholders += ", "
+		}
+		tagPlaceholders += "?"
+	}
+
+	// Compter le total - threads qui correspondent au texte ET ont TOUS les tags
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(DISTINCT t.id)
+		FROM threads t
+		JOIN users u ON t.user_id = u.id
+		JOIN thread_tags tt ON t.id = tt.thread_id
+		JOIN tags tag ON tt.tag_id = tag.id
+		WHERE (t.title LIKE ? OR t.desc_ LIKE ?) 
+		  AND t.visibility = 'public' 
+		  AND t.state != 'archivé'
+		  AND tag.name IN (%s)
+		GROUP BY t.id
+		HAVING COUNT(DISTINCT tag.name) = ?
+	`, tagPlaceholders)
+
+	// Préparer les arguments pour la requête de comptage
+	countArgs := []interface{}{searchTerm, searchTerm}
+	for _, tag := range tags {
+		countArgs = append(countArgs, tag)
+	}
+	countArgs = append(countArgs, tagCount)
+
+	// Compter les résultats
+	rows, err := r.DB.Query(countQuery, countArgs...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("erreur comptage recherche avec tags: %w", err)
+	}
+	defer rows.Close()
+
+	var total int64 = 0
+	for rows.Next() {
+		total++
+	}
+
+	// Récupérer les threads
+	offset := (params.Page - 1) * params.PerPage
+	searchQuery := fmt.Sprintf(`
+		SELECT DISTINCT t.id, t.title, t.desc_, t.image_url, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
+		       u.id, u.username, u.email, u.profile_pic
+		FROM threads t
+		JOIN users u ON t.user_id = u.id
+		JOIN thread_tags tt ON t.id = tt.thread_id
+		JOIN tags tag ON tt.tag_id = tag.id
+		WHERE (t.title LIKE ? OR t.desc_ LIKE ?) 
+		  AND t.visibility = 'public' 
+		  AND t.state != 'archivé'
+		  AND tag.name IN (%s)
+		GROUP BY t.id, t.title, t.desc_, t.image_url, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
+		         u.id, u.username, u.email, u.profile_pic
+		HAVING COUNT(DISTINCT tag.name) = ?
+		ORDER BY t.created_at DESC
+		LIMIT ? OFFSET ?
+	`, tagPlaceholders)
+
+	// Préparer les arguments pour la requête principale
+	searchArgs := []interface{}{searchTerm, searchTerm}
+	for _, tag := range tags {
+		searchArgs = append(searchArgs, tag)
+	}
+	searchArgs = append(searchArgs, tagCount, params.PerPage, offset)
+
+	rows, err = r.DB.Query(searchQuery, searchArgs...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("erreur recherche threads avec tags: %w", err)
+	}
+	defer rows.Close()
+
+	var threads []*models.Thread
+	for rows.Next() {
+		thread := &models.Thread{Author: &models.User{}}
+		err := rows.Scan(
+			&thread.ID, &thread.Title, &thread.Description, &thread.ImageURL, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
+			&thread.Author.ID, &thread.Author.Username, &thread.Author.Email, &thread.Author.ProfilePic,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("erreur scan thread recherche avec tags: %w", err)
+		}
+
+		threadTags, _ := r.GetThreadTags(thread.ID)
+		thread.Tags = threadTags
+		threads = append(threads, thread)
+	}
+
+	return threads, total, nil
+}
+
+// FindByTags trouve les threads qui ont TOUS les tags spécifiés (logique ET)
+func (r *threadRepository) FindByTags(tags []string, params models.PaginationParams) ([]*models.Thread, int64, error) {
+	models.ValidatePagination(&params)
+
+	if len(tags) == 0 {
+		return r.FindPublicThreads(params)
+	}
+
+	tagCount := len(tags)
+
+	// Construire la requête avec placeholders pour les tags
+	tagPlaceholders := ""
+	for i := 0; i < tagCount; i++ {
+		if i > 0 {
+			tagPlaceholders += ", "
+		}
+		tagPlaceholders += "?"
+	}
+
+	// Compter le total - threads qui ont TOUS les tags
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(DISTINCT t.id)
+		FROM threads t
+		JOIN thread_tags tt ON t.id = tt.thread_id
+		JOIN tags tag ON tt.tag_id = tag.id
+		WHERE t.visibility = 'public' 
+		  AND t.state != 'archivé'
+		  AND tag.name IN (%s)
+		GROUP BY t.id
+		HAVING COUNT(DISTINCT tag.name) = ?
+	`, tagPlaceholders)
+
+	// Préparer les arguments pour la requête de comptage
+	countArgs := []interface{}{}
+	for _, tag := range tags {
+		countArgs = append(countArgs, tag)
+	}
+	countArgs = append(countArgs, tagCount)
+
+	// Compter les résultats
+	rows, err := r.DB.Query(countQuery, countArgs...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("erreur comptage threads par tags: %w", err)
+	}
+	defer rows.Close()
+
+	var total int64 = 0
+	for rows.Next() {
+		total++
+	}
+
+	// Récupérer les threads
+	offset := (params.Page - 1) * params.PerPage
+	searchQuery := fmt.Sprintf(`
+		SELECT DISTINCT t.id, t.title, t.desc_, t.image_url, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
+		       u.id, u.username, u.email, u.profile_pic
+		FROM threads t
+		JOIN users u ON t.user_id = u.id
+		JOIN thread_tags tt ON t.id = tt.thread_id
+		JOIN tags tag ON tt.tag_id = tag.id
+		WHERE t.visibility = 'public' 
+		  AND t.state != 'archivé'
+		  AND tag.name IN (%s)
+		GROUP BY t.id, t.title, t.desc_, t.image_url, t.state, t.visibility, t.user_id, t.created_at, t.updated_at,
+		         u.id, u.username, u.email, u.profile_pic
+		HAVING COUNT(DISTINCT tag.name) = ?
+		ORDER BY t.created_at DESC
+		LIMIT ? OFFSET ?
+	`, tagPlaceholders)
+
+	// Préparer les arguments pour la requête principale
+	searchArgs := []interface{}{}
+	for _, tag := range tags {
+		searchArgs = append(searchArgs, tag)
+	}
+	searchArgs = append(searchArgs, tagCount, params.PerPage, offset)
+
+	rows, err = r.DB.Query(searchQuery, searchArgs...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("erreur recherche threads par tags: %w", err)
+	}
+	defer rows.Close()
+
+	var threads []*models.Thread
+	for rows.Next() {
+		thread := &models.Thread{Author: &models.User{}}
+		err := rows.Scan(
+			&thread.ID, &thread.Title, &thread.Description, &thread.ImageURL, &thread.State, &thread.Visibility, &thread.UserID, &thread.CreatedAt, &thread.UpdatedAt,
+			&thread.Author.ID, &thread.Author.Username, &thread.Author.Email, &thread.Author.ProfilePic,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("erreur scan thread par tags: %w", err)
+		}
+
+		threadTags, _ := r.GetThreadTags(thread.ID)
+		thread.Tags = threadTags
 		threads = append(threads, thread)
 	}
 

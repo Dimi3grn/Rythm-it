@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thread - Rythm'it</title>
+    <link rel="stylesheet" href="styles/css/index.css">
+    <link rel="stylesheet" href="styles/css/friends.css">
+    <link rel="stylesheet" href="styles/css/thread.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <a href="index.html" class="brand">
+                <div class="brand-icon">
+                    <div class="wave-animation">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                </div>
+                <span class="brand-text">Rythm'it</span>
+            </a>
+            <div class="header-actions">
+                <a href="hub.html" class="header-btn">
+                    <span class="nav-icon">🎯</span>
+                    Hub
+                </a>
+                <a href="index.html" class="header-btn">
+                    <span class="nav-icon">🏠</span>
+                    Accueil
+                </a>
+                <a href="discover.html" class="header-btn">
+                    <span class="nav-icon">🔍</span>
+                    Découvrir
+                </a>
+                <a href="friends.html" class="header-btn">
+                    <span class="nav-icon">👥</span>
+                    Amis
+                </a>
+                <div class="notification-container">
+                    <a href="messages.html" class="header-btn notification-btn">
+                        <span class="nav-icon">💬</span>
+                        Messages
+                        <span class="notification-badge">3</span>
+                    </a>
+                </div>
+                <a href="profile.html" class="header-btn primary">Profil</a>
+            </div>
+        </header>
+
+        <div class="thread-layout">
+            <!-- Bouton retour -->
+            <div class="back-navigation">
+                <a href="javascript:history.back()" class="back-btn">
+                    <span class="back-icon">←</span>
+                    Retour au feed
+                </a>
+            </div>
+
+            <main class="thread-main">
+                <!-- Thread principal -->
+                <article class="main-thread">
+                    <div class="thread-header">
+                        <div class="user-pic large">AS</div>
+                        <div class="user-details">
+                            <h2>AudioSeeker</h2>
+                            <div class="thread-meta">
+                                <span class="post-time">il y a 1h</span>
+                                <span class="separator">•</span>
+                                <span class="genre-tag">Ambient</span>
+                                <span class="separator">•</span>
+                                <span class="friend-badge">Ami</span>
+                            </div>
+                        </div>
+                        <div class="thread-actions">
+                            <button class="action-btn" title="Partager">📤</button>
+                            <button class="action-btn" title="Signaler">⚠️</button>
+                            <button class="action-btn" title="Plus">⋯</button>
+                        </div>
+                    </div>
+
+                    <div class="thread-content">
+                        <div class="thread-text">
+                            <p>Une découverte absolument magique pour les amateurs d'ambient. Cette composition nous transporte dans un univers onirique avec des textures sonores d'une richesse incroyable. 🌌✨</p>
+                            
+                            <p>Les layers de synthétiseurs créent une atmosphère immersive parfaite pour la méditation ou le travail créatif. J'ai découvert cet artiste grâce à une playlist collaborative et je ne peux que vous le recommander chaudement.</p>
+                            
+                            <p>Qu'est-ce que vous en pensez ? Connaissez-vous d'autres artistes dans ce style ?</p>
+                        </div>
+
+                        <div class="music-card">
+                            <div class="album-art">
+                                <div class="play-overlay">
+                                    <button class="play-control large">▶️</button>
+                                </div>
+                                <div class="track-duration">8:47</div>
+                            </div>
+                            <div class="track-info">
+                                <h3>Ethereal Landscapes</h3>
+                                <p class="artist">Ambient Dreams</p>
+                                <p class="album">Celestial Echoes • 2024</p>
+                                <div class="track-tags">
+                                    <span class="tag">Ambient</span>
+                                    <span class="tag">Atmospheric</span>
+                                    <span class="tag">Chill</span>
+                                </div>
+                            </div>
+                            <div class="track-actions">
+                                <button class="track-btn" title="Ajouter aux favoris">❤️</button>
+                                <button class="track-btn" title="Ajouter à une playlist">➕</button>
+                                <button class="track-btn" title="Partager">📤</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="thread-engagement">
+                        <div class="engagement-stats">
+                            <button class="engagement-btn liked">
+                                <span class="btn-icon">❤️</span>
+                                <span class="btn-count">34</span>
+                                <span class="btn-label">J'aime</span>
+                            </button>
+                            <button class="engagement-btn">
+                                <span class="btn-icon">💬</span>
+                                <span class="btn-count">8</span>
+                                <span class="btn-label">Commentaires</span>
+                            </button>
+                            <button class="engagement-btn">
+                                <span class="btn-icon">🔄</span>
+                                <span class="btn-count">12</span>
+                                <span class="btn-label">Partages</span>
+                            </button>
+                            <button class="engagement-btn">
+                                <span class="btn-icon">🔖</span>
+                                <span class="btn-label">Sauvegarder</span>
+                            </button>
+                        </div>
+                        
+                        <div class="engagement-details">
+                            <div class="liked-by">
+                                <span class="liked-text">Aimé par</span>
+                                <div class="liked-avatars">
+                                    <div class="user-pic tiny">MX</div>
+                                    <div class="user-pic tiny">SB</div>
+                                    <div class="user-pic tiny">RH</div>
+                                    <span class="more-likes">et 31 autres</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Compositeur de commentaire -->
+                <div class="comment-composer">
+                    <div class="composer-header">
+                        <h3>Ajouter un commentaire</h3>
+                    </div>
+                    <div class="composer-content">
+                        <div class="user-pic">MO</div>
+                        <div class="composer-input-area">
+                            <textarea class="comment-input" placeholder="Partagez votre avis sur cette découverte musicale..."></textarea>
+                            <div class="composer-toolbar">
+                                <div class="toolbar-left">
+                                    <button class="tool-btn" title="Ajouter une piste">🎵</button>
+                                    <button class="tool-btn" title="Joindre une image">📷</button>
+                                    <button class="tool-btn" title="Emoji">😊</button>
+                                </div>
+                                <button class="comment-btn">Commenter</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Commentaires -->
+                <div class="comments-section">
+                    <div class="comments-header">
+                        <h3>Commentaires (8)</h3>
+                        <div class="comments-filter">
+                            <select class="filter-select">
+                                <option value="newest">Plus récents</option>
+                                <option value="oldest">Plus anciens</option>
+                                <option value="popular">Les plus aimés</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="comments-list">
+                        <!-- Commentaire 1 -->
+                        <div class="comment-item">
+                            <div class="comment-avatar">
+                                <div class="user-pic">MX</div>
+                            </div>
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <h4>MixMaster</h4>
+                                    <span class="comment-time">il y a 45min</span>
+                                </div>
+                                <div class="comment-text">
+                                    Complètement d'accord ! Cet artiste a un talent incroyable pour créer des atmosphères. J'ai ajouté cette track à ma playlist "Deep Focus" 🎧
+                                </div>
+                                <div class="comment-actions">
+                                    <button class="comment-action liked">❤️ 12</button>
+                                    <button class="comment-action">💬 Répondre</button>
+                                    <button class="comment-action">📤 Partager</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Commentaire 2 avec réponse -->
+                        <div class="comment-item">
+                            <div class="comment-avatar">
+                                <div class="user-pic">SB</div>
+                            </div>
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <h4>SoundBliss</h4>
+                                    <span class="comment-time">il y a 30min</span>
+                                </div>
+                                <div class="comment-text">
+                                    Tu devrais écouter "Floating Memories" du même artiste, c'est encore plus immersif ! 🌊
+                                </div>
+                                <div class="comment-actions">
+                                    <button class="comment-action">❤️ 8</button>
+                                    <button class="comment-action">💬 Répondre</button>
+                                    <button class="comment-action">📤 Partager</button>
+                                </div>
+                                
+                                <!-- Réponse -->
+                                <div class="reply-item">
+                                    <div class="comment-avatar">
+                                        <div class="user-pic small">AS</div>
+                                    </div>
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <h4>AudioSeeker</h4>
+                                            <span class="comment-time">il y a 25min</span>
+                                            <span class="op-badge">OP</span>
+                                        </div>
+                                        <div class="comment-text">
+                                            @SoundBliss Excellente recommandation ! Je vais écouter ça tout de suite 👌
+                                        </div>
+                                        <div class="comment-actions">
+                                            <button class="comment-action">❤️ 3</button>
+                                            <button class="comment-action">💬 Répondre</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Commentaire 3 -->
+                        <div class="comment-item">
+                            <div class="comment-avatar">
+                                <div class="user-pic">RH</div>
+                            </div>
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <h4>RhythmHunter</h4>
+                                    <span class="comment-time">il y a 20min</span>
+                                </div>
+                                <div class="comment-text">
+                                    Perfect pour mes sessions de travail tardives ! Merci pour la découverte 🙏
+                                </div>
+                                <div class="comment-actions">
+                                    <button class="comment-action">❤️ 5</button>
+                                    <button class="comment-action">💬 Répondre</button>
+                                    <button class="comment-action">📤 Partager</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Commentaire avec musique partagée -->
+                        <div class="comment-item">
+                            <div class="comment-avatar">
+                                <div class="user-pic">EB</div>
+                            </div>
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <h4>EchoBeat</h4>
+                                    <span class="comment-time">il y a 15min</span>
+                                </div>
+                                <div class="comment-text">
+                                    Dans le même style, je recommande vivement cette piste :
+                                </div>
+                                
+                                <!-- Mini carte musicale dans commentaire -->
+                                <div class="comment-music-card">
+                                    <div class="mini-album-art"></div>
+                                    <div class="mini-track-info">
+                                        <h5>Infinite Horizons</h5>
+                                        <p>Cosmic Ambient • Stellar Journeys</p>
+                                    </div>
+                                    <button class="mini-play-btn">▶️</button>
+                                </div>
+                                
+                                <div class="comment-actions">
+                                    <button class="comment-action">❤️ 7</button>
+                                    <button class="comment-action">💬 Répondre</button>
+                                    <button class="comment-action">📤 Partager</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="load-more-comments">
+                        <button class="load-more-btn">Charger plus de commentaires (4 restants)</button>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Sidebar droite -->
+            <aside class="thread-sidebar">
+                <div class="widget">
+                    <h3>🎵 Posts similaires</h3>
+                    <div class="similar-posts">
+                        <div class="similar-post">
+                            <div class="similar-avatar">
+                                <div class="user-pic small">VW</div>
+                            </div>
+                            <div class="similar-content">
+                                <h5>VibeWave</h5>
+                                <p>Une autre perle ambient...</p>
+                                <span class="similar-time">il y a 2h</span>
+                            </div>
+                        </div>
+                        
+                        <div class="similar-post">
+                            <div class="similar-avatar">
+                                <div class="user-pic small">DS</div>
+                            </div>
+                            <div class="similar-content">
+                                <h5>DeepSounds</h5>
+                                <p>Collection ambient 2024</p>
+                                <span class="similar-time">il y a 4h</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <h3>🎧 Profil de AudioSeeker</h3>
+                    <div class="user-profile-mini">
+                        <div class="profile-stats">
+                            <div class="stat">
+                                <span class="stat-number">157</span>
+                                <span class="stat-label">Posts</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">2.3k</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">892</span>
+                                <span class="stat-label">Following</span>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="follow-btn">✓ Suivi</button>
+                            <button class="message-btn">💬 Message</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <h3>🔥 Tendances</h3>
+                    <div class="trending-tags">
+                        <a href="#" class="trend-tag">#ambient</a>
+                        <a href="#" class="trend-tag">#atmospheric</a>
+                        <a href="#" class="trend-tag">#chill</a>
+                        <a href="#" class="trend-tag">#meditation</a>
+                        <a href="#" class="trend-tag">#electronic</a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Modal de partage de musique dans commentaire -->
+    <div class="music-share-modal" id="musicShareModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Partager une musique</h3>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="music-search">
+                    <input type="text" placeholder="Rechercher une musique..." class="music-search-input">
+                </div>
+                <div class="music-results">
+                    <div class="music-item">
+                        <div class="music-cover"></div>
+                        <div class="music-info">
+                            <h5>Infinite Horizons</h5>
+                            <p>Cosmic Ambient • Stellar Journeys</p>
+                        </div>
+                        <button class="select-music-btn">Partager</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="styles/js/index.js"></script>
+    <script src="styles/js/friends.js"></script>
+    <script src="styles/js/thread.js"></script>
+</body>
+</html>

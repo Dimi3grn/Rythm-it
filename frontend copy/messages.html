@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - Rythm'it</title>
+    <link rel="stylesheet" href="styles/css/index.css">
+    <link rel="stylesheet" href="styles/css/friends.css">
+    <link rel="stylesheet" href="styles/css/messages.css">
+</head>
+<body>
+    <div class="app-container">
+       <header class="header">
+    <a href="index.html" class="brand">
+        <div class="brand-icon">
+            <div class="wave-animation">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+        </div>
+        <span class="brand-text">Rythm'it</span>
+    </a>
+    <div class="header-actions">
+        <a href="hub.html" class="header-btn">
+            <span class="nav-icon">🎯</span>
+            Hub
+        </a>
+        <a href="index.html" class="header-btn">
+            <span class="nav-icon">🏠</span>
+            Accueil
+        </a>
+        <a href="discover.html" class="header-btn">
+            <span class="nav-icon">🔍</span>
+            Découvrir
+        </a>
+        <a href="friends.html" class="header-btn">
+            <span class="nav-icon">👥</span>
+            Amis
+        </a>
+        <a href="messages.html" class="header-btn notification-btn active">
+            <span class="nav-icon">💬</span>
+            Messages
+        </a>
+        <a href="profile.html" class="header-btn primary">Profil</a>
+    </div>
+</header>
+
+        <div class="messages-layout">
+            <aside class="conversations-sidebar">
+                <div class="conversations-header">
+                    <h2>Messages</h2>
+                    <div class="conversation-actions">
+                        <button class="new-conversation-btn" title="Nouvelle conversation">✏️</button>
+                        <button class="search-conversations-btn" title="Rechercher">🔍</button>
+                    </div>
+                </div>
+
+                <div class="search-conversations">
+                    <input type="text" class="search-conversations-input" placeholder="Rechercher une conversation...">
+                </div>
+
+                <div class="conversations-list">
+                    <div class="conversation-item active" data-conversation="mixmaster">
+                        <div class="conversation-avatar">
+                            <div class="user-pic small">MX</div>
+                            <span class="online-status online"></span>
+                        </div>
+                        <div class="conversation-info">
+                            <h4>MixMaster</h4>
+                            <p class="last-message">Salut ! Tu as écouté le dernier album de...</p>
+                            <span class="message-time">5 min</span>
+                        </div>
+                        <div class="conversation-status">
+                            <span class="unread-count">2</span>
+                        </div>
+                    </div>
+
+                    <div class="conversation-item" data-conversation="soundbliss">
+                        <div class="conversation-avatar">
+                            <div class="user-pic small">SB</div>
+                            <span class="online-status online"></span>
+                        </div>
+                        <div class="conversation-info">
+                            <h4>SoundBliss</h4>
+                            <p class="last-message">Cette playlist jazz est incroyable ! 🎷</p>
+                            <span class="message-time">1h</span>
+                        </div>
+                        <div class="conversation-status">
+                            <span class="unread-count">1</span>
+                        </div>
+                    </div>
+
+                    <div class="conversation-item" data-conversation="rhythmhunter">
+                        <div class="conversation-avatar">
+                            <div class="user-pic small">RH</div>
+                            <span class="online-status away"></span>
+                        </div>
+                        <div class="conversation-info">
+                            <h4>RhythmHunter</h4>
+                            <p class="last-message">On fait une session d'écoute ce soir ?</p>
+                            <span class="message-time">3h</span>
+                        </div>
+                    </div>
+
+                    <div class="conversation-item" data-conversation="echobeat">
+                        <div class="conversation-avatar">
+                            <div class="user-pic small">EB</div>
+                            <span class="online-status online"></span>
+                        </div>
+                        <div class="conversation-info">
+                            <h4>EchoBeat</h4>
+                            <p class="last-message">Merci pour la recommandation !</p>
+                            <span class="message-time">1j</span>
+                        </div>
+                    </div>
+
+                    <div class="conversation-item" data-conversation="vibewave">
+                        <div class="conversation-avatar">
+                            <div class="user-pic small">VW</div>
+                            <span class="online-status offline"></span>
+                        </div>
+                        <div class="conversation-info">
+                            <h4>VibeWave</h4>
+                            <p class="last-message">Génial, à demain alors !</p>
+                            <span class="message-time">2j</span>
+                        </div>
+                    </div>
+
+                    <div class="conversation-item" data-conversation="deepsounds">
+                        <div class="conversation-avatar">
+                            <div class="user-pic small">DS</div>
+                            <span class="online-status offline"></span>
+                        </div>
+                        <div class="conversation-info">
+                            <h4>DeepSounds</h4>
+                            <p class="last-message">Belle découverte cette track !</p>
+                            <span class="message-time">3j</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="chat-area">
+                <div class="chat-header">
+                    <div class="chat-user-info">
+                        <div class="user-pic">MX</div>
+                        <div class="user-details">
+                            <h3>MixMaster</h3>
+                            <span class="user-status">🟢 En ligne • Écoute: Techno Vibes</span>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="chat-action-btn" title="Appel vocal">📞</button>
+                        <button class="chat-action-btn" title="Écoute partagée">🎧</button>
+                        <button class="chat-action-btn" title="Partager une playlist">📚</button>
+                        <button class="chat-action-btn" title="Plus d'options">⋯</button>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message-group">
+                        <div class="message-date">Aujourd'hui</div>
+                        
+                        <div class="message received">
+                            <div class="message-avatar">
+                                <div class="user-pic tiny">MX</div>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-bubble">
+                                    Salut ! Tu as écouté le dernier album de Daft Punk ? Il est absolument dingue ! 🔥
+                                </div>
+                                <span class="message-timestamp">14:32</span>
+                            </div>
+                        </div>
+
+                        <div class="message sent">
+                            <div class="message-content">
+                                <div class="message-bubble">
+                                    Oui ! Complètement fou 🤯 Le son est incroyable
+                                </div>
+                                <span class="message-timestamp">14:35</span>
+                            </div>
+                        </div>
+
+                        <div class="message received">
+                            <div class="message-avatar">
+                                <div class="user-pic tiny">MX</div>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-bubble">
+                                    Je te partage ma playlist techno, tu vas adorer !
+                                </div>
+                                <span class="message-timestamp">14:37</span>
+                            </div>
+                        </div>
+
+                        <div class="shared-content">
+                            <div class="shared-playlist">
+                                <div class="playlist-cover"></div>
+                                <div class="playlist-info">
+                                    <h5>🎵 Techno Vibes 2025</h5>
+                                    <p>par MixMaster • 47 titres • 3h 12min</p>
+                                    <div class="playlist-actions">
+                                        <button class="playlist-btn play">▶️ Écouter</button>
+                                        <button class="playlist-btn save">💾 Sauvegarder</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="message sent">
+                            <div class="message-content">
+                                <div class="message-bubble">
+                                    Excellent ! Je l'ajoute à ma bibliothèque 📚
+                                </div>
+                                <span class="message-timestamp">14:42</span>
+                            </div>
+                        </div>
+
+                        <div class="message received">
+                            <div class="message-avatar">
+                                <div class="user-pic tiny">MX</div>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-bubble">
+                                    On fait une session d'écoute ensemble ce soir ? J'ai découvert quelques pépites 💎
+                                </div>
+                                <span class="message-timestamp">il y a 5 min</span>
+                            </div>
+                        </div>
+
+                        <div class="message typing">
+                            <div class="message-avatar">
+                                <div class="user-pic tiny">MX</div>
+                            </div>
+                            <div class="message-content">
+                                <div class="typing-indicator">
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="chat-input-container">
+                        <button class="attachment-btn" title="Joindre un fichier">📎</button>
+                        <button class="music-btn" title="Partager une musique">🎵</button>
+                        <input type="text" class="chat-input" placeholder="Tapez votre message...">
+                        <button class="emoji-btn" title="Emoji">😊</button>
+                        <button class="send-message-btn">📤</button>
+                    </div>
+                    <div class="chat-status">
+                        <span class="typing-status"></span>
+                    </div>
+                </div>
+            </main>
+
+            <aside class="chat-sidebar">
+                <div class="chat-info-section">
+                    <div class="user-profile-card">
+                        <div class="user-pic large">MX</div>
+                        <h3>MixMaster</h3>
+                        <p>@mixmaster_pro</p>
+                        <div class="user-stats">
+                            <div class="stat">
+                                <span class="stat-number">142</span>
+                                <span class="stat-label">Playlists</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">2.3k</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="profile-action-btn">👤 Voir le profil</button>
+                            <button class="profile-action-btn">🎵 Ses playlists</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-info-section">
+                    <h4>🎵 Actuellement en écoute</h4>
+                    <div class="currently-playing">
+                        <div class="track-cover"></div>
+                        <div class="track-details">
+                            <h5>Digital Love</h5>
+                            <p>Daft Punk • Discovery</p>
+                            <div class="track-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 60%"></div>
+                                </div>
+                                <span class="track-time">2:34 / 4:23</span>
+                            </div>
+                        </div>
+                        <button class="listen-together-btn">🎧 Écouter ensemble</button>
+                    </div>
+                </div>
+
+                <div class="chat-info-section">
+                    <h4>📁 Fichiers partagés</h4>
+                    <div class="shared-files">
+                        <div class="shared-file">
+                            <span class="file-icon">🎵</span>
+                            <div class="file-info">
+                                <span class="file-name">Techno Mix 2025.mp3</span>
+                                <span class="file-size">4.2 MB</span>
+                            </div>
+                        </div>
+                        <div class="shared-file">
+                            <span class="file-icon">📚</span>
+                            <div class="file-info">
+                                <span class="file-name">Underground Beats</span>
+                                <span class="file-size">23 titres</span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#" class="see-all-files">Voir tous les fichiers →</a>
+                </div>
+
+                <div class="chat-info-section">
+                    <h4>⚙️ Options</h4>
+                    <div class="chat-options">
+                        <label class="option-item">
+                            <input type="checkbox" checked>
+                            <span>Notifications</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="checkbox" checked>
+                            <span>Sons</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="checkbox">
+                            <span>Mode silencieux</span>
+                        </label>
+                        <button class="option-button delete">🗑️ Supprimer la conversation</button>
+                        <button class="option-button block">🚫 Bloquer l'utilisateur</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Modal nouvelle conversation -->
+    <div class="new-conversation-modal" id="newConversationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nouvelle conversation</h3>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-users">
+                    <input type="text" placeholder="Rechercher un ami..." class="search-users-input">
+                </div>
+                <div class="users-list">
+                    <div class="user-item" data-user="vibewave">
+                        <div class="user-pic small">VW</div>
+                        <div class="user-info">
+                            <h5>VibeWave</h5>
+                            <p>@vibewave21</p>
+                        </div>
+                        <span class="user-status offline">Hors ligne</span>
+                    </div>
+                    <div class="user-item" data-user="echobeat">
+                        <div class="user-pic small">EB</div>
+                        <div class="user-info">
+                            <h5>EchoBeat</h5>
+                            <p>@echobeat_official</p>
+                        </div>
+                        <span class="user-status online">En ligne</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal partage de musique -->
+    <div class="music-share-modal" id="musicShareModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Partager une musique</h3>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="music-search">
+                    <input type="text" placeholder="Rechercher une musique..." class="music-search-input">
+                </div>
+                <div class="music-results">
+                    <div class="music-item">
+                        <div class="music-cover"></div>
+                        <div class="music-info">
+                            <h5>One More Time</h5>
+                            <p>Daft Punk • Discovery</p>
+                        </div>
+                        <button class="select-music-btn">Partager</button>
+                    </div>
+                    <div class="music-item">
+                        <div class="music-cover"></div>
+                        <div class="music-info">
+                            <h5>Around the World</h5>
+                            <p>Daft Punk • Homework</p>
+                        </div>
+                        <button class="select-music-btn">Partager</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="styles/js/index.js"></script>
+    <script src="styles/js/friends.js"></script>
+    <script src="styles/js/messages.js"></script>
+</body>
+</html>

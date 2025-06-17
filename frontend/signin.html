@@ -1,0 +1,140 @@
+{{define "signin"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+   <link rel="stylesheet" href="/styles/css/signin.css">
+</head>
+<body>
+    <div class="background-animation">
+        <div class="floating-note">🎵</div>
+        <div class="floating-note">🎶</div>
+        <div class="floating-note">🎼</div>
+        <div class="floating-note">🎧</div>
+        <div class="floating-note">🎤</div>
+    </div>
+
+    <div class="auth-container fade-in">
+        <div class="auth-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <div class="wave-animation">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                </div>
+                <div class="logo-text">Rythm'it</div>
+            </div>
+            <h1 class="auth-title">{{.AuthTitle}}</h1>
+            <p class="auth-subtitle">{{.AuthSubtitle}}</p>
+        </div>
+
+        {{if .ErrorMessage}}
+        <div class="error-message">{{.ErrorMessage}}</div>
+        {{end}}
+        
+        {{if .SuccessMessage}}
+        <div class="success-message">{{.SuccessMessage}}</div>
+        {{end}}
+
+        <form class="auth-form" id="signinForm" method="POST">
+            {{if .IsSignupMode}}
+            <div class="form-group">
+                <label class="form-label" for="username">Nom d'utilisateur</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username"
+                    class="form-input" 
+                    placeholder="votre_nom_utilisateur"
+                    required
+                >
+            </div>
+            {{end}}
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email"
+                    class="form-input" 
+                    placeholder="votre@email.com"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Mot de passe</label>
+                <div style="position: relative;">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password"
+                        class="form-input" 
+                        placeholder="••••••••"
+                        required
+                    >
+                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                        👁️
+                    </button>
+                </div>
+            </div>
+
+            {{if .IsSignupMode}}
+            <div class="form-group">
+                <label class="form-label" for="confirmPassword">Confirmer le mot de passe</label>
+                <div style="position: relative;">
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        name="confirmPassword"
+                        class="form-input" 
+                        placeholder="••••••••"
+                        required
+                    >
+                    <button type="button" class="password-toggle" onclick="toggleConfirmPassword()">
+                        👁️
+                    </button>
+                </div>
+            </div>
+            {{end}}
+
+            <div class="auth-options">
+                <label class="remember-me">
+                    <input type="checkbox" class="checkbox" id="rememberMe" name="rememberMe">
+                    Se souvenir de moi
+                </label>
+                <a href="#" class="forgot-password">Mot de passe oublié ?</a>
+            </div>
+
+            <button type="submit" class="auth-button">{{.AuthButtonText}}</button>
+        </form>
+
+        <div class="auth-divider">
+            <span>ou continuer avec</span>
+        </div>
+
+        <div class="social-buttons">
+            <a href="#" class="social-button google" onclick="loginWithGoogle()">
+                <span>🎯</span>
+                Google
+            </a>
+            <a href="#" class="social-button spotify" onclick="loginWithSpotify()">
+                <span>🎵</span>
+                Spotify
+            </a>
+        </div>
+
+        <div class="auth-footer">
+            <p>{{.AuthFooterText}}</p>
+        </div>
+    </div>
+    <script src="/styles/js/signin.js"></script>
+</body>
+</html>
+{{end}}

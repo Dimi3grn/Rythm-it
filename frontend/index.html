@@ -1,253 +1,275 @@
+{{define "index"}}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rythm'it</title>
-    <link rel="stylesheet" href="styles/css/index.css">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/styles/css/index.css">
 </head>
 <body>
     <div class="app-container">
         <header class="header">
-    <a href="index.html" class="brand">
-        <div class="brand-icon">
-            <div class="wave-animation">
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-            </div>
-        </div>
-        <span class="brand-text">Rythm'it</span>
-    </a>
-    <div class="header-actions">
-        <a href="hub.html" class="header-btn">
-            <span class="nav-icon">🎯</span>
-            Hub
-        </a>
-        <a href="index.html" class="header-btn active">
-            <span class="nav-icon">🏠</span>
-            Accueil
-        </a>
-        <a href="discover.html" class="header-btn">
-            <span class="nav-icon">🔍</span>
-            Découvrir
-        </a>
-        <a href="friends.html" class="header-btn">
-            <span class="nav-icon">👥</span>
-            Amis
-        </a>
-        <div class="notification-container">
-            <a href="messages.html" class="header-btn notification-btn">
-                <span class="nav-icon">💬</span>
-                Messages
-                <span class="notification-badge">3</span>
+            <a href="/" class="brand">
+                <div class="brand-icon">
+                    <div class="wave-animation">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                </div>
+                <span class="brand-text">Rythm'it</span>
             </a>
-        </div>
-        <a href="profile.html" class="header-btn primary">Profil</a>
-    </div>
-</header>
+            <div class="header-actions">
+                <a href="/hub" class="header-btn">
+                    <span class="nav-icon">🎯</span>
+                    Hub
+                </a>
+                <a href="/" class="header-btn {{if eq .CurrentPage "index"}}active{{end}}">
+                    <span class="nav-icon">🏠</span>
+                    Accueil
+                </a>
+                <a href="/discover" class="header-btn {{if eq .CurrentPage "discover"}}active{{end}}">
+                    <span class="nav-icon">🔍</span>
+                    Découvrir
+                </a>
+                <a href="/friends" class="header-btn {{if eq .CurrentPage "friends"}}active{{end}}">
+                    <span class="nav-icon">👥</span>
+                    Amis
+                </a>
+                <div class="notification-container">
+                    <a href="/messages" class="header-btn notification-btn {{if eq .CurrentPage "messages"}}active{{end}}">
+                        <span class="nav-icon">💬</span>
+                        Messages
+                        {{if gt (len .Messages) 0}}
+                        <span class="notification-badge">{{len .Messages}}</span>
+                        {{end}}
+                    </a>
+                </div>
+                {{if .IsLoggedIn}}
+                <a href="/profile" class="header-btn primary">Profil</a>
+                <a href="/logout" class="header-btn logout-btn" title="Se déconnecter">🚪</a>
+                {{else}}
+                <a href="/signin" class="header-btn primary">Connexion</a>
+                {{end}}
+            </div>
+        </header>
 
         <div class="main-layout">
             <aside class="sidebar-left">
-    <div class="nav-section">
-        <h3>Navigation</h3>
-        <a href="hub.html" class="nav-item">
-            <span class="nav-icon">🎯</span>
-            Hub
-        </a>
-        <a href="index.html" class="nav-item">
-            <span class="nav-icon">🏠</span>
-            Accueil
-        </a>
-        <a href="discover.html" class="nav-item">
-            <span class="nav-icon">🔍</span>
-            Découvrir
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">🔥</span>
-            Tendances
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">📚</span>
-            Playlists
-        </a>
-    </div>
-
-    <div class="nav-section">
-        <h3>Social</h3>
-        <a href="friends.html" class="nav-item">
-            <span class="nav-icon">👥</span>
-            Mes Amis
-            <span class="status-indicator online"></span>
-        </a>
-        <a href="messages.html" class="nav-item">
-            <span class="nav-icon">💬</span>
-            Messages
-            <span class="message-count">3</span>
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">🎵</span>
-            Sessions Live
-        </a>
-    </div>
-
-    <div class="nav-section">
-        <h3>Genres</h3>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">🎵</span>
-            Électronique
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">🎸</span>
-            Rock/Metal
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">🎷</span>
-            Jazz/Blues
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">🎤</span>
-            Hip-Hop
-        </a>
-    </div>
-</aside>
-
-            <main class="content-area">
-                <div class="composer">
-                    <textarea class="composer-input" placeholder="Partagez votre passion musicale avec la communauté..."></textarea>
-                    <div class="composer-toolbar">
-                        <div class="toolbar-left">
-                            <button class="tool-btn" title="Ajouter une piste">🎵</button>
-                            <button class="tool-btn" title="Joindre une image">📷</button>
-                            <button class="tool-btn" title="Créer un sondage">📊</button>
-                            <button class="tool-btn" title="Localisation">📍</button>
-                            <button class="tool-btn" title="Partager avec des amis">👥</button>
-                        </div>
-                        <button class="publish-btn">Publier</button>
-                    </div>
+                <div class="nav-section">
+                    <h3>Navigation</h3>
+                    <a href="/hub" class="nav-item">
+                        <span class="nav-icon">🎯</span>
+                        Hub
+                    </a>
+                    <a href="/" class="nav-item {{if eq .CurrentPage "index"}}active{{end}}">
+                        <span class="nav-icon">🏠</span>
+                        Accueil
+                    </a>
+                    <a href="/discover" class="nav-item {{if eq .CurrentPage "discover"}}active{{end}}">
+                        <span class="nav-icon">🔍</span>
+                        Découvrir
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">🔥</span>
+                        Tendances
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">📚</span>
+                        Playlists
+                    </a>
                 </div>
 
-                <article class="thread-item">
-                    <div class="thread-header">
-                        <div class="user-pic">AS</div>
-                        <div class="user-details">
-                            <h4>AudioSeeker</h4>
-                            <span class="meta">il y a 1h • Ambient</span>
-                            <span class="friend-badge">Ami</span>
-                        </div>
-                    </div>
-                    <div class="thread-text">
-                        Une découverte absolument magique pour les amateurs d'ambient. Cette composition nous transporte dans un univers onirique avec des textures sonores d'une richesse incroyable. 🌌✨
-                    </div>
-                    <div class="music-card">
-                        <div class="album-art"></div>
-                        <div class="track-info">
-                            <h5>Ethereal Landscapes</h5>
-                            <p>Ambient Dreams • 8:47</p>
-                        </div>
-                        <button class="play-control">▶️</button>
-                    </div>
-                    <div class="thread-engagement">
-                        <button class="engagement-btn">❤️ 34</button>
-                        <button class="engagement-btn">💬 8</button>
-                        <button class="engagement-btn">🔄 12</button>
-                        <button class="engagement-btn">📩</button>
-                        <button class="engagement-btn">🔖</button>
-                    </div>
-                </article>
+                <div class="nav-section">
+                    <h3>Social</h3>
+                    <a href="/friends" class="nav-item">
+                        <span class="nav-icon">👥</span>
+                        Mes Amis
+                        <span class="status-indicator online"></span>
+                    </a>
+                    <a href="/messages" class="nav-item">
+                        <span class="nav-icon">💬</span>
+                        Messages
+                        {{if gt (len .Messages) 0}}
+                        <span class="message-count">{{len .Messages}}</span>
+                        {{end}}
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">🎵</span>
+                        Sessions Live
+                    </a>
+                </div>
 
-                <article class="thread-item">
-                    <div class="thread-header">
-                        <div class="user-pic">BR</div>
-                        <div class="user-details">
-                            <h4>BeatReflections</h4>
-                            <span class="meta">il y a 3h • Lo-Fi Hip Hop</span>
+                <div class="nav-section">
+                    <h3>Genres</h3>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">🎵</span>
+                        Électronique
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">🎸</span>
+                        Rock/Metal
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">🎷</span>
+                        Jazz/Blues
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">🎤</span>
+                        Hip-Hop
+                    </a>
+                </div>
+            </aside>
+
+            <main class="content-area">
+                {{if .ErrorMessage}}
+                <div class="error-message">{{.ErrorMessage}}</div>
+                {{end}}
+                
+                {{if .SuccessMessage}}
+                <div class="success-message">{{.SuccessMessage}}</div>
+                {{end}}
+                
+                {{if .IsLoggedIn}}
+                <form class="composer" method="POST" action="/new-post">
+                    <!-- Champs pour titre et tags (toujours visibles) -->
+                    <div class="composer-advanced">
+                        <input type="text" name="title" class="composer-title" placeholder="Titre de votre discussion (optionnel)">
+                        
+                        <!-- Sélecteur de tags avec autocomplete -->
+                        <div class="tag-selector">
+                            <div class="selected-tags" id="selected-tags"></div>
+                            <input type="text" id="tag-input" class="tag-input" placeholder="Rechercher et sélectionner des tags..." autocomplete="off">
+                            <div class="tag-suggestions" id="tag-suggestions"></div>
+                            <input type="hidden" name="tags" id="tags-hidden" value="">
                         </div>
                     </div>
-                    <div class="thread-text">
-                        Perfect study music ! Ces beats lo-fi ont cette qualité nostalgique qui aide vraiment à se concentrer. Le sample de piano est juste parfait 🎹📚
+                    
+                    <textarea name="content" class="composer-input" placeholder="Partagez votre passion musicale avec la communauté..." required></textarea>
+                    
+                    <!-- Champ caché pour l'URL de l'image -->
+                    <input type="hidden" name="image_url" id="image-url-input" value="">
+                    
+                    <div class="composer-toolbar">
+                        <div class="toolbar-left">
+                            <button type="button" class="tool-btn" title="Ajouter une piste">🎵</button>
+                            <button type="button" class="tool-btn" title="Joindre une image">📷</button>
+                            <button type="button" class="tool-btn" title="Créer un sondage">📊</button>
+                            <button type="button" class="tool-btn" title="Localisation">📍</button>
+                            <button type="button" class="tool-btn" title="Partager avec des amis">👥</button>
+                        </div>
+                        <button type="submit" class="publish-btn">Publier</button>
                     </div>
+                </form>
+                {{end}}
+
+                {{range .Threads}}
+                <article class="thread-item" onclick="window.location.href='/thread/{{.ID}}'">
+                    <div class="thread-header">
+                        <div class="user-pic">{{.AuthorAvatar}}</div>
+                        <div class="user-details">
+                            <h4>{{.Author}}</h4>
+                            <span class="meta">{{.TimeAgo}} • Discussion</span>
+                            {{if ne .Author "YOU"}}<span class="friend-badge">Ami</span>{{end}}
+                        </div>
+                    </div>
+                    <div class="thread-content">
+                        <h3 class="thread-title">{{.Title}}</h3>
+                        <div class="thread-text">
+                            {{.Content}}
+                        </div>
+                        {{if .ImageURL}}
+                        <div class="thread-image">
+                            <img src="{{.ImageURL}}" alt="Image du thread" style="max-width: 100%; border-radius: 8px; margin: 10px 0;">
+                        </div>
+                        {{end}}
+                        {{if .Tags}}
+                        <div class="thread-tags">
+                            {{range .Tags}}
+                            <span class="thread-tag">{{.}}</span>
+                            {{end}}
+                        </div>
+                        {{else}}
+                        <!-- Debug: Pas de tags trouvés -->
+                        {{end}}
+                    </div>
+                    {{if .MusicTrack}}
                     <div class="music-card">
                         <div class="album-art"></div>
                         <div class="track-info">
-                            <h5>Rainy Day Study</h5>
-                            <p>Chill Beats • 3:24</p>
+                            <h5>{{.MusicTrack.Title}}</h5>
+                            <p>{{.MusicTrack.Artist}} • {{.MusicTrack.Duration}}</p>
                         </div>
-                        <button class="play-control">▶️</button>
+                        <!-- <button class="play-control" onclick="playTrack({{.ID}})">▶️</button> -->
                     </div>
+                    {{end}}
+                    
                     <div class="thread-engagement">
-                        <button class="engagement-btn liked">❤️ 67</button>
-                        <button class="engagement-btn">💬 23</button>
-                        <button class="engagement-btn">🔄 15</button>
-                        <button class="engagement-btn">📩</button>
-                        <button class="engagement-btn">🔖</button>
+                        <button type="button" class="engagement-btn like-btn {{if .IsLiked}}liked{{end}}" data-thread-id="{{.ID}}" onclick="event.stopPropagation(); toggleLike('{{.ID}}')">
+                            ❤️ <span class="like-count">{{.Likes}}</span>
+                        </button>
+                        <form style="display: inline;" method="POST" action="/post" onclick="event.stopPropagation()">
+                            <input type="hidden" name="action" value="comment">
+                            <input type="hidden" name="thread_id" value="{{.ID}}">
+                            <input type="text" name="comment" placeholder="Votre commentaire..." style="display: none;" class="comment-input">
+                            <button type="button" class="engagement-btn" onclick="event.stopPropagation(); toggleCommentInput(this)">💬 {{.Comments}}</button>
+                        </form>
+                        <form style="display: inline;" method="POST" action="/post" onclick="event.stopPropagation()">
+                            <input type="hidden" name="action" value="share">
+                            <input type="hidden" name="thread_id" value="{{.ID}}">
+                            <button type="submit" class="engagement-btn" onclick="event.stopPropagation()">🔄 {{.Shares}}</button>
+                        </form>
+                        <button class="engagement-btn" onclick="event.stopPropagation(); alert('Message privé - À implémenter')">📩</button>
+                        <button class="engagement-btn" onclick="event.stopPropagation(); alert('Bookmark - À implémenter')">🔖</button>
                     </div>
                 </article>
+                {{end}}
+                
+                <!-- Bouton pour charger plus de threads -->
+                <div id="load-more-container" class="load-more-container">
+                    <button id="load-more-btn" class="load-more-btn" onclick="loadMoreThreads()">
+                        <span class="btn-text">Afficher plus</span>
+                        <span class="btn-loader" style="display: none;">⏳ Chargement...</span>
+                    </button>
+                </div>
             </main>
 
             <aside class="sidebar-right">
+                {{if .IsLoggedIn}}
                 <div class="widget">
                     <h3>👥 Amis en ligne</h3>
+                    {{range .Friends}}
+                    {{if eq .Status "online"}}
                     <div class="friend-online">
                         <div class="friend-avatar">
-                            <div class="user-pic small">MX</div>
-                            <span class="online-status"></span>
+                            <div class="user-pic small">{{.Avatar}}</div>
+                            <span class="online-status {{.Status}}"></span>
                         </div>
                         <div class="friend-info">
-                            <h5>MixMaster</h5>
-                            <p>Écoute: Techno Vibes</p>
+                            <h5>{{.Username}}</h5>
+                            <p>{{.Activity}}</p>
                         </div>
-                        <button class="message-btn">💬</button>
+                        <button class="message-btn" onclick="messageUser('{{.Username}}')">💬</button>
                     </div>
-                    <div class="friend-online">
-                        <div class="friend-avatar">
-                            <div class="user-pic small">SB</div>
-                            <span class="online-status"></span>
-                        </div>
-                        <div class="friend-info">
-                            <h5>SoundBliss</h5>
-                            <p>Écoute: Jazz Evening</p>
-                        </div>
-                        <button class="message-btn">💬</button>
-                    </div>
-                    <div class="friend-online">
-                        <div class="friend-avatar">
-                            <div class="user-pic small">VW</div>
-                            <span class="online-status away"></span>
-                        </div>
-                        <div class="friend-info">
-                            <h5>VibeWave</h5>
-                            <p>Absent - il y a 2h</p>
-                        </div>
-                        <button class="message-btn">💬</button>
-                    </div>
-                    <a href="friends.html" class="see-all-link">Voir tous mes amis →</a>
+                    {{end}}
+                    {{end}}
+                    <a href="/friends" class="see-all-link">Voir tous mes amis →</a>
                 </div>
+                {{end}}
 
                 <div class="widget">
                     <h3>🔥 Trending Now</h3>
+                    {{range .Trends}}
                     <div class="trend-item">
                         <div class="trend-cover"></div>
                         <div class="trend-info">
-                            <h5>Synthwave Summer</h5>
-                            <p>1.2k discussions</p>
+                            <h5>{{.Name}}</h5>
+                            <p>{{.Discussions}} discussions</p>
                         </div>
                     </div>
-                    <div class="trend-item">
-                        <div class="trend-cover"></div>
-                        <div class="trend-info">
-                            <h5>Indie Folk Revival</h5>
-                            <p>890 discussions</p>
-                        </div>
-                    </div>
-                    <div class="trend-item">
-                        <div class="trend-cover"></div>
-                        <div class="trend-info">
-                            <h5>Techno Underground</h5>
-                            <p>654 discussions</p>
-                        </div>
-                    </div>
+                    {{end}}
                 </div>
 
                 <div class="widget">
@@ -271,6 +293,388 @@
         </div>
     </div>
 
-    <script src="styles/js/index.js"></script>
+        <!-- Scripts pour l'upload d'images -->
+    <script src="/styles/js/image-upload.js"></script>
+
+        <!-- JavaScript remplacé par des fonctions qui appellent le backend Go -->
+    <script>
+        // JavaScript minimal pour l'UX uniquement
+        
+        // Tags disponibles et sélectionnés
+        let availableTags = [];
+        let selectedTags = [];
+        
+        // Variables pour la pagination
+        let currentPage = 1;
+        let isLoading = false;
+        let hasMoreThreads = true;
+        
+        // Charger les tags depuis l'API
+        async function loadAvailableTags() {
+            try {
+                const response = await fetch('/api/public/tags');
+                const data = await response.json();
+                if (data.success) {
+                    availableTags = data.data;
+                    console.log(`✅ ${availableTags.length} tags chargés`);
+                } else {
+                    console.error('❌ Erreur chargement tags:', data.error);
+                }
+            } catch (error) {
+                console.error('❌ Erreur réseau chargement tags:', error);
+            }
+        }
+        
+        // Fonction pour afficher/masquer l'input de commentaire
+        function toggleCommentInput(button) {
+            const form = button.closest('form');
+            const input = form.querySelector('.comment-input');
+            if (input.style.display === 'none') {
+                input.style.display = 'inline';
+                input.focus();
+                button.textContent = '✓ Commenter';
+                button.type = 'submit';
+            } else {
+                input.style.display = 'none';
+                button.textContent = button.textContent.replace('✓ Commenter', '💬');
+                button.type = 'button';
+            }
+        }
+        
+        // Fonction pour filtrer les tags
+        function filterTags(query) {
+            return availableTags.filter(tag => 
+                tag.name.toLowerCase().includes(query.toLowerCase()) &&
+                !selectedTags.find(selected => selected.id === tag.id)
+            ).slice(0, 10); // Limite à 10 suggestions
+        }
+        
+        // Fonction pour afficher les suggestions
+        function showSuggestions(tags) {
+            const suggestionsDiv = document.getElementById('tag-suggestions');
+            suggestionsDiv.innerHTML = '';
+            
+            if (tags.length === 0) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+            
+            tags.forEach(tag => {
+                const div = document.createElement('div');
+                div.className = 'tag-suggestion';
+                div.innerHTML = `<span class="tag-name">${tag.name}</span><span class="tag-type">${tag.type}</span>`;
+                div.onclick = () => selectTag(tag);
+                suggestionsDiv.appendChild(div);
+            });
+            
+            suggestionsDiv.style.display = 'block';
+        }
+        
+        // Fonction pour sélectionner un tag
+        function selectTag(tag) {
+            selectedTags.push(tag);
+            updateSelectedTags();
+            updateHiddenInput();
+            document.getElementById('tag-input').value = '';
+            document.getElementById('tag-suggestions').style.display = 'none';
+        }
+        
+        // Fonction pour retirer un tag sélectionné
+        function removeTag(tagId) {
+            selectedTags = selectedTags.filter(tag => tag.id !== tagId);
+            updateSelectedTags();
+            updateHiddenInput();
+        }
+        
+        // Fonction pour mettre à jour l'affichage des tags sélectionnés
+        function updateSelectedTags() {
+            const selectedDiv = document.getElementById('selected-tags');
+            selectedDiv.innerHTML = '';
+            
+            selectedTags.forEach(tag => {
+                const span = document.createElement('span');
+                span.className = 'selected-tag';
+                span.innerHTML = `${tag.name} <button type="button" onclick="removeTag(${tag.id})">×</button>`;
+                selectedDiv.appendChild(span);
+            });
+        }
+        
+        // Fonction pour mettre à jour le champ caché
+        function updateHiddenInput() {
+            const hiddenInput = document.getElementById('tags-hidden');
+            hiddenInput.value = selectedTags.map(tag => tag.name).join(',');
+        }
+
+        // Fonction pour liker/unliker un thread
+        async function toggleLike(threadId) {
+            try {
+                const response = await fetch(`/api/v1/threads/${threadId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin' // Utiliser same-origin au lieu de include
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Mettre à jour l'interface
+                    const button = document.querySelector(`button[data-thread-id="${threadId}"]`);
+                    const likeCount = button.querySelector('.like-count');
+                    
+                    // Mettre à jour le compteur
+                    likeCount.textContent = data.likes_count;
+                    
+                    // Mettre à jour le style du bouton
+                    if (data.liked) {
+                        button.classList.add('liked');
+                    } else {
+                        button.classList.remove('liked');
+                    }
+                    
+                    console.log(`✅ Like mis à jour: Thread ${threadId}, Liked: ${data.liked}, Count: ${data.likes_count}`);
+                } else {
+                    console.error('❌ Erreur like:', data.message);
+                    if (response.status === 401) {
+                        alert('Vous devez être connecté pour liker un thread');
+                    } else {
+                        alert('Erreur lors du like: ' + (data.message || 'Erreur inconnue'));
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Erreur réseau like:', error);
+                alert('Erreur de connexion au serveur');
+            }
+        }
+
+        // Fonction pour charger plus de threads
+        async function loadMoreThreads() {
+            if (isLoading || !hasMoreThreads) return;
+            
+            isLoading = true;
+            const loadMoreBtn = document.getElementById('load-more-btn');
+            const btnText = loadMoreBtn.querySelector('.btn-text');
+            const btnLoader = loadMoreBtn.querySelector('.btn-loader');
+            
+            // Afficher le loader
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline';
+            loadMoreBtn.disabled = true;
+            
+            try {
+                const nextPage = currentPage + 1;
+                const response = await fetch(`/api/public/threads?page=${nextPage}&per_page=5`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('📊 Réponse API:', data);
+                
+                if (data.success && data.data && data.data.threads && Array.isArray(data.data.threads) && data.data.threads.length > 0) {
+                    // Ajouter les nouveaux threads au DOM
+                    const main = document.querySelector('main');
+                    const loadMoreContainer = document.getElementById('load-more-container');
+                    
+                    console.log('🔍 Threads reçus:', data.data.threads);
+                    data.data.threads.forEach((thread, index) => {
+                        console.log(`🧵 Thread ${index}:`, thread);
+                        const threadElement = createThreadElement(thread);
+                        main.insertBefore(threadElement, loadMoreContainer);
+                    });
+                    
+                    currentPage = nextPage;
+                    
+                    // Vérifier s'il y a encore des threads à charger
+                    if (data.data.pagination && currentPage >= data.data.pagination.total_pages) {
+                        hasMoreThreads = false;
+                        loadMoreContainer.style.display = 'none';
+                    }
+                } else {
+                    // Plus de threads à charger
+                    hasMoreThreads = false;
+                    document.getElementById('load-more-container').style.display = 'none';
+                    console.log('ℹ️ Aucun thread supplémentaire à charger');
+                }
+            } catch (error) {
+                console.error('❌ Erreur chargement threads:', error);
+                alert('Erreur lors du chargement des threads: ' + error.message);
+            } finally {
+                isLoading = false;
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+                loadMoreBtn.disabled = false;
+            }
+        }
+        
+        // Fonction pour créer un élément thread dans le DOM
+        function createThreadElement(thread) {
+            const article = document.createElement('article');
+            article.className = 'thread-item';
+            
+            // Gestion robuste des propriétés avec fallbacks
+            const id = thread.id || thread.ID || 0;
+            const title = thread.title || thread.Title || 'Titre non disponible';
+            const content = thread.content || thread.Content || 'Contenu non disponible';
+            const author = thread.author || thread.Author || 'Auteur inconnu';
+            const authorAvatar = thread.author_avatar || thread.AuthorAvatar || 'AU';
+            const timeAgo = thread.time_ago || thread.TimeAgo || 'Date inconnue';
+            const genre = thread.genre || thread.Genre || 'Discussion';
+            const tags = thread.tags || thread.Tags || [];
+            const imageURL = thread.image_url || thread.ImageURL || null;
+            const likes = thread.likes || thread.Likes || 0;
+            const isLiked = thread.is_liked || thread.IsLiked || false;
+            const comments = thread.comments || thread.Comments || 0;
+            const shares = thread.shares || thread.Shares || 0;
+            
+            const tagsHtml = tags && tags.length > 0 
+                ? `<div class="thread-tags">${tags.map(tag => `<span class="thread-tag">${tag}</span>`).join('')}</div>`
+                : '';
+            
+            const imageHtml = imageURL 
+                ? `<div class="thread-image">
+                     <img src="${imageURL}" alt="Image du thread" onclick="openImageModal('${imageURL}')">
+                   </div>`
+                : '';
+            
+            article.innerHTML = `
+                <div class="thread-header">
+                    <div class="user-pic">${authorAvatar}</div>
+                    <div class="user-details">
+                        <h4>${author}</h4>
+                        <div class="meta">${timeAgo} • ${genre}</div>
+                    </div>
+                </div>
+                <div class="thread-content">
+                    <h3 class="thread-title">${title}</h3>
+                    <p class="thread-text">${content}</p>
+                    ${imageHtml}
+                    ${tagsHtml}
+                </div>
+                <div class="thread-engagement">
+                    <button type="button" class="engagement-btn like-btn ${isLiked ? 'liked' : ''}" data-thread-id="${id}" onclick="toggleLike('${id}')">
+                        ❤️ <span class="like-count">${likes}</span>
+                    </button>
+                    <form style="display: inline;" method="POST" action="/post">
+                        <input type="hidden" name="action" value="comment">
+                        <input type="hidden" name="thread_id" value="${id}">
+                        <input type="text" name="comment" placeholder="Votre commentaire..." style="display: none;" class="comment-input">
+                        <button type="button" class="engagement-btn" onclick="toggleCommentInput(this)">💬 ${comments}</button>
+                    </form>
+                    <form style="display: inline;" method="POST" action="/post">
+                        <input type="hidden" name="action" value="share">
+                        <input type="hidden" name="thread_id" value="${id}">
+                        <button type="submit" class="engagement-btn">🔄 ${shares}</button>
+                    </form>
+                    <button class="engagement-btn" onclick="alert('Message privé - À implémenter')">📩</button>
+                    <button class="engagement-btn" onclick="alert('Bookmark - À implémenter')">🔖</button>
+                </div>
+            `;
+            
+            return article;
+        }
+
+        // Fonction pour ouvrir une image en modal
+        function openImageModal(imageUrl) {
+            // Créer un modal simple pour afficher l'image en grand
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                cursor: pointer;
+            `;
+            
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.style.cssText = `
+                max-width: 90%;
+                max-height: 90%;
+                object-fit: contain;
+                border-radius: 8px;
+            `;
+            
+            modal.appendChild(img);
+            document.body.appendChild(modal);
+            
+            // Fermer en cliquant sur le modal
+            modal.addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            
+            // Fermer avec Escape
+            const handleEscape = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(modal);
+                    document.removeEventListener('keydown', handleEscape);
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
+        }
+
+        // Auto-resize du textarea et raccourcis clavier
+        document.addEventListener('DOMContentLoaded', function() {
+            // Charger les tags disponibles
+            loadAvailableTags();
+            
+            // Nettoyer l'URL après affichage des messages de succès/erreur
+            if (window.location.search.includes('success=') || window.location.search.includes('error=')) {
+                // Attendre un peu pour que l'utilisateur voie le message
+                setTimeout(() => {
+                    const url = new URL(window.location);
+                    url.searchParams.delete('success');
+                    url.searchParams.delete('error');
+                    window.history.replaceState({}, '', url.pathname + url.search);
+                }, 3000); // 3 secondes
+            }
+            
+            const textarea = document.querySelector('.composer-input');
+            if (textarea) {
+                // Auto-resize
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+                });
+                
+                // Ctrl+Enter pour soumettre
+                textarea.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        this.closest('form').submit();
+                    }
+                });
+            }
+            
+            // Gestion du sélecteur de tags
+            const tagInput = document.getElementById('tag-input');
+            if (tagInput) {
+                tagInput.addEventListener('input', function() {
+                    const query = this.value.trim();
+                    if (query.length > 0) {
+                        const filteredTags = filterTags(query);
+                        showSuggestions(filteredTags);
+                    } else {
+                        document.getElementById('tag-suggestions').style.display = 'none';
+                    }
+                });
+                
+                // Masquer les suggestions quand on clique ailleurs
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.tag-selector')) {
+                        document.getElementById('tag-suggestions').style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
+{{end}}

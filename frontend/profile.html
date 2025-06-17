@@ -1,3 +1,4 @@
+{{define "profile.html"}}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -11,7 +12,7 @@
 <body>
     <div class="app-container">
         <header class="header">
-    <a href="index.html" class="brand">
+    <a href="/" class="brand">
         <div class="brand-icon">
             <div class="wave-animation">
                 <div class="wave-bar"></div>
@@ -23,51 +24,70 @@
         <span class="brand-text">Rythm'it</span>
     </a>
     <div class="header-actions">
-        <a href="hub.html" class="header-btn">
+        <a href="/hub" class="header-btn">
             <span class="nav-icon">🎯</span>
             Hub
         </a>
-        <a href="index.html" class="header-btn">
+        <a href="/" class="header-btn">
             <span class="nav-icon">🏠</span>
             Accueil
         </a>
-        <a href="discover.html" class="header-btn">
+        <a href="/discover" class="header-btn">
             <span class="nav-icon">🔍</span>
             Découvrir
         </a>
-        <a href="friends.html" class="header-btn">
+        <a href="/friends" class="header-btn">
             <span class="nav-icon">👥</span>
             Amis
         </a>
         <div class="notification-container">
-            <a href="messages.html" class="header-btn notification-btn">
+            <a href="/messages" class="header-btn notification-btn">
                 <span class="nav-icon">💬</span>
                 Messages
                 <span class="notification-badge">3</span>
             </a>
         </div>
-        <a href="profile.html" class="header-btn primary active">Profil</a>
+        <a href="/profile" class="header-btn primary active">Profil</a>
+        <a href="/logout" class="header-btn logout-btn" title="Se déconnecter">🚪</a>
     </div>
 </header>
 
         <div class="profile-layout">
             <main class="profile-content">
+                <!-- Messages d'erreur/succès -->
+                {{if .ErrorMessage}}
+                <div class="alert alert-error">
+                    <span class="alert-icon">❌</span>
+                    <span class="alert-text">{{.ErrorMessage}}</span>
+                </div>
+                {{end}}
+                {{if .SuccessMessage}}
+                <div class="alert alert-success">
+                    <span class="alert-icon">✅</span>
+                    <span class="alert-text">{{.SuccessMessage}}</span>
+                </div>
+                {{end}}
+
                 <!-- Section Cover & Avatar -->
                 <div class="profile-hero">
-                    <div class="profile-cover">
-                        <div class="cover-gradient"></div>
-                        <button class="edit-cover-btn">📷 Modifier la couverture</button>
+                    <div class="profile-cover {{if .Profile.BannerImage}}has-custom-banner{{end}}" {{if .Profile.BannerImage}}style="background-image: url('{{.Profile.BannerImage}}'); background-size: cover; background-position: center;"{{end}}>
+                        {{if not .Profile.BannerImage}}<div class="cover-gradient"></div>{{end}}
+                        <button class="edit-cover-btn" onclick="openEditModal()">📷 Modifier la couverture</button>
                     </div>
                     <div class="profile-info-header">
                         <div class="profile-avatar-section">
                             <div class="profile-avatar">
-                                <div class="user-pic profile-size">MO</div>
-                                <button class="edit-avatar-btn">📷</button>
+                                {{if .Profile.AvatarImage}}
+                                    <div class="user-pic profile-size avatar-image" style="background-image: url('{{.Profile.AvatarImage}}');"></div>
+                                {{else}}
+                                    <div class="user-pic profile-size">{{.User.Avatar}}</div>
+                                {{end}}
+                                <button class="edit-avatar-btn" onclick="openEditModal()">📷</button>
                                 <span class="online-status online"></span>
                             </div>
                             <div class="profile-basic-info">
-                                <h1>Mon Profil</h1>
-                                <p>@monprofil_rhythmit</p>
+                                <h1>{{if .Profile.DisplayName}}{{.Profile.DisplayName}}{{else}}{{.User.Username}}{{end}}</h1>
+                                <p>@{{.User.Username}}</p>
                                 <div class="profile-status">
                                     <span class="status-text">🎵 Actuellement en écoute</span>
                                     <span class="current-track">Digital Love - Daft Punk</span>
@@ -75,7 +95,7 @@
                             </div>
                         </div>
                         <div class="profile-actions">
-                            <button class="profile-action-btn edit">✏️ Modifier le profil</button>
+                            <button class="profile-action-btn edit" onclick="openEditModal()">✏️ Modifier le profil</button>
                             <button class="profile-action-btn share">📤 Partager</button>
                             <button class="profile-action-btn settings">⚙️ Paramètres</button>
                         </div>
@@ -436,37 +456,105 @@
         <div class="modal-content large">
             <div class="modal-header">
                 <h3>Modifier mon profil</h3>
-                <button class="close-modal">✕</button>
+                <button class="close-modal" onclick="closeEditModal()">✕</button>
             </div>
             <div class="modal-body">
-                <div class="edit-form">
+                <form class="edit-form" method="POST" action="/profile">
                     <div class="form-group">
                         <label>Nom d'affichage</label>
-                        <input type="text" value="Mon Profil" class="form-input">
+                        <input type="text" name="display_name" value="{{if .Profile.DisplayName}}{{.Profile.DisplayName}}{{end}}" class="form-input" placeholder="Laissez vide pour utiliser votre nom d'utilisateur">
                     </div>
                     <div class="form-group">
-                        <label>Nom d'utilisateur</label>
-                        <input type="text" value="monprofil_rhythmit" class="form-input">
+                        <label>Photo de profil</label>
+                        <div class="image-upload-section">
+                            <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                            <input type="hidden" name="avatar_image" id="avatar-url" value="{{if .Profile.AvatarImage}}{{.Profile.AvatarImage}}{{end}}">
+                            <div class="upload-preview" id="avatar-preview">
+                                {{if .Profile.AvatarImage}}
+                                    <img src="{{.Profile.AvatarImage}}" alt="Avatar actuel">
+                                {{else}}
+                                    <div class="upload-placeholder">
+                                        <span>📷</span>
+                                        <p>Cliquez pour choisir une image</p>
+                                    </div>
+                                {{end}}
+                            </div>
+                            <div class="upload-buttons">
+                                <button type="button" class="upload-btn" onclick="document.getElementById('avatar-upload').click()">
+                                    Choisir une image
+                                </button>
+                                {{if .Profile.AvatarImage}}
+                                <button type="button" class="delete-btn" onclick="deleteProfileImage('avatar')">
+                                    🗑️ Supprimer
+                                </button>
+                                {{end}}
+                            </div>
+                        </div>
+                        <small class="form-help">Image de profil (JPG, PNG, max 5MB)</small>
                     </div>
                     <div class="form-group">
-                        <label>Bio</label>
-                        <textarea class="form-textarea" placeholder="Parlez-nous de vos goûts musicaux..."></textarea>
+                        <label>Image de bannière</label>
+                        <div class="image-upload-section">
+                            <input type="file" id="banner-upload" accept="image/*" style="display: none;">
+                            <input type="hidden" name="banner_image" id="banner-url" value="{{if .Profile.BannerImage}}{{.Profile.BannerImage}}{{end}}">
+                            <div class="upload-preview banner-preview" id="banner-preview">
+                                {{if .Profile.BannerImage}}
+                                    <img src="{{.Profile.BannerImage}}" alt="Bannière actuelle">
+                                {{else}}
+                                    <div class="upload-placeholder">
+                                        <span>🖼️</span>
+                                        <p>Cliquez pour choisir une bannière</p>
+                                    </div>
+                                {{end}}
+                            </div>
+                            <div class="upload-buttons">
+                                <button type="button" class="upload-btn" onclick="document.getElementById('banner-upload').click()">
+                                    Choisir une bannière
+                                </button>
+                                {{if .Profile.BannerImage}}
+                                <button type="button" class="delete-btn" onclick="deleteProfileImage('banner')">
+                                    🗑️ Supprimer
+                                </button>
+                                {{end}}
+                            </div>
+                        </div>
+                        <small class="form-help">Image de bannière pour votre profil (JPG, PNG, max 5MB)</small>
                     </div>
+
                     <div class="form-group">
-                        <label>Statut actuel</label>
-                        <input type="text" value="🎵 Actuellement en écoute" class="form-input">
+                        <label>Nom d'utilisateur (lecture seule)</label>
+                        <input type="text" value="@{{.User.Username}}" class="form-input" disabled>
+                        <small class="form-help">Votre nom d'utilisateur ne peut pas être modifié</small>
                     </div>
                     <div class="form-actions">
-                        <button class="cancel-btn">Annuler</button>
-                        <button class="save-btn">Sauvegarder</button>
+                        <button type="button" class="cancel-btn" onclick="closeEditModal()">Annuler</button>
+                        <button type="submit" class="save-btn">Sauvegarder</button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <!-- Alert system for messages -->
+    {{if .ErrorMessage}}
+    <div class="alert alert-error">
+        <span class="alert-icon">❌</span>
+        <span class="alert-message">{{.ErrorMessage}}</span>
+        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+    </div>
+    {{end}}
+
+    {{if .SuccessMessage}}
+    <div class="alert alert-success">
+        <span class="alert-icon">✅</span>
+        <span class="alert-message">{{.SuccessMessage}}</span>
+        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+    </div>
+    {{end}}
 
     <script src="styles/js/index.js"></script>
     <script src="styles/js/friends.js"></script>
     <script src="styles/js/profile.js"></script>
 </body>
 </html>
+{{end}}

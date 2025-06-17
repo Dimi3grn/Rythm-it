@@ -1,0 +1,211 @@
+{{define "edit-thread"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/styles/css/index.css">
+    <link rel="stylesheet" href="/styles/css/edit-thread.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <a href="/" class="brand">
+                <div class="brand-icon">
+                    <div class="wave-animation">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                </div>
+                <span class="brand-text">Rythm'it</span>
+            </a>
+            <div class="header-actions">
+                <a href="/thread/{{.Thread.ID}}" class="header-btn">
+                    <span class="nav-icon">←</span>
+                    Retour au thread
+                </a>
+                <a href="/" class="header-btn">
+                    <span class="nav-icon">🏠</span>
+                    Accueil
+                </a>
+                {{if .IsLoggedIn}}
+                <a href="/profile" class="header-btn primary">Profil</a>
+                <a href="/logout" class="header-btn logout-btn" title="Se déconnecter">🚪</a>
+                {{else}}
+                <a href="/signin" class="header-btn primary">Connexion</a>
+                {{end}}
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <main class="edit-content-area">
+                {{if .ErrorMessage}}
+                <div class="error-message">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-text">{{.ErrorMessage}}</div>
+                </div>
+                {{end}}
+                
+                {{if .SuccessMessage}}
+                <div class="success-message">
+                    <div class="success-icon">✅</div>
+                    <div class="success-text">{{.SuccessMessage}}</div>
+                </div>
+                {{end}}
+
+                <div class="edit-header">
+                    <div class="edit-header-content">
+                        <h1 class="edit-title">
+                            <span class="edit-icon">✏️</span>
+                            Modifier le thread
+                        </h1>
+                        <p class="edit-subtitle">Modifiez le contenu de votre discussion</p>
+                    </div>
+                </div>
+
+                <form class="edit-form" method="POST" action="/thread/{{.Thread.ID}}/edit" enctype="multipart/form-data">
+                    <div class="form-section">
+                        <label for="title" class="form-label">
+                            <span class="label-icon">📝</span>
+                            Titre du thread
+                        </label>
+                        <input 
+                            type="text" 
+                            name="title" 
+                            id="title"
+                            class="form-input" 
+                            value="{{.Thread.Title}}"
+                            placeholder="Titre de votre discussion"
+                            required
+                            minlength="5"
+                            maxlength="200"
+                        >
+                        <div class="form-hint">Le titre doit faire entre 5 et 200 caractères</div>
+                    </div>
+
+                    <div class="form-section">
+                        <label for="description" class="form-label">
+                            <span class="label-icon">📄</span>
+                            Description
+                        </label>
+                        <textarea 
+                            name="description" 
+                            id="description"
+                            class="form-textarea" 
+                            placeholder="Décrivez votre discussion en détail..."
+                            required
+                            minlength="10"
+                            rows="6"
+                        >{{.Thread.Content}}</textarea>
+                        <div class="form-hint">La description doit faire au moins 10 caractères</div>
+                    </div>
+
+                    <div class="form-section">
+                        <label class="form-label">
+                            <span class="label-icon">📷</span>
+                            Image (optionnelle)
+                        </label>
+                        
+                        <!-- Input file caché -->
+                        <input type="file" id="image-upload-input" accept="image/*" style="display: none;">
+                        
+                        <!-- Champ caché pour l'URL de l'image -->
+                        <input type="hidden" name="image_url" id="image-url-input" value="{{if .Thread.ImageURL}}{{.Thread.ImageURL}}{{end}}">
+                        
+                        <div class="image-upload-section">
+                            {{if .Thread.ImageURL}}
+                            <div class="current-image">
+                                <img src="{{.Thread.ImageURL}}" alt="Image actuelle" class="current-image-preview">
+                                <div class="image-actions">
+                                    <button type="button" class="btn-secondary" onclick="changeImage()">
+                                        <span class="btn-icon">🔄</span>
+                                        Changer l'image
+                                    </button>
+                                    <button type="button" class="btn-danger" onclick="removeImage()">
+                                        <span class="btn-icon">🗑️</span>
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                            {{else}}
+                            <div class="upload-placeholder" onclick="document.getElementById('image-upload-input').click()">
+                                <div class="upload-icon">📷</div>
+                                <div class="upload-text">Cliquez pour ajouter une image</div>
+                                <div class="upload-hint">JPG, PNG, GIF - Max 5MB</div>
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <label for="tags" class="form-label">
+                            <span class="label-icon">🏷️</span>
+                            Tags
+                        </label>
+                        
+                        <!-- Sélecteur de tags avec autocomplete -->
+                        <div class="tag-selector">
+                            <div class="selected-tags" id="selected-tags">
+                                {{range .Thread.Tags}}
+                                <span class="selected-tag" data-tag="{{.}}">
+                                    {{.}}
+                                    <button type="button" class="remove-tag" onclick="removeTag(this)">×</button>
+                                </span>
+                                {{end}}
+                            </div>
+                            <input type="text" id="tag-input" class="tag-input" placeholder="Rechercher et sélectionner des tags..." autocomplete="off">
+                            <div class="tag-suggestions" id="tag-suggestions"></div>
+                            <input type="hidden" name="tags" id="tags-hidden" value="{{range $index, $tag := .Thread.Tags}}{{if $index}},{{end}}{{$tag}}{{end}}">
+                        </div>
+                        <div class="form-hint">Sélectionnez jusqu'à 10 tags pour catégoriser votre thread</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-section">
+                            <label for="visibility" class="form-label">
+                                <span class="label-icon">👁️</span>
+                                Visibilité
+                            </label>
+                            <select name="visibility" id="visibility" class="form-select">
+                                <option value="public" {{if eq .Thread.Visibility "public"}}selected{{end}}>Public</option>
+                                <option value="privé" {{if eq .Thread.Visibility "privé"}}selected{{end}}>Privé</option>
+                            </select>
+                        </div>
+
+                        <div class="form-section">
+                            <label for="state" class="form-label">
+                                <span class="label-icon">⚡</span>
+                                État
+                            </label>
+                            <select name="state" id="state" class="form-select">
+                                <option value="ouvert" {{if eq .Thread.State "ouvert"}}selected{{end}}>Ouvert</option>
+                                <option value="fermé" {{if eq .Thread.State "fermé"}}selected{{end}}>Fermé</option>
+                                <option value="archivé" {{if eq .Thread.State "archivé"}}selected{{end}}>Archivé</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="/thread/{{.Thread.ID}}" class="btn-secondary">
+                            <span class="btn-icon">❌</span>
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn-primary">
+                            <span class="btn-icon">💾</span>
+                            Sauvegarder les modifications
+                        </button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/styles/js/image-upload.js"></script>
+    <script src="/styles/js/edit-thread.js"></script>
+</body>
+</html>
+{{end}} 
