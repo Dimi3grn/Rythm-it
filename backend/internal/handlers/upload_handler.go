@@ -14,8 +14,11 @@ import (
 
 // UploadImageHandler gère l'upload d'images pour les profils et threads
 func UploadImageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("📤 UploadImageHandler appelé - Method: %s", r.Method)
+	
 	// Vérifier que c'est une requête POST
 	if r.Method != "POST" {
+		log.Printf("❌ Méthode non autorisée: %s", r.Method)
 		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 		return
 	}
@@ -23,6 +26,7 @@ func UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 	// Vérifier l'authentification
 	user, isLoggedIn := getUserFromCookie(r)
 	if !isLoggedIn {
+		log.Printf("❌ Utilisateur non authentifié")
 		http.Error(w, "Non autorisé", http.StatusUnauthorized)
 		return
 	}
@@ -45,6 +49,9 @@ func UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
+
+	log.Printf("📁 Fichier reçu: %s, Taille: %d bytes, Type: %s", 
+		fileHeader.Filename, fileHeader.Size, fileHeader.Header.Get("Content-Type"))
 
 	// Vérifier le type de fichier
 	contentType := fileHeader.Header.Get("Content-Type")
@@ -75,6 +82,8 @@ func UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 		uploadDir = "uploads/threads"
 	}
 
+	log.Printf("📁 Type d'upload: %s, Dossier: %s", uploadType, uploadDir)
+
 	// Générer un nom de fichier unique
 	fileName, err := generateUniqueFileName(fileHeader.Filename)
 	if err != nil {
@@ -82,6 +91,8 @@ func UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erreur interne", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("📝 Nom de fichier généré: %s", fileName)
 
 	// Créer le répertoire s'il n'existe pas
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
@@ -106,12 +117,14 @@ func UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 	defer dst.Close()
 
 	// Copier le contenu du fichier
-	_, err = io.Copy(dst, file)
+	bytesWritten, err := io.Copy(dst, file)
 	if err != nil {
 		log.Printf("❌ Erreur sauvegarde fichier: %v", err)
 		http.Error(w, "Erreur sauvegarde", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("✅ Fichier sauvegardé: %d bytes écrits", bytesWritten)
 
 	// URL publique de l'image
 	imageURL := fmt.Sprintf("/%s/%s", uploadDir, fileName)

@@ -72,17 +72,19 @@
                 <div class="profile-hero">
                     <div class="profile-cover {{if .Profile.BannerImage}}has-custom-banner{{end}}" {{if .Profile.BannerImage}}style="background-image: url('{{.Profile.BannerImage}}'); background-size: cover; background-position: center;"{{end}}>
                         {{if not .Profile.BannerImage}}<div class="cover-gradient"></div>{{end}}
-                        <button class="edit-cover-btn" onclick="openEditModal()">📷 Modifier la couverture</button>
+                        <button class="edit-cover-btn" onclick="editCover()">📷 Modifier la couverture</button>
                     </div>
                     <div class="profile-info-header">
                         <div class="profile-avatar-section">
                             <div class="profile-avatar">
                                 {{if .Profile.AvatarImage}}
-                                    <div class="user-pic profile-size avatar-image" style="background-image: url('{{.Profile.AvatarImage}}');"></div>
+                                    <div class="user-pic profile-size avatar-image">
+                                        <img src="{{.Profile.AvatarImage}}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                    </div>
                                 {{else}}
                                     <div class="user-pic profile-size">{{.User.Avatar}}</div>
                                 {{end}}
-                                <button class="edit-avatar-btn" onclick="openEditModal()">📷</button>
+                                <button class="edit-avatar-btn" onclick="editAvatar()">📷</button>
                                 <span class="online-status online"></span>
                             </div>
                             <div class="profile-basic-info">
@@ -95,7 +97,7 @@
                             </div>
                         </div>
                         <div class="profile-actions">
-                            <button class="profile-action-btn edit" onclick="openEditModal()">✏️ Modifier le profil</button>
+                            <button class="profile-action-btn edit">✏️ Modifier le profil</button>
                             <button class="profile-action-btn share">📤 Partager</button>
                             <button class="profile-action-btn settings">⚙️ Paramètres</button>
                         </div>

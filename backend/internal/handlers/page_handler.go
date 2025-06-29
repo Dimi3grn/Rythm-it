@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -642,13 +643,46 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Créer les services nécessaires
+	log.Printf("👤 Utilisateur connecté: %s (ID: %d)", user.Username, user.ID)
+
+	// Debug: Vérifier si la table user_profiles existe
 	db := database.DB
+	var tableExists int
+	err := db.QueryRow("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'rythmit_db' AND table_name = 'user_profiles'").Scan(&tableExists)
+	if err != nil {
+		log.Printf("❌ Erreur vérification table user_profiles: %v", err)
+	} else {
+		log.Printf("🔍 Table user_profiles existe: %t", tableExists > 0)
+	}
+
+	// Debug: Vérifier les profils existants
+	rows, err := db.Query("SELECT id, user_id, display_name, avatar_image, banner_image FROM user_profiles LIMIT 5")
+	if err != nil {
+		log.Printf("❌ Erreur lecture user_profiles: %v", err)
+	} else {
+		defer rows.Close()
+		log.Printf("📋 Profils existants:")
+		for rows.Next() {
+			var id, userID uint
+			var displayName, avatarImage, bannerImage sql.NullString
+			err := rows.Scan(&id, &userID, &displayName, &avatarImage, &bannerImage)
+			if err != nil {
+				log.Printf("❌ Erreur scan profil: %v", err)
+				continue
+			}
+			log.Printf("  ID: %d, UserID: %d, DisplayName: %v, Avatar: %v, Banner: %v", 
+				id, userID, displayName.String, avatarImage.String, bannerImage.String)
+		}
+	}
+
+	// Créer les services nécessaires
 	userRepo := repositories.NewUserRepository(db)
 	profileRepo := repositories.NewProfileRepository(db)
 	profileService := services.NewProfileService(profileRepo, userRepo)
 
 	if r.Method == "POST" {
+		log.Printf("📝 ===== DEBUT ProfileHandler POST =====")
+		
 		// Traiter la mise à jour du profil
 		if err := r.ParseForm(); err != nil {
 			log.Printf("❌ Erreur parsing formulaire: %v", err)
@@ -656,10 +690,21 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Debug: afficher tous les paramètres du formulaire
+		log.Printf("📝 Tous les paramètres du formulaire:")
+		for key, values := range r.Form {
+			log.Printf("  %s: %v", key, values)
+		}
+
 		// Récupérer les données du formulaire
 		displayName := r.FormValue("display_name")
 		avatarImage := r.FormValue("avatar_image")
 		bannerImage := r.FormValue("banner_image")
+		
+		log.Printf("📝 Données extraites:")
+		log.Printf("  - display_name: '%s'", displayName)
+		log.Printf("  - avatar_image: '%s'", avatarImage)
+		log.Printf("  - banner_image: '%s'", bannerImage)
 
 		// Créer le DTO de mise à jour
 		updateDTO := services.ProfileUpdateDTO{}
@@ -682,24 +727,34 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 			updateDTO.BannerImage = &bannerImage
 		}
 
+		log.Printf("🔄 DTO créé: DisplayName=%v, Avatar=%v, Banner=%v", 
+			updateDTO.DisplayName, updateDTO.AvatarImage, updateDTO.BannerImage)
+
 		// Tenter la mise à jour du profil existant
+		log.Printf("🔄 Appel profileService.UpdateProfile...")
 		_, err := profileService.UpdateProfile(user.ID, updateDTO)
 		if err != nil {
+			log.Printf("⚠️ Échec mise à jour, tentative de création: %v", err)
 			// Si le profil n'existe pas, le créer
 			createDTO := services.ProfileCreateDTO{
 				DisplayName: updateDTO.DisplayName,
 				AvatarImage: updateDTO.AvatarImage,
 				BannerImage: updateDTO.BannerImage,
 			}
+			log.Printf("🔄 Appel profileService.CreateProfile...")
 			_, err = profileService.CreateProfile(user.ID, createDTO)
 			if err != nil {
 				log.Printf("❌ Erreur création profil: %v", err)
 				http.Redirect(w, r, "/profile?error=update_failed", http.StatusSeeOther)
 				return
 			}
+			log.Printf("✅ Profil créé avec succès")
+		} else {
+			log.Printf("✅ Profil mis à jour avec succès")
 		}
 
 		log.Printf("✅ Profil mis à jour pour utilisateur %s", user.Username)
+		log.Printf("📝 ===== FIN ProfileHandler POST =====")
 		http.Redirect(w, r, "/profile?success=profile_updated", http.StatusSeeOther)
 		return
 	}
@@ -717,6 +772,9 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 			BannerImage: nil,
 		}
 	}
+
+	log.Printf("📋 Profil récupéré: DisplayName=%v, Avatar=%v, Banner=%v", 
+		profileData.DisplayName, profileData.AvatarImage, profileData.BannerImage)
 
 	// Convertir le profil en format pour le template
 	profile := &ProfileData{
@@ -1497,6 +1555,8 @@ func ThreadsAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 // SimpleProfileUpdateHandler gère les mises à jour de profil simples sans JavaScript
 func SimpleProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("🔄 SimpleProfileUpdateHandler appelé - Method: %s", r.Method)
+	
 	if r.Method != "POST" {
 		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 		return
@@ -1509,6 +1569,9 @@ func SimpleProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Debug: afficher le Content-Type
+	log.Printf("📝 Content-Type: %s", r.Header.Get("Content-Type"))
+
 	// Parser le formulaire
 	if err := r.ParseForm(); err != nil {
 		log.Printf("❌ Erreur parsing formulaire: %v", err)
@@ -1518,15 +1581,33 @@ func SimpleProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Récupérer l'action
 	action := r.FormValue("action")
+	log.Printf("🔄 Action reçue: '%s'", action)
+	
+	// Debug: afficher tous les paramètres du formulaire
+	log.Printf("📝 Tous les paramètres du formulaire:")
+	for key, values := range r.Form {
+		log.Printf("  %s: %v", key, values)
+	}
+
+	// Debug: afficher aussi les paramètres POST
+	log.Printf("📝 Paramètres POST:")
+	for key, values := range r.PostForm {
+		log.Printf("  %s: %v", key, values)
+	}
 
 	switch action {
 	case "update_display_name":
 		handleDisplayNameUpdate(w, r, user)
+	case "update_avatar":
+		handleUpdateAvatar(w, r, user)
+	case "update_banner":
+		handleUpdateBanner(w, r, user)
 	case "clear_avatar":
 		handleClearAvatar(w, r, user)
 	case "clear_banner":
 		handleClearBanner(w, r, user)
 	default:
+		log.Printf("❌ Action non reconnue: '%s'", action)
 		http.Redirect(w, r, "/profile?error=invalid_action", http.StatusSeeOther)
 	}
 }
@@ -1565,6 +1646,76 @@ func handleDisplayNameUpdate(w http.ResponseWriter, r *http.Request, user *User)
 	http.Redirect(w, r, "/profile?success=display_name_updated", http.StatusSeeOther)
 }
 
+func handleUpdateAvatar(w http.ResponseWriter, r *http.Request, user *User) {
+	avatarImage := r.FormValue("avatar_image")
+	log.Printf("🔄 ===== DEBUT handleUpdateAvatar =====")
+	log.Printf("👤 Utilisateur: %s (ID: %d)", user.Username, user.ID)
+	log.Printf("🖼️ Avatar image URL reçue: '%s'", avatarImage)
+	
+	// Créer les services
+	db := database.DB
+	userRepo := repositories.NewUserRepository(db)
+	profileRepo := repositories.NewProfileRepository(db)
+	profileService := services.NewProfileService(profileRepo, userRepo)
+
+	// Préparer le DTO pour mettre à jour l'avatar
+	updateDTO := services.ProfileUpdateDTO{}
+	if avatarImage != "" {
+		updateDTO.AvatarImage = &avatarImage
+		log.Printf("📝 DTO créé avec Avatar image: %s", avatarImage)
+	} else {
+		log.Printf("⚠️ Avatar image vide, DTO sans avatar")
+	}
+
+	log.Printf("🔄 Appel profileService.UpdateProfile...")
+	// Mettre à jour le profil
+	_, err := profileService.UpdateProfile(user.ID, updateDTO)
+	if err != nil {
+		log.Printf("❌ ERREUR mise à jour avatar: %v", err)
+		http.Redirect(w, r, "/profile?error=update_failed", http.StatusSeeOther)
+		return
+	}
+
+	log.Printf("✅ Avatar mis à jour avec SUCCES pour %s", user.Username)
+	log.Printf("🔄 ===== FIN handleUpdateAvatar =====")
+	http.Redirect(w, r, "/profile?success=avatar_updated", http.StatusSeeOther)
+}
+
+func handleUpdateBanner(w http.ResponseWriter, r *http.Request, user *User) {
+	bannerImage := r.FormValue("banner_image")
+	log.Printf("🔄 ===== DEBUT handleUpdateBanner =====")
+	log.Printf("👤 Utilisateur: %s (ID: %d)", user.Username, user.ID)
+	log.Printf("🖼️ Banner image URL reçue: '%s'", bannerImage)
+	
+	// Créer les services
+	db := database.DB
+	userRepo := repositories.NewUserRepository(db)
+	profileRepo := repositories.NewProfileRepository(db)
+	profileService := services.NewProfileService(profileRepo, userRepo)
+
+	// Préparer le DTO pour mettre à jour la bannière
+	updateDTO := services.ProfileUpdateDTO{}
+	if bannerImage != "" {
+		updateDTO.BannerImage = &bannerImage
+		log.Printf("📝 DTO créé avec Banner image: %s", bannerImage)
+	} else {
+		log.Printf("⚠️ Banner image vide, DTO sans banner")
+	}
+
+	log.Printf("🔄 Appel profileService.UpdateProfile...")
+	// Mettre à jour le profil
+	_, err := profileService.UpdateProfile(user.ID, updateDTO)
+	if err != nil {
+		log.Printf("❌ ERREUR mise à jour bannière: %v", err)
+		http.Redirect(w, r, "/profile?error=update_failed", http.StatusSeeOther)
+		return
+	}
+
+	log.Printf("✅ Bannière mise à jour avec SUCCES pour %s", user.Username)
+	log.Printf("🔄 ===== FIN handleUpdateBanner =====")
+	http.Redirect(w, r, "/profile?success=banner_updated", http.StatusSeeOther)
+}
+
 func handleClearAvatar(w http.ResponseWriter, r *http.Request, user *User) {
 	// Créer les services
 	db := database.DB
@@ -1587,6 +1738,30 @@ func handleClearAvatar(w http.ResponseWriter, r *http.Request, user *User) {
 
 	log.Printf("✅ Avatar supprimé pour %s", user.Username)
 	http.Redirect(w, r, "/profile?success=avatar_cleared", http.StatusSeeOther)
+}
+
+func handleClearBanner(w http.ResponseWriter, r *http.Request, user *User) {
+	// Créer les services
+	db := database.DB
+	userRepo := repositories.NewUserRepository(db)
+	profileRepo := repositories.NewProfileRepository(db)
+	profileService := services.NewProfileService(profileRepo, userRepo)
+
+	// Préparer le DTO pour effacer la bannière
+	updateDTO := services.ProfileUpdateDTO{
+		BannerImage: nil,
+	}
+
+	// Mettre à jour le profil
+	_, err := profileService.UpdateProfile(user.ID, updateDTO)
+	if err != nil {
+		log.Printf("❌ Erreur suppression bannière: %v", err)
+		http.Redirect(w, r, "/profile?error=update_failed", http.StatusSeeOther)
+		return
+	}
+
+	log.Printf("✅ Bannière supprimée pour %s", user.Username)
+	http.Redirect(w, r, "/profile?success=banner_cleared", http.StatusSeeOther)
 }
 
 // handleAddComment gère l'ajout d'un commentaire à un thread
@@ -1674,11 +1849,11 @@ func convertDBThreadToPageThread(threadResp services.ThreadResponseDTO, user *Us
 		ID:           threadResp.ID,
 		Title:        threadResp.Title,
 		Content:      threadResp.Description,
-		ImageURL:     threadResp.ImageURL,
+			ImageURL:     threadResp.ImageURL,
 		Author:       authorDisplay,
 		AuthorAvatar: initials,
 		TimeAgo:      timeAgo,
-		Genre:        "Discussion",
+			Genre:        "Discussion",
 		Tags:         tags,
 		Likes:        likesCount,
 		IsLiked:      isLiked,
@@ -1743,30 +1918,6 @@ func convertMessagesToComments(messages []*models.Message, threadAuthor string, 
 	}
 
 	return comments
-}
-
-func handleClearBanner(w http.ResponseWriter, r *http.Request, user *User) {
-	// Créer les services
-	db := database.DB
-	userRepo := repositories.NewUserRepository(db)
-	profileRepo := repositories.NewProfileRepository(db)
-	profileService := services.NewProfileService(profileRepo, userRepo)
-
-	// Préparer le DTO pour effacer la bannière
-	updateDTO := services.ProfileUpdateDTO{
-		BannerImage: nil,
-	}
-
-	// Mettre à jour le profil
-	_, err := profileService.UpdateProfile(user.ID, updateDTO)
-	if err != nil {
-		log.Printf("❌ Erreur suppression bannière: %v", err)
-		http.Redirect(w, r, "/profile?error=update_failed", http.StatusSeeOther)
-		return
-	}
-
-	log.Printf("✅ Bannière supprimée pour %s", user.Username)
-	http.Redirect(w, r, "/profile?success=banner_cleared", http.StatusSeeOther)
 }
 
 // DeleteThreadHandler gère la suppression d'un thread

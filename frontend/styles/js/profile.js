@@ -83,7 +83,36 @@ document.addEventListener('DOMContentLoaded', function() {
             attachModalEvents();
         }
         
-        // Édition de couverture et avatar
+        // ===== NOUVEAUX EVENT LISTENERS POUR LES UPLOADS =====
+        console.log('🔧 Ajout des event listeners pour les uploads...');
+        
+        // Avatar upload
+        const avatarUpload = document.getElementById('avatar-upload');
+        if (avatarUpload) {
+            console.log('✅ Avatar upload input trouvé');
+            avatarUpload.addEventListener('change', function(e) {
+                console.log('👤 ===== AVATAR UPLOAD CHANGE EVENT =====');
+                console.log('📁 Fichier sélectionné:', e.target.files[0]);
+                handleImageUpload(e, 'avatar');
+            });
+        } else {
+            console.log('❌ Avatar upload input NOT FOUND');
+        }
+        
+        // Banner upload
+        const bannerUpload = document.getElementById('banner-upload');
+        if (bannerUpload) {
+            console.log('✅ Banner upload input trouvé');
+            bannerUpload.addEventListener('change', function(e) {
+                console.log('🖼️ ===== BANNER UPLOAD CHANGE EVENT =====');
+                console.log('📁 Fichier sélectionné:', e.target.files[0]);
+                handleImageUpload(e, 'banner');
+            });
+        } else {
+            console.log('❌ Banner upload input NOT FOUND');
+        }
+        
+        // Édition de couverture et avatar (anciens boutons - on les garde au cas où)
         const editCoverBtn = document.querySelector('.edit-cover-btn');
         const editAvatarBtn = document.querySelector('.edit-avatar-btn');
         
@@ -469,13 +498,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Sauvegarde du profil
     function saveProfile() {
+        console.log('💾 ===== DEBUT saveProfile =====');
+        
         const inputs = editModal.querySelectorAll('.form-input, .form-textarea');
         const data = {};
         
         inputs.forEach(input => {
             const label = input.closest('.form-group').querySelector('label').textContent;
             data[label] = input.value;
+            console.log('📝 Champ texte:', label, '=', input.value);
         });
+        
+        // Récupérer les URLs des images depuis les champs cachés
+        const avatarUrl = document.getElementById('avatar-url')?.value;
+        const bannerUrl = document.getElementById('banner-url')?.value;
+        
+        console.log('🖼️ Avatar URL:', avatarUrl);
+        console.log('🖼️ Banner URL:', bannerUrl);
         
         // Animation de sauvegarde
         const saveBtn = editModal.querySelector('.save-btn');
@@ -483,16 +522,80 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtn.innerHTML = '💾 Sauvegarde...';
         saveBtn.disabled = true;
         
-        setTimeout(() => {
+        // Préparer les données pour l'envoi au backend
+        const formData = new URLSearchParams();
+        
+        // Ajouter les champs texte
+        if (data['Nom d\'affichage']) {
+            formData.append('display_name', data['Nom d\'affichage']);
+        }
+        if (data['Nom d\'utilisateur']) {
+            formData.append('username', data['Nom d\'utilisateur']);
+        }
+        if (data['Statut actuel']) {
+            formData.append('status', data['Statut actuel']);
+        }
+        
+        // Ajouter les images si elles existent
+        if (avatarUrl) {
+            formData.append('avatar_image', avatarUrl);
+            console.log('➕ Avatar ajouté au formulaire');
+        }
+        if (bannerUrl) {
+            formData.append('banner_image', bannerUrl);
+            console.log('➕ Banner ajouté au formulaire');
+        }
+        
+        console.log('📦 Données à envoyer:', formData.toString());
+        
+        // Envoyer au backend
+        fetch('/profile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData.toString(),
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('📥 Réponse saveProfile - Status:', response.status, 'OK:', response.ok);
+            if (!response.ok) {
+                throw new Error('Erreur sauvegarde profil: ' + response.status);
+            }
+            return response.text();
+        })
+        .then((responseText) => {
+            console.log('📥 REPONSE saveProfile (text):', responseText);
+            
             showNotification('✅ Profil mis à jour avec succès !', 'success');
             closeEditModal();
             
             // Mettre à jour l'affichage
             updateProfileDisplay(data);
             
+            // Mettre à jour l'affichage des images
+            if (avatarUrl) {
+                updateAvatarDisplay(avatarUrl);
+            }
+            if (bannerUrl) {
+                updateBannerDisplay(bannerUrl);
+            }
+            
             saveBtn.innerHTML = originalText;
             saveBtn.disabled = false;
-        }, 1500);
+            
+            // Recharger la page pour voir les changements
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        })
+        .catch(error => {
+            console.error('❌ ERREUR saveProfile:', error);
+            showNotification('Erreur lors de la sauvegarde: ' + error.message, 'error');
+            
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        });
     }
     
     // Mise à jour de l'affichage du profil
@@ -524,43 +627,199 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Édition de couverture
     function editCover() {
-        showNotification('📷 Sélection d\'une nouvelle couverture...', 'info');
+        console.log('🎬 editCover() appelée');
+        // Créer un input file temporaire
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.style.display = 'none';
         
-        // Simulation de changement de couverture
-        setTimeout(() => {
-            const cover = document.querySelector('.profile-cover');
-            if (cover) {
-                const gradients = [
-                    'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
-                    'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)',
-                    'linear-gradient(135deg, #facc15 0%, #eab308 100%)',
-                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                ];
-                const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
-                cover.style.background = randomGradient;
-                
-                showNotification('✅ Couverture mise à jour !', 'success');
+        fileInput.addEventListener('change', function(e) {
+            console.log('📁 Fichier sélectionné pour cover:', e.target.files[0]);
+            const file = e.target.files[0];
+            if (!file) {
+                console.log('❌ Aucun fichier sélectionné');
+                return;
             }
-        }, 1000);
+            
+            // Validation du fichier
+            if (!validateImageFile(file)) {
+                console.log('❌ Fichier invalide');
+                return;
+            }
+            
+            console.log('✅ Fichier valide, upload en cours...');
+            // Upload du fichier
+            uploadProfileImage(file, 'banner');
+        });
+        
+        // Déclencher la sélection de fichier
+        console.log('🔽 Ouverture du sélecteur de fichier...');
+        fileInput.click();
     }
     
     // Édition d'avatar
     function editAvatar() {
-        showNotification('📷 Sélection d\'un nouvel avatar...', 'info');
+        console.log('👤 editAvatar() appelée');
+        // Créer un input file temporaire
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.style.display = 'none';
         
-        // Simulation de changement d'avatar
-        setTimeout(() => {
-            const avatars = ['MO', '🎵', '🎧', '🎤', '🔥'];
-            const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
+        fileInput.addEventListener('change', function(e) {
+            console.log('📁 Fichier sélectionné pour avatar:', e.target.files[0]);
+            const file = e.target.files[0];
+            if (!file) {
+                console.log('❌ Aucun fichier sélectionné');
+                return;
+            }
             
-            document.querySelectorAll('.user-pic').forEach(pic => {
-                if (pic.textContent === 'MO') {
-                    pic.textContent = randomAvatar;
-                }
-            });
+            // Validation du fichier
+            if (!validateImageFile(file)) {
+                console.log('❌ Fichier invalide');
+                return;
+            }
             
-            showNotification('✅ Avatar mis à jour !', 'success');
-        }, 1000);
+            console.log('✅ Fichier valide, upload en cours...');
+            // Upload du fichier
+            uploadProfileImage(file, 'avatar');
+        });
+        
+        // Déclencher la sélection de fichier
+        console.log('🔽 Ouverture du sélecteur de fichier...');
+        fileInput.click();
+    }
+    
+    // Validation du fichier image
+    function validateImageFile(file) {
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        
+        if (!allowedTypes.includes(file.type)) {
+            showNotification('Format d\'image non supporté. Utilisez JPG, PNG, GIF ou WebP.', 'error');
+            return false;
+        }
+        
+        if (file.size > maxSize) {
+            showNotification('L\'image est trop volumineuse. Taille maximum: 5MB.', 'error');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Upload d'image de profil
+    function uploadProfileImage(file, type) {
+        console.log('🚀 DEBUT uploadProfileImage - Type:', type, 'File:', file.name, 'Size:', file.size);
+        
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('type', 'profile');
+        
+        console.log('📦 FormData créé avec image et type=profile');
+        
+        // Afficher un indicateur de chargement
+        showNotification('📤 Téléchargement en cours...', 'info');
+        
+        console.log('📤 ENVOI requête vers /upload/image');
+        
+        fetch('/upload/image', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('📥 Réponse upload reçue - Status:', response.status, 'OK:', response.ok);
+            if (!response.ok) {
+                throw new Error('Erreur upload: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('📥 DONNEES upload reçues:', JSON.stringify(data, null, 2));
+            if (data.success && data.imageUrl) {
+                console.log('✅ Upload réussi! URL:', data.imageUrl);
+                console.log('🔄 APPEL updateProfileImage avec type:', type, 'URL:', data.imageUrl);
+                // Mettre à jour le profil avec la nouvelle image
+                updateProfileImage(type, data.imageUrl);
+                showNotification('✅ Image téléchargée avec succès !', 'success');
+            } else {
+                console.log('❌ Upload échoué - Data:', data);
+                throw new Error(data.message || 'Erreur inconnue');
+            }
+        })
+        .catch(error => {
+            console.error('❌ ERREUR uploadProfileImage:', error);
+            showNotification('Erreur lors du téléchargement de l\'image: ' + error.message, 'error');
+        });
+    }
+    
+    // Mise à jour de l'image de profil
+    function updateProfileImage(type, imageUrl) {
+        console.log('🔄 DEBUT updateProfileImage - Type:', type, 'URL:', imageUrl);
+        
+        // Créer les données du formulaire
+        const formData = new URLSearchParams();
+        const action = type === 'avatar' ? 'update_avatar' : 'update_banner';
+        const fieldName = type === 'avatar' ? 'avatar_image' : 'banner_image';
+        
+        formData.append('action', action);
+        formData.append(fieldName, imageUrl);
+        
+        console.log('📦 URLSearchParams créé:');
+        console.log('  - action:', action);
+        console.log('  - ' + fieldName + ':', imageUrl);
+        console.log('📦 FormData string:', formData.toString());
+        
+        fetch('/profile/action', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData.toString(),
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('📥 Réponse profile update - Status:', response.status, 'OK:', response.ok);
+            if (!response.ok) {
+                throw new Error('Erreur mise à jour profil: ' + response.status);
+            }
+            return response.text();
+        })
+        .then((responseText) => {
+            console.log('📥 REPONSE profile update (text):', responseText);
+            // Mettre à jour l'affichage
+            if (type === 'avatar') {
+                console.log('🖼️ Mise à jour affichage avatar');
+                updateAvatarDisplay(imageUrl);
+            } else {
+                console.log('🖼️ Mise à jour affichage banner');
+                updateBannerDisplay(imageUrl);
+            }
+            console.log('✅ updateProfileImage TERMINE avec succès');
+        })
+        .catch(error => {
+            console.error('❌ ERREUR updateProfileImage:', error);
+            showNotification('Erreur lors de la mise à jour du profil: ' + error.message, 'error');
+        });
+    }
+    
+    // Mise à jour de l'affichage de l'avatar
+    function updateAvatarDisplay(imageUrl) {
+        const avatarElements = document.querySelectorAll('.user-pic.profile-size');
+        avatarElements.forEach(avatar => {
+            // Remplacer le texte par une image
+            avatar.innerHTML = `<img src="${imageUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        });
+    }
+    
+    // Mise à jour de l'affichage de la bannière
+    function updateBannerDisplay(imageUrl) {
+        const coverElement = document.querySelector('.profile-cover');
+        if (coverElement) {
+            coverElement.style.background = `url(${imageUrl}) center/cover no-repeat`;
+        }
     }
     
     // Partage de profil
@@ -745,6 +1004,114 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // ===== NOUVELLE FONCTION POUR GERER LES UPLOADS =====
+    function handleImageUpload(event, type) {
+        console.log(`🚀 ===== DEBUT handleImageUpload - Type: ${type} =====`);
+        
+        const file = event.target.files[0];
+        if (!file) {
+            console.log('❌ Aucun fichier sélectionné');
+            return;
+        }
+        
+        console.log('📁 Fichier:', file.name, 'Taille:', file.size, 'Type:', file.type);
+        
+        // Validation du fichier
+        if (!validateImageFile(file)) {
+            console.log('❌ Fichier invalide');
+            return;
+        }
+        
+        console.log('✅ Fichier valide, début upload...');
+        
+        // Upload du fichier
+        uploadProfileImageFromModal(file, type);
+    }
+    
+    // ===== NOUVELLE FONCTION UPLOAD DEPUIS LE MODAL =====
+    function uploadProfileImageFromModal(file, type) {
+        console.log(`🚀 ===== DEBUT uploadProfileImageFromModal - Type: ${type} =====`);
+        
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('type', 'profile');
+        
+        console.log('📦 FormData créé avec image et type=profile');
+        
+        // Afficher un indicateur de chargement
+        showNotification('📤 Téléchargement en cours...', 'info');
+        
+        console.log('📤 ENVOI requête vers /upload/image');
+        
+        fetch('/upload/image', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('📥 Réponse upload reçue - Status:', response.status, 'OK:', response.ok);
+            if (!response.ok) {
+                throw new Error('Erreur upload: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('📥 DONNEES upload reçues:', JSON.stringify(data, null, 2));
+            if (data.success && data.imageUrl) {
+                console.log('✅ Upload réussi! URL:', data.imageUrl);
+                
+                // Mettre à jour le modal avec la nouvelle image
+                updateModalImagePreview(type, data.imageUrl);
+                
+                // Mettre à jour le champ hidden
+                updateHiddenImageField(type, data.imageUrl);
+                
+                showNotification('✅ Image téléchargée avec succès !', 'success');
+                
+                console.log('✅ uploadProfileImageFromModal TERMINE avec succès');
+            } else {
+                console.log('❌ Upload échoué - Data:', data);
+                throw new Error(data.message || 'Erreur inconnue');
+            }
+        })
+        .catch(error => {
+            console.error('❌ ERREUR uploadProfileImageFromModal:', error);
+            showNotification('Erreur lors du téléchargement de l\'image: ' + error.message, 'error');
+        });
+    }
+    
+    // ===== FONCTION POUR METTRE A JOUR L'APERCU DANS LE MODAL =====
+    function updateModalImagePreview(type, imageUrl) {
+        console.log(`🖼️ ===== updateModalImagePreview - Type: ${type}, URL: ${imageUrl} =====`);
+        
+        const previewId = type === 'avatar' ? 'avatar-preview' : 'banner-preview';
+        const preview = document.getElementById(previewId);
+        
+        if (preview) {
+            console.log('✅ Preview element trouvé:', previewId);
+            preview.innerHTML = `<img src="${imageUrl}" alt="${type} preview" style="width: 100%; height: 100%; object-fit: cover;">`;
+            console.log('✅ Preview mis à jour');
+        } else {
+            console.log('❌ Preview element NOT FOUND:', previewId);
+        }
+    }
+    
+    // ===== FONCTION POUR METTRE A JOUR LE CHAMP HIDDEN =====
+    function updateHiddenImageField(type, imageUrl) {
+        console.log(`📝 ===== updateHiddenImageField - Type: ${type}, URL: ${imageUrl} =====`);
+        
+        const fieldId = type === 'avatar' ? 'avatar-url' : 'banner-url';
+        const hiddenField = document.getElementById(fieldId);
+        
+        if (hiddenField) {
+            console.log('✅ Hidden field trouvé:', fieldId);
+            hiddenField.value = imageUrl;
+            console.log('✅ Hidden field mis à jour avec:', imageUrl);
+        } else {
+            console.log('❌ Hidden field NOT FOUND:', fieldId);
+        }
+    }
     
     console.log('👤 Page Profil Rythm\'it initialisée avec succès !');
     console.log('🎯 Fonctionnalités: Onglets dynamiques, Édition de profil, Statistiques en temps réel');
