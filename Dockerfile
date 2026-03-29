@@ -24,6 +24,7 @@ RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /app/backend
 
 COPY --from=builder /build/server ./server
+COPY backend/migrations/ ./migrations/
 COPY frontend/ /app/frontend/
 
 # Persistent uploads directory (mount a Railway volume here)

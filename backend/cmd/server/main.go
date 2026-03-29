@@ -9,6 +9,7 @@ import (
 	"rythmitbackend/configs"
 	"rythmitbackend/internal/router"
 	"rythmitbackend/pkg/database"
+	"rythmitbackend/pkg/migrations"
 )
 
 func main() {
@@ -24,6 +25,12 @@ func main() {
 	}
 	defer database.Close()
 	log.Println("✅ Base de données connectée")
+
+	// Auto-migrations: apply all pending SQL files from migrations/
+	if err := migrations.Run(database.DB, "migrations"); err != nil {
+		log.Fatalf("❌ Erreur migrations: %v", err)
+	}
+	log.Println("✅ Migrations terminées")
 
 	// Configuration du router avec support des templates
 	handler := router.Init(cfg)
