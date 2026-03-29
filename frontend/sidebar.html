@@ -1,0 +1,67 @@
+{{define "sidebar.html"}}
+<aside class="sidebar-left">
+    <div class="nav-section">
+        <h3>Navigation</h3>
+        <a href="/hub" class="nav-item {{if eq .CurrentPage "hub"}}active{{end}}">
+            <span class="nav-icon">🎯</span>
+            Hub
+        </a>
+        <a href="/" class="nav-item {{if eq .CurrentPage "index"}}active{{end}}">
+            <span class="nav-icon">🏠</span>
+            Accueil
+        </a>
+        <a href="/discover" class="nav-item {{if eq .CurrentPage "discover"}}active{{end}}">
+            <span class="nav-icon">🔍</span>
+            Découvrir
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🔥</span>
+            Tendances
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">📚</span>
+            Playlists
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <h3>Social</h3>
+        <a href="/friends" class="nav-item {{if eq .CurrentPage "friends"}}active{{end}}">
+            <span class="nav-icon">👥</span>
+            Mes Amis
+            <span class="status-indicator online"></span>
+        </a>
+        <a href="/messages" class="nav-item {{if eq .CurrentPage "messages"}}active{{end}}">
+            <span class="nav-icon">💬</span>
+            Messages
+            {{if and .Messages (gt (len .Messages) 0)}}
+            <span class="message-count">{{len .Messages}}</span>
+            {{end}}
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎵</span>
+            Sessions Live
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <h3>Genres</h3>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎵</span>
+            Électronique
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎸</span>
+            Rock/Metal
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎷</span>
+            Jazz/Blues
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎤</span>
+            Hip-Hop
+        </a>
+    </div>
+</aside>
+{{end}}

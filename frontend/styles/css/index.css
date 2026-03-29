@@ -13,9 +13,9 @@ body {
 }
 
 .app-container {
-    max-width: 1400px; /* Augmenté de 1100px à 1400px */
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 0 30px; /* Augmenté de 20px à 30px */
+    padding: 0 24px;
 }
 
 .header {
@@ -24,6 +24,10 @@ body {
     align-items: center;
     padding: 30px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .brand {
@@ -54,6 +58,7 @@ body {
 .header-actions {
     display: flex;
     gap: 15px;
+    flex-shrink: 0;
 }
 
 .header-btn {
@@ -138,6 +143,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 30px;
+    position: relative;
+    z-index: 10;
 }
 
 .nav-section {
@@ -657,8 +664,8 @@ body {
 /* Responsive pour les écrans très larges */
 @media (min-width: 1600px) {
     .app-container {
-        max-width: 1600px;
-        padding: 0 40px;
+        max-width: 1280px; /* Keep consistent with base max-width to prevent header stretching */
+        padding: 0 24px;
     }
     
     .main-layout {
@@ -961,4 +968,412 @@ a {
         transform: translateX(0);
         opacity: 1;
     }
+}
+
+/* ========================================
+   UNIFIED BUTTON SYSTEM
+   ======================================== */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Primary Button */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border-color: transparent;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Ghost Button (default) */
+.btn-ghost {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f0f0f0;
+}
+
+.btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-ghost.active {
+    background: rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
+    color: #667eea;
+}
+
+/* Success Button */
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+}
+
+.btn-success:hover {
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+/* Danger Button */
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff;
+}
+
+.btn-danger:hover {
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.btn-danger-ghost {
+    background: rgba(255, 69, 58, 0.1);
+    border-color: rgba(255, 69, 58, 0.3);
+    color: #ff453a;
+}
+
+.btn-danger-ghost:hover {
+    background: rgba(255, 69, 58, 0.2);
+    border-color: rgba(255, 69, 58, 0.5);
+}
+
+/* Warning Button */
+.btn-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #fff;
+}
+
+/* Button Sizes */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+}
+
+.btn-lg {
+    padding: 14px 28px;
+    font-size: 16px;
+    border-radius: 16px;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+/* Button Icons */
+.btn-icon {
+    font-size: 16px;
+}
+
+/* Badge in buttons */
+.btn .badge, .badge {
+    background: #ff6b6b;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Header navigation text toggle for responsive */
+.header-btn .nav-text {
+    display: inline;
+}
+
+.header-btn .nav-icon {
+    margin-right: 4px;
+}
+
+/* Hide mobile nav elements (they were removed from template) */
+.mobile-nav-overlay,
+.mobile-menu-btn,
+nav.mobile-nav {
+    display: none !important;
+}
+
+/* ========================================
+   IMPROVED RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+/* Large screens */
+@media (min-width: 1600px) {
+    .app-container {
+        max-width: 1600px;
+        padding: 0 40px;
+    }
+    
+    .main-layout {
+        grid-template-columns: 320px 1fr 400px;
+        gap: 60px;
+    }
+}
+
+/* Medium-large screens */
+@media (max-width: 1400px) {
+    .main-layout {
+        grid-template-columns: 280px 1fr 340px;
+        gap: 40px;
+    }
+    
+    .header-actions .btn .btn-text {
+        display: none;
+    }
+    
+    .header-actions .btn {
+        padding: 10px 14px;
+    }
+}
+
+/* Medium screens - hide right sidebar */
+@media (max-width: 1200px) {
+    .app-container {
+        max-width: 100%;
+        padding: 0 24px;
+    }
+    
+    .main-layout {
+        grid-template-columns: 260px 1fr;
+        gap: 30px;
+    }
+    
+    .sidebar-right {
+        display: none;
+    }
+}
+
+/* Tablet - Compact header, hide sidebars */
+@media (max-width: 1024px) {
+    .main-layout,
+    .friends-layout,
+    .discover-layout,
+    .messages-layout,
+    .profile-container,
+    .settings-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .sidebar-left,
+    .sidebar-right {
+        display: none;
+    }
+    
+    .header {
+        padding: 16px 0;
+    }
+    
+    /* Show only icons in header on tablet */
+    .header-btn .nav-text {
+        display: none;
+    }
+    
+    .header-btn {
+        padding: 10px 12px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 0 16px;
+    }
+    
+    .header {
+        padding: 12px 0;
+    }
+    
+    .brand-text {
+        font-size: 20px;
+    }
+    
+    .brand-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    /* Content area adjustments */
+    .content-area,
+    .discover-content,
+    .profile-content,
+    .messages-layout,
+    .settings-layout {
+        padding: 0;
+    }
+    
+    .thread-item,
+    .composer,
+    .widget,
+    .friend-card,
+    .request-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+    
+    .composer-input {
+        padding: 14px;
+        font-size: 14px;
+    }
+    
+    /* Friends page mobile */
+    .friends-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .friends-header h1 {
+        font-size: 24px;
+    }
+    
+    .friends-actions {
+        width: 100%;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .search-container {
+        width: 100%;
+    }
+    
+    .add-friend-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .friends-tabs {
+        overflow-x: auto;
+        gap: 8px;
+        padding-bottom: 8px;
+    }
+    
+    .friends-tab {
+        padding: 10px 16px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    
+    .friends-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Buttons mobile */
+    .btn {
+        padding: 12px 16px;
+    }
+    
+    .btn-sm {
+        padding: 8px 12px;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+    .app-container {
+        padding: 0 12px;
+    }
+    
+    .brand {
+        gap: 8px;
+    }
+    
+    .brand-text {
+        font-size: 18px;
+    }
+    
+    .brand-icon {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .thread-item,
+    .composer {
+        padding: 14px;
+        border-radius: 12px;
+    }
+    
+    .thread-header {
+        gap: 10px;
+    }
+    
+    .user-pic {
+        width: 36px;
+        height: 36px;
+        font-size: 12px;
+    }
+    
+    .thread-engagement {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .engagement-btn {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    
+    /* Mobile nav adjustments */
+    .mobile-nav {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+/* Fix for old header-btn class to match new system */
+.header-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: #f0f0f0;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.header-btn.active {
+    background: rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
+    color: #667eea;
 }

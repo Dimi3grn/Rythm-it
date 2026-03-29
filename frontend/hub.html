@@ -5,33 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rythm'it - Réseau Social Musical</title>
-    <link rel="stylesheet" href="styles/css/hub.css">
+    <link rel="stylesheet" href="/styles/css/index.css">
+    <link rel="stylesheet" href="/styles/css/hub.css">
      
 </head>
 <body>
-    <div class="hub-container">
-        <!-- Section Brand -->
-        <div class="brand-section">
-            <div class="brand-logo">
-                <div class="brand-icon">
-                    <div class="wave-animation">
-                        <div class="wave-bar"></div>
-                        <div class="wave-bar"></div>
-                        <div class="wave-bar"></div>
-                        <div class="wave-bar"></div>
+    <div class="app-container">
+        {{template "header.html" .}}
+        
+        <div class="main-layout">
+            {{template "sidebar.html" .}}
+            
+            <main class="content-area">
+                <div class="hub-dashboard">
+                    <!-- Section Brand simplified -->
+                    <div class="hub-hero">
+                        <h1>Bienvenue sur le Hub</h1>
+                        <p class="tagline">Où la musique unit les gens</p>
                     </div>
-                </div>
-                <span class="brand-text">Rythm'it</span>
-            </div>
-            <p class="tagline">Où la musique unit les gens</p>
-            <p class="description">
-                Découvrez un réseau social révolutionnaire dédié à la musique. Partagez vos découvertes, 
-                créez des playlists collaboratives, et connectez-vous avec d'autres mélomanes du monde entier.
-            </p>
-        </div>
 
-        <!-- Grille des pages -->
-        <div class="pages-grid">
+                    <!-- Grille des pages -->
+                    <div class="pages-grid">
             <a href="/" class="page-card">
                 <span class="page-icon">🏠</span>
                 <h3>Accueil</h3>
@@ -202,6 +196,9 @@
         <!-- Footer -->
         <div class="footer">
             <p>© 2025 Rythm'it - Réseau Social Musical • Version 1.0.0</p>
+        </div>
+                </div>
+            </main>
         </div>
     </div>
 

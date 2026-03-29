@@ -1,11 +1,17 @@
 /* CSS pour la page Paramètres - settings.css */
 
+/* Layout specific override */
+.main-layout.settings-container {
+    grid-template-columns: 300px 1fr !important;
+    gap: 30px;
+}
+
 /* Layout principal des paramètres */
 .settings-layout {
     display: grid;
     grid-template-columns: 280px 1fr;
     gap: 40px;
-    margin-top: 40px;
+    margin-top: 0;
     width: 100%;
     padding: 0 20px;
     box-sizing: border-box;

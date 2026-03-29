@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"rythmitbackend/internal/models"
 	"time"
 )
@@ -184,9 +185,10 @@ func (r *friendshipRepository) GetFriendshipStatus(userID1, userID2 uint) (*stri
 
 // GetFriends récupère la liste des amis d'un utilisateur
 func (r *friendshipRepository) GetFriends(userID uint) ([]*models.Friend, error) {
+	log.Printf("🔍 GetFriends repo: fetching friends for userID=%d", userID)
 	query := `
 		SELECT DISTINCT
-			u.id, u.username, u.profile_pic, u.last_seen,
+			u.id, u.username, u.profile_pic, u.last_connection,
 			f.created_at as friendship_date
 		FROM friendships f
 		JOIN users u ON (
@@ -199,6 +201,9 @@ func (r *friendshipRepository) GetFriends(userID uint) ([]*models.Friend, error)
 
 	rows, err := r.DB.Query(query, userID, userID, models.FriendshipStatusAccepted, userID)
 	if err != nil {
+		// Log plus détaillé pour debug
+		log.Printf("❌ GetFriends SQL error: %v", err)
+		log.Printf("   Query params: userID=%d, status=%s", userID, models.FriendshipStatusAccepted)
 		return nil, fmt.Errorf("erreur récupération amis: %w", err)
 	}
 	defer rows.Close()
@@ -207,13 +212,19 @@ func (r *friendshipRepository) GetFriends(userID uint) ([]*models.Friend, error)
 	for rows.Next() {
 		friend := &models.Friend{}
 		var lastSeen sql.NullTime
+		var avatar sql.NullString
 
 		err := rows.Scan(
-			&friend.ID, &friend.Username, &friend.Avatar, &lastSeen,
+			&friend.ID, &friend.Username, &avatar, &lastSeen,
 			&friend.FriendshipDate,
 		)
 		if err != nil {
+			log.Printf("❌ GetFriends scan error: %v", err)
 			return nil, fmt.Errorf("erreur scan ami: %w", err)
+		}
+
+		if avatar.Valid {
+			friend.Avatar = &avatar.String
 		}
 
 		if lastSeen.Valid {

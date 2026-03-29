@@ -5,118 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Découvrir - Rythm'it</title>
-    <link rel="stylesheet" href="styles/css/index.css">
-    <link rel="stylesheet" href="styles/css/friends.css">
-    <link rel="stylesheet" href="styles/css/discover.css">
-    <link rel="stylesheet" href="styles/css/thread.css">
+    <link rel="stylesheet" href="/styles/css/index.css">
+    <link rel="stylesheet" href="/styles/css/friends.css">
+    <link rel="stylesheet" href="/styles/css/discover.css">
+    <link rel="stylesheet" href="/styles/css/thread.css">
 </head>
 <body>
     <div class="app-container">
-        <header class="header">
-    <a href="/" class="brand">
-        <div class="brand-icon">
-            <div class="wave-animation">
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-            </div>
-        </div>
-        <span class="brand-text">Rythm'it</span>
-    </a>
-    <div class="header-actions">
-        <a href="/hub" class="header-btn">
-            <span class="nav-icon">🎯</span>
-            Hub
-        </a>
-        <a href="/" class="header-btn">
-            <span class="nav-icon">🏠</span>
-            Accueil
-        </a>
-        <a href="/discover" class="header-btn active">
-            <span class="nav-icon">🔍</span>
-            Découvrir
-        </a>
-        <a href="/friends" class="header-btn">
-            <span class="nav-icon">👥</span>
-            Amis
-        </a>
-        <div class="notification-container">
-            <a href="/messages" class="header-btn notification-btn">
-                <span class="nav-icon">💬</span>
-                Messages
-                <span class="notification-badge">3</span>
-            </a>
-        </div>
-        <a href="/profile" class="header-btn primary">Profil</a>
-        <a href="/logout" class="header-btn logout-btn" title="Se déconnecter">🚪</a>
-    </div>
-</header>
+        {{template "header.html" .}}
 
         <div class="discover-layout">
-            <aside class="sidebar-left">
-    <div class="nav-section">
-    <h3>Navigation</h3>
-    <a href="/hub" class="nav-item" onclick="window.location.href='/hub'; return false;">
-        <span class="nav-icon">🎯</span>
-        Hub
-    </a>
-    <a href="/" class="nav-item" onclick="window.location.href='/'; return false;">
-        <span class="nav-icon">🏠</span>
-        Accueil
-    </a>
-    <a href="/discover" class="nav-item active">
-        <span class="nav-icon">🔍</span>
-        Découvrir
-    </a>
-    <a href="/friends" class="nav-item" onclick="window.location.href='/friends'; return false;">
-        <span class="nav-icon">🔥</span>
-        Tendances
-    </a>
-    <a href="/profile" class="nav-item" onclick="window.location.href='/profile'; return false;">
-        <span class="nav-icon">📚</span>
-        Playlists
-    </a>
-</div>
-
-    <div class="nav-section">
-        <h3>Social</h3>
-        <a href="/friends" class="nav-item">
-            <span class="nav-icon">👥</span>
-            Mes Amis
-            <span class="status-indicator online"></span>
-        </a>
-        <a href="/messages" class="nav-item">
-            <span class="nav-icon">💬</span>
-            Messages
-            <span class="message-count">3</span>
-        </a>
-        <a href="/hub" class="nav-item">
-            <span class="nav-icon">🎵</span>
-            Sessions Live
-        </a>
-    </div>
-
-    <div class="nav-section">
-        <h3>Genres</h3>
-        <a href="/discover" class="nav-item">
-            <span class="nav-icon">🎵</span>
-            Électronique
-        </a>
-        <a href="/friends" class="nav-item">
-            <span class="nav-icon">🎸</span>
-            Rock/Metal
-        </a>
-        <a href="/messages" class="nav-item">
-            <span class="nav-icon">🎷</span>
-            Jazz/Blues
-        </a>
-        <a href="/profile" class="nav-item">
-            <span class="nav-icon">🎤</span>
-            Hip-Hop
-        </a>
-    </div>
-</aside>
+            {{template "sidebar.html" .}}
 
             <main class="discover-content">
                 <div class="discover-header">
@@ -145,9 +44,7 @@
                     </div>
                     <div class="discover-filters">
                         <button class="filter-btn active" data-filter="all">Tout</button>
-                        <button class="filter-btn" data-filter="artists">Artistes</button>
-                        <button class="filter-btn" data-filter="albums">Albums</button>
-                        <button class="filter-btn" data-filter="playlists">Playlists</button>
+                        <button class="filter-btn" data-filter="discussions">Discussions</button>
                         <button class="filter-btn" data-filter="users">Utilisateurs</button>
                     </div>
                 </div>

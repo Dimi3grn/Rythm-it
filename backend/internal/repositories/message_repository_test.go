@@ -171,8 +171,8 @@ func TestMessageRepository(t *testing.T) {
 			t.Fatalf("Erreur récupération vote: %v", err)
 		}
 
-		if vote != models.VoteFire {
-			t.Errorf("Vote incorrect. Attendu: %s, Obtenu: %s", models.VoteFire, vote)
+		if vote == nil || *vote != models.VoteFire {
+			t.Errorf("Vote incorrect. Attendu: %s, Obtenu: %v", models.VoteFire, vote)
 		}
 
 		// Vérifier le score de popularité
@@ -357,8 +357,8 @@ func TestMessageRepository(t *testing.T) {
 			vote, voteErr := messageRepo.GetUserVote(1, message.ID)
 			if voteErr != nil {
 				t.Errorf("Erreur récupération vote direct: %v", voteErr)
-			} else if vote != models.VoteFire {
-				t.Errorf("Vote direct incorrect. Attendu: %s, Obtenu: %s", models.VoteFire, vote)
+			} else if *vote != models.VoteFire {
+				t.Errorf("Vote direct incorrect. Attendu: %s, Obtenu: %s", models.VoteFire, *vote)
 			} else {
 				t.Logf("✅ Vote vérifié directement: %s", vote)
 			}
@@ -607,8 +607,8 @@ func TestMessageRepository_EdgeCases(t *testing.T) {
 			t.Errorf("Erreur récupération vote neutre: %v", err)
 		}
 
-		if vote != models.VoteNeutral {
-			t.Errorf("Vote neutre incorrect. Attendu: %s, Obtenu: %s", models.VoteNeutral, vote)
+		if vote == nil || *vote != models.VoteNeutral {
+			t.Errorf("Vote neutre incorrect. Attendu: %s, Obtenu: %v", models.VoteNeutral, vote)
 		}
 
 		t.Logf("✅ Vote neutre: %s", vote)

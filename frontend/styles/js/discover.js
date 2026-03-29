@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Variables globales
     let currentFilter = 'all';
+    let currentSearchType = 'all'; // 'all', 'discussions', 'users'
     let currentCategory = 'all';
     let currentGenre = '';
     let searchTimeout;
@@ -376,7 +377,28 @@ document.addEventListener('DOMContentLoaded', function() {
         filterBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 const filter = this.getAttribute('data-filter');
-                setActiveFilter(filter);
+                
+                // Mettre à jour les boutons actifs
+                filterBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Mettre à jour le filtre actuel
+                currentSearchType = filter;
+                currentFilter = filter;
+                
+                console.log('🔍 Filtre sélectionné:', filter);
+                
+                // Si on a une recherche active, relancer avec le nouveau filtre
+                const query = globalSearch ? globalSearch.value.trim() : '';
+                if (query) {
+                    performSearchWithQuery(query);
+                } else {
+                    // Pas de recherche active, afficher le contenu par défaut
+                    if (filter === 'all') {
+                        if (searchResults) searchResults.style.display = 'none';
+                        if (discoverSections) discoverSections.style.display = 'block';
+                    }
+                }
             });
         });
         
@@ -508,35 +530,56 @@ document.addEventListener('DOMContentLoaded', function() {
             searchLoading.style.display = 'block';
         }
         
-        // Effectuer la recherche réelle dans les threads via l'API
-        searchThreadsInDatabase(query)
-            .then(results => {
-                if (searchLoading) {
-                    searchLoading.style.display = 'none';
-                }
-                
-                // Construire le message de recherche
-                let searchMessage = `"${query}"`;
-                if (selectedTags.length > 0) {
-                    searchMessage += ` + tags: ${selectedTags.join(' + ')}`;
-                }
-                
-                displayThreadSearchResults(results, searchMessage);
-                
-                if (selectedTags.length > 0) {
-                    showNotification(`✅ ${results.length} thread(s) trouvé(s) avec le texte ET tous les tags`, 'success');
-                } else {
-                    showNotification(`✅ ${results.length} thread(s) trouvé(s)`, 'success');
-                }
-            })
-            .catch(error => {
-                console.error('❌ Erreur lors de la recherche:', error);
-                if (searchLoading) {
-                    searchLoading.style.display = 'none';
-                }
-                showNotification('❌ Erreur lors de la recherche', 'error');
-                displayNoResults(query);
-            });
+        // Rechercher selon le filtre actif
+        if (currentSearchType === 'users') {
+            // Recherche d'utilisateurs
+            searchUsersInDatabase(query)
+                .then(results => {
+                    if (searchLoading) {
+                        searchLoading.style.display = 'none';
+                    }
+                    displayUserSearchResults(results, query);
+                    showNotification(`✅ ${results.length} utilisateur(s) trouvé(s)`, 'success');
+                })
+                .catch(error => {
+                    console.error('❌ Erreur lors de la recherche d\'utilisateurs:', error);
+                    if (searchLoading) {
+                        searchLoading.style.display = 'none';
+                    }
+                    showNotification('❌ Erreur lors de la recherche', 'error');
+                    displayNoResults(query);
+                });
+        } else {
+            // Recherche de discussions (threads)
+            searchThreadsInDatabase(query)
+                .then(results => {
+                    if (searchLoading) {
+                        searchLoading.style.display = 'none';
+                    }
+                    
+                    // Construire le message de recherche
+                    let searchMessage = `"${query}"`;
+                    if (selectedTags.length > 0) {
+                        searchMessage += ` + tags: ${selectedTags.join(' + ')}`;
+                    }
+                    
+                    displayThreadSearchResults(results, searchMessage);
+                    
+                    if (selectedTags.length > 0) {
+                        showNotification(`✅ ${results.length} thread(s) trouvé(s) avec le texte ET tous les tags`, 'success');
+                    } else {
+                        showNotification(`✅ ${results.length} thread(s) trouvé(s)`, 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Erreur lors de la recherche:', error);
+                    if (searchLoading) {
+                        searchLoading.style.display = 'none';
+                    }
+                    showNotification('❌ Erreur lors de la recherche', 'error');
+                    displayNoResults(query);
+                });
+        }
     }
     
     // NOUVELLE FONCTION: Rechercher les threads dans la base de données
@@ -647,21 +690,166 @@ document.addEventListener('DOMContentLoaded', function() {
         const resultsList = document.getElementById('results-list');
         if (!resultsList) return;
         
+        const isUserSearch = currentSearchType === 'users';
+        const itemType = isUserSearch ? 'utilisateur' : 'thread';
+        
         resultsList.innerHTML = `
             <div class="no-results">
-                <h3>Aucun thread trouvé</h3>
-                <p>Aucun thread ne correspond à votre recherche "${query}".</p>
+                <h3>Aucun ${itemType} trouvé</h3>
+                <p>Aucun ${itemType} ne correspond à votre recherche "${query}".</p>
                 <div class="search-suggestions">
                     <h4>Suggestions :</h4>
                     <ul>
                         <li>Vérifiez l'orthographe de vos mots-clés</li>
                         <li>Essayez des termes plus généraux</li>
-                        <li>Utilisez les filtres par tags</li>
-                        <li>Recherchez par nom d'artiste ou genre musical</li>
+                        ${!isUserSearch ? '<li>Utilisez les filtres par tags</li>' : ''}
+                        ${!isUserSearch ? '<li>Recherchez par nom d\'artiste ou genre musical</li>' : ''}
                     </ul>
                 </div>
             </div>
         `;
+    }
+    
+    // NOUVELLE FONCTION: Rechercher les utilisateurs dans la base de données
+    async function searchUsersInDatabase(query) {
+        try {
+            const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}&limit=20`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('👥 Résultats de recherche utilisateurs:', data);
+            
+            // L'API retourne {success: true, data: {users: [...]}}
+            if (data.success && data.data && data.data.users) {
+                return data.data.users;
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('❌ Erreur lors de la recherche d\'utilisateurs:', error);
+            throw error;
+        }
+    }
+    
+    // NOUVELLE FONCTION: Afficher les résultats de recherche d'utilisateurs
+    function displayUserSearchResults(users, query) {
+        const resultsList = document.getElementById('results-list');
+        if (!resultsList) return;
+        
+        if (users.length === 0) {
+            displayNoResults(query);
+            return;
+        }
+        
+        let html = `
+            <div class="results-section">
+                <h3>👥 Utilisateurs trouvés (${users.length})</h3>
+                <div class="results-grid user-results">
+        `;
+        
+        users.forEach(user => {
+            html += createUserResultHTML(user);
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        resultsList.innerHTML = html;
+        
+        // Réattacher les événements aux nouveaux éléments
+        reattachUserEventListeners();
+    }
+    
+    // NOUVELLE FONCTION: Créer le HTML pour un utilisateur dans les résultats
+    function createUserResultHTML(user) {
+        const avatar = user.avatar || user.Avatar;
+        const username = user.username || user.Username;
+        const userId = user.id || user.ID;
+        const friendshipStatus = user.friendship_status || user.FriendshipStatus;
+        const mutualFriends = user.mutual_friends || user.MutualFriends || 0;
+        
+        // Déterminer le bouton d'action selon le statut d'amitié
+        let actionButton = '';
+        if (friendshipStatus === 'accepted') {
+            actionButton = '<button class="user-action-btn friend" disabled>✓ Ami</button>';
+        } else if (friendshipStatus === 'pending') {
+            actionButton = '<button class="user-action-btn pending" disabled>⏳ Demande envoyée</button>';
+        } else {
+            actionButton = `<button class="user-action-btn add-friend" data-user-id="${userId}">+ Ajouter</button>`;
+        }
+        
+        const avatarHTML = avatar 
+            ? `<img src="${avatar}" alt="${username}" class="user-result-avatar">` 
+            : `<div class="user-result-avatar-placeholder">${username.substring(0, 2).toUpperCase()}</div>`;
+        
+        return `
+            <div class="user-result-item" data-user-id="${userId}">
+                <div class="user-result-header">
+                    ${avatarHTML}
+                    <div class="user-result-info">
+                        <h4 class="user-result-name">${username}</h4>
+                        ${mutualFriends > 0 ? `<p class="user-result-mutual">👥 ${mutualFriends} ami(s) en commun</p>` : ''}
+                    </div>
+                </div>
+                <div class="user-result-actions">
+                    ${actionButton}
+                    <a href="/profile?user=${userId}" class="user-action-btn view-profile">Voir profil</a>
+                </div>
+            </div>
+        `;
+    }
+    
+    // NOUVELLE FONCTION: Réattacher les événements pour les utilisateurs
+    function reattachUserEventListeners() {
+        // Gérer les clics sur les boutons "Ajouter ami"
+        document.querySelectorAll('.add-friend').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const userId = parseInt(this.getAttribute('data-user-id'));
+                sendFriendRequest(userId, this);
+            });
+        });
+    }
+    
+    // NOUVELLE FONCTION: Envoyer une demande d'ami
+    async function sendFriendRequest(userId, buttonElement) {
+        try {
+            buttonElement.disabled = true;
+            buttonElement.textContent = '⏳ Envoi...';
+            
+            const response = await fetch('/api/friends/request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    addressee_id: userId
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                buttonElement.textContent = '✓ Demande envoyée';
+                buttonElement.className = 'user-action-btn pending';
+                showNotification('✅ Demande d\'ami envoyée avec succès !', 'success');
+            } else {
+                throw new Error(data.message || 'Erreur lors de l\'envoi de la demande');
+            }
+        } catch (error) {
+            console.error('❌ Erreur envoi demande d\'ami:', error);
+            buttonElement.disabled = false;
+            buttonElement.textContent = '+ Ajouter';
+            showNotification('❌ ' + error.message, 'error');
+        }
     }
     
     // NOUVELLE FONCTION: Formater le temps relatif
@@ -764,10 +952,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function setActiveFilter(filter) {
         // Mettre à jour les boutons
         filterBtns.forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+        const filterBtn = document.querySelector(`[data-filter="${filter}"]`);
+        if (filterBtn) {
+            filterBtn.classList.add('active');
+        }
         
         currentFilter = filter;
-        applyFilters();
+        currentSearchType = filter;
+        
+        // Ne pas appeler applyFilters() pour les nouveaux filtres (discussions, users)
+        // Ces filtres sont gérés par la recherche
+        if (filter !== 'discussions' && filter !== 'users') {
+            applyFilters();
+        }
     }
     
     function setActiveCategory(category) {
@@ -780,6 +977,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function applyFilters() {
+        // Ne rien faire si on est en mode recherche (discussions ou users)
+        if (currentSearchType === 'discussions' || currentSearchType === 'users') {
+            return;
+        }
+        
         // Filtrer les éléments visibles
         const allItems = document.querySelectorAll('.artist-card, .album-card, .playlist-discover-card');
         

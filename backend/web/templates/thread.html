@@ -216,7 +216,7 @@
 
                     <div class="comments-list">
                         {{range .Comments}}
-                        <div class="comment-item">
+                        <div class="comment-item" data-message-id="{{.ID}}">
                             <div class="comment-avatar">
                                 <div class="user-pic">{{.AuthorAvatar}}</div>
                             </div>

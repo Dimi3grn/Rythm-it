@@ -125,63 +125,21 @@
 </head>
 <body>
     <div class="app-container">
-        <header class="header">
-            <a href="/" class="brand">
-                <div class="brand-icon">
-                    <div class="wave-animation">
-                        <div class="wave-bar"></div>
-                        <div class="wave-bar"></div>
-                        <div class="wave-bar"></div>
-                        <div class="wave-bar"></div>
-                    </div>
-                </div>
-                <span class="brand-text">Rythm'it</span>
-            </a>
-            <div class="header-actions">
-                <a href="/hub" class="header-btn">
-                    <span class="nav-icon">🎯</span>
-                    Hub
-                </a>
-                <a href="/" class="header-btn">
-                    <span class="nav-icon">🏠</span>
-                    Accueil
-                </a>
-                <a href="/discover" class="header-btn">
-                    <span class="nav-icon">🔍</span>
-                    Découvrir
-                </a>
-                <a href="/friends" class="header-btn">
-                    <span class="nav-icon">👥</span>
-                    Amis
-                </a>
-                <div class="notification-container">
-                    <a href="/messages" class="header-btn notification-btn">
-                        <span class="nav-icon">💬</span>
-                        Messages
-                        {{if .Messages}}
-                        <span class="notification-badge">{{len .Messages}}</span>
-                        {{end}}
+        {{template "header.html" .}}
+
+        <div class="main-layout">
+            {{template "sidebar.html" .}}
+            
+            <div class="content-area">
+                <!-- Bouton retour -->
+                <div class="back-navigation">
+                    <a href="/" class="back-btn">
+                        <span class="back-icon">←</span>
+                        Retour au feed
                     </a>
                 </div>
-                {{if .IsLoggedIn}}
-                <a href="/profile" class="header-btn primary">Profil</a>
-                <a href="/logout" class="header-btn logout-btn" title="Se déconnecter">🚪</a>
-                {{else}}
-                <a href="/signin" class="header-btn primary">Connexion</a>
-                {{end}}
-            </div>
-        </header>
 
-        <div class="thread-layout">
-            <!-- Bouton retour -->
-            <div class="back-navigation">
-                <a href="/" class="back-btn">
-                    <span class="back-icon">←</span>
-                    Retour au feed
-                </a>
-            </div>
-
-            <main class="thread-main">
+                <main class="thread-main">
                 {{if .ErrorMessage}}
                 <div class="error-message">{{.ErrorMessage}}</div>
                 {{end}}
@@ -354,7 +312,7 @@
 
                     <div class="comments-list">
                         {{range .Comments}}
-                        <div class="comment-item" data-likes="{{.Likes}}" data-timestamp="{{.ID}}">
+                        <div class="comment-item" data-likes="{{.Likes}}" data-message-id="{{.ID}}">
                             <div class="comment-avatar">
                                 <div class="user-pic">{{.AuthorAvatar}}</div>
                             </div>
@@ -403,6 +361,7 @@
                 </div>
                 {{end}}
             </main>
+            </div>
 
             <!-- Sidebar droite -->
             <aside class="thread-sidebar">

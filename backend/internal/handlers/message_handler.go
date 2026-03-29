@@ -2,305 +2,261 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
-	"strconv"
-
+	"rythmitbackend/internal/controllers"
 	"rythmitbackend/internal/models"
-	"rythmitbackend/internal/repositories"
 	"rythmitbackend/internal/services"
-	"rythmitbackend/pkg/database"
+
+	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
-// MessageAPIHandler gère les API des messages
-func ThreadMessagesHandler(w http.ResponseWriter, r *http.Request) {
-	// Récupérer l'ID du thread depuis l'URL
-	vars := mux.Vars(r)
-	threadIDStr := vars["id"]
-	threadID, err := strconv.ParseUint(threadIDStr, 10, 32)
-	if err != nil {
-		http.Error(w, "ID thread invalide", http.StatusBadRequest)
-		return
-	}
+// MessageHandler gère les requêtes liées aux messages directs
+type MessageHandler struct {
+	messageService services.MessageService
+}
 
-	switch r.Method {
-	case "GET":
-		getThreadMessages(w, r, uint(threadID))
-	case "POST":
-		createThreadMessage(w, r, uint(threadID))
-	default:
-		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+// NewMessageHandler crée une nouvelle instance du handler
+func NewMessageHandler(messageService services.MessageService) *MessageHandler {
+	return &MessageHandler{
+		messageService: messageService,
 	}
 }
 
-// getThreadMessages récupère les messages d'un thread
-func getThreadMessages(w http.ResponseWriter, r *http.Request, threadID uint) {
-	// Récupérer l'utilisateur connecté (optionnel)
-	var userID *uint
-	if userIDVal, ok := r.Context().Value("user_id").(uint); ok && userIDVal != 0 {
-		userID = &userIDVal
+// GetConversations récupère toutes les conversations de l'utilisateur
+func (h *MessageHandler) GetConversations(w http.ResponseWriter, r *http.Request) {
+	userID, exists := controllers.GetUserIDFromContext(r)
+	if !exists {
+		sendAPIError(w, "Utilisateur non authentifié", http.StatusUnauthorized)
+		return
+	}
+
+	conversations, err := h.messageService.GetUserConversations(userID)
+	if err != nil {
+		sendAPIError(w, "Erreur récupération conversations", http.StatusInternalServerError)
+		return
+	}
+
+	if conversations == nil {
+		conversations = []*models.ConversationWithDetails{}
+	}
+
+	// Mettre à jour le statut en ligne réel depuis le MessageHub
+	messageHub := GetMessageHub()
+	for _, conv := range conversations {
+		if conv.OtherUser != nil {
+			conv.IsOnline = messageHub.IsUserOnline(conv.OtherUser.ID)
+		}
+	}
+
+	sendAPISuccess(w, "Conversations récupérées avec succès", map[string]interface{}{
+		"conversations": conversations,
+	})
+}
+
+// GetOrCreateConversation récupère ou crée une conversation
+func (h *MessageHandler) GetOrCreateConversation(w http.ResponseWriter, r *http.Request) {
+	userID, exists := controllers.GetUserIDFromContext(r)
+	if !exists {
+		sendAPIError(w, "Utilisateur non authentifié", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	otherUserIDStr := vars["userId"]
+	otherUserID, err := strconv.ParseUint(otherUserIDStr, 10, 32)
+	if err != nil {
+		sendAPIError(w, "ID utilisateur invalide", http.StatusBadRequest)
+		return
+	}
+
+	conversation, err := h.messageService.GetOrCreateConversation(userID, uint(otherUserID))
+	if err != nil {
+		sendAPIError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	sendAPISuccess(w, "Conversation récupérée", map[string]interface{}{
+		"conversation": conversation,
+	})
+}
+
+// GetConversationMessages récupère les messages d'une conversation
+func (h *MessageHandler) GetConversationMessages(w http.ResponseWriter, r *http.Request) {
+	userID, exists := controllers.GetUserIDFromContext(r)
+	if !exists {
+		sendAPIError(w, "Utilisateur non authentifié", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	conversationIDStr := vars["conversationId"]
+	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
+	if err != nil {
+		sendAPIError(w, "ID conversation invalide", http.StatusBadRequest)
+		return
 	}
 
 	// Paramètres de pagination
-	page := 1
-	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
-		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-			page = p
+	limitStr := r.URL.Query().Get("limit")
+	offsetStr := r.URL.Query().Get("offset")
+
+	limit := 50
+	if limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+			limit = parsedLimit
 		}
 	}
 
-	perPage := 20
-	if perPageStr := r.URL.Query().Get("per_page"); perPageStr != "" {
-		if pp, err := strconv.Atoi(perPageStr); err == nil && pp > 0 && pp <= 100 {
-			perPage = pp
+	offset := 0
+	if offsetStr != "" {
+		if parsedOffset, err := strconv.Atoi(offsetStr); err == nil && parsedOffset >= 0 {
+			offset = parsedOffset
 		}
 	}
 
-	sortBy := r.URL.Query().Get("sort")
-	if sortBy == "" {
-		sortBy = "date"
-	}
-
-	// Créer le service
-	db := database.DB
-	messageRepo := repositories.NewMessageRepository(db)
-	threadRepo := repositories.NewThreadRepository(db)
-	messageService := services.NewMessageService(messageRepo, threadRepo, db)
-
-	// Récupérer les messages
-	params := models.PaginationParams{
-		Page:    page,
-		PerPage: perPage,
-		Sort:    "created_at",
-		Order:   "ASC",
-	}
-
-	response, err := messageService.GetThreadMessages(threadID, userID, params, sortBy)
+	messages, err := h.messageService.GetConversationMessages(uint(conversationID), userID, limit, offset)
 	if err != nil {
-		log.Printf("❌ Erreur récupération messages thread %d: %v", threadID, err)
-		http.Error(w, "Erreur récupération messages", http.StatusInternalServerError)
+		sendAPIError(w, err.Error(), http.StatusForbidden)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    response,
+	if messages == nil {
+		messages = []*models.DirectMessage{}
+	}
+
+	sendAPISuccess(w, "Messages récupérés", map[string]interface{}{
+		"messages": messages,
 	})
 }
 
-// createThreadMessage crée un nouveau message dans un thread
-func createThreadMessage(w http.ResponseWriter, r *http.Request, threadID uint) {
-	// Vérifier l'authentification
-	userID, ok := r.Context().Value("user_id").(uint)
-	if !ok || userID == 0 {
-		http.Error(w, "Authentification requise", http.StatusUnauthorized)
+// SendMessage envoie un message (via REST API, pas WebSocket)
+func (h *MessageHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
+	userID, exists := controllers.GetUserIDFromContext(r)
+	if !exists {
+		sendAPIError(w, "Utilisateur non authentifié", http.StatusUnauthorized)
 		return
 	}
 
-	// Parser le body JSON
-	var dto services.CreateMessageDTO
-	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
-		http.Error(w, "Format JSON invalide", http.StatusBadRequest)
+	var req struct {
+		ReceiverID uint   `json:"receiver_id"`
+		Content    string `json:"content"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		sendAPIError(w, "Données invalides", http.StatusBadRequest)
 		return
 	}
 
-	// Créer le service
-	db := database.DB
-	messageRepo := repositories.NewMessageRepository(db)
-	threadRepo := repositories.NewThreadRepository(db)
-	messageService := services.NewMessageService(messageRepo, threadRepo, db)
+	if req.ReceiverID == 0 {
+		sendAPIError(w, "ID destinataire requis", http.StatusBadRequest)
+		return
+	}
 
-	// Créer le message
-	response, err := messageService.PostMessage(dto, threadID, userID)
+	if req.Content == "" {
+		sendAPIError(w, "Le message ne peut pas être vide", http.StatusBadRequest)
+		return
+	}
+
+	message, err := h.messageService.SendMessage(userID, req.ReceiverID, req.Content)
 	if err != nil {
-		log.Printf("❌ Erreur création message: %v", err)
-
-		// Gestion des erreurs spécifiques
-		if err.Error() == "thread not found" {
-			http.Error(w, "Thread non trouvé", http.StatusNotFound)
-			return
-		}
-		if err.Error() == "unauthorized" {
-			http.Error(w, "Non autorisé", http.StatusForbidden)
-			return
-		}
-
-		http.Error(w, "Erreur création message", http.StatusInternalServerError)
+		sendAPIError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    response,
-		"message": "Message créé avec succès",
-	})
+	// Notifier via WebSocket
+	wsMsg := &models.WebSocketMessage{
+		Type:      "message",
+		Message:   message,
+		Timestamp: time.Now(),
+	}
+	messageHub := GetMessageHub()
+	messageHub.broadcast <- wsMsg
 
-	log.Printf("✅ Message créé dans thread %d par user %d", threadID, userID)
+	sendAPISuccess(w, "Message envoyé", map[string]interface{}{
+		"message": message,
+	})
 }
 
-// MessageVoteHandler gère les votes sur les messages
-func MessageVoteHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+// MarkAsRead marque une conversation comme lue
+func (h *MessageHandler) MarkAsRead(w http.ResponseWriter, r *http.Request) {
+	userID, exists := controllers.GetUserIDFromContext(r)
+	if !exists {
+		sendAPIError(w, "Utilisateur non authentifié", http.StatusUnauthorized)
 		return
 	}
 
-	// Vérifier l'authentification
-	userID, ok := r.Context().Value("user_id").(uint)
-	if !ok || userID == 0 {
-		http.Error(w, "Authentification requise", http.StatusUnauthorized)
-		return
-	}
-
-	// Récupérer l'ID du message depuis l'URL
 	vars := mux.Vars(r)
-	messageIDStr := vars["id"]
-	messageID, err := strconv.ParseUint(messageIDStr, 10, 32)
+	conversationIDStr := vars["conversationId"]
+	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
 	if err != nil {
-		http.Error(w, "ID message invalide", http.StatusBadRequest)
+		sendAPIError(w, "ID conversation invalide", http.StatusBadRequest)
 		return
 	}
 
-	// Parser le body JSON
-	var voteRequest struct {
-		Vote string `json:"vote"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&voteRequest); err != nil {
-		http.Error(w, "Format JSON invalide", http.StatusBadRequest)
-		return
-	}
-
-	// Créer le service
-	db := database.DB
-	messageRepo := repositories.NewMessageRepository(db)
-	threadRepo := repositories.NewThreadRepository(db)
-	messageService := services.NewMessageService(messageRepo, threadRepo, db)
-
-	// Voter sur le message
-	response, err := messageService.VoteMessage(uint(messageID), userID, voteRequest.Vote)
+	err = h.messageService.MarkConversationAsRead(uint(conversationID), userID)
 	if err != nil {
-		log.Printf("❌ Erreur vote message %d: %v", messageID, err)
-
-		// Gestion des erreurs spécifiques
-		if err.Error() == "message not found" {
-			http.Error(w, "Message non trouvé", http.StatusNotFound)
-			return
-		}
-		if err.Error() == "vous ne pouvez pas voter pour votre propre message" {
-			http.Error(w, "Vous ne pouvez pas voter pour votre propre message", http.StatusForbidden)
-			return
-		}
-
-		http.Error(w, "Erreur lors du vote", http.StatusInternalServerError)
+		sendAPIError(w, err.Error(), http.StatusForbidden)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    response,
-		"message": "Vote enregistré avec succès",
-	})
-
-	log.Printf("✅ Vote %s enregistré sur message %d par user %d", voteRequest.Vote, messageID, userID)
-}
-
-// MessageLikeHandler gère les likes simples sur les messages
-func MessageLikeHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Vérifier l'authentification
-	userID, ok := r.Context().Value("user_id").(uint)
-	if !ok || userID == 0 {
-		http.Error(w, "Authentification requise", http.StatusUnauthorized)
-		return
-	}
-
-	// Récupérer l'ID du message depuis l'URL
-	vars := mux.Vars(r)
-	messageIDStr := vars["id"]
-	messageID, err := strconv.ParseUint(messageIDStr, 10, 32)
-	if err != nil {
-		http.Error(w, "ID message invalide", http.StatusBadRequest)
-		return
-	}
-
-	// Créer les services
-	db := database.DB
-	messageRepo := repositories.NewMessageRepository(db)
-
-	// Vérifier que le message existe
-	_, err = messageRepo.FindByID(uint(messageID))
-	if err != nil {
-		log.Printf("❌ Message %d non trouvé: %v", messageID, err)
-		http.Error(w, "Message non trouvé", http.StatusNotFound)
-		return
-	}
-
-	// Vérifier si l'utilisateur a déjà liké ce message
-	var isCurrentlyLiked bool
-	checkQuery := "SELECT COUNT(*) FROM comment_likes WHERE user_id = ? AND message_id = ?"
-	var count int
-	err = db.QueryRow(checkQuery, userID, messageID).Scan(&count)
-	if err != nil {
-		log.Printf("❌ Erreur vérification like: %v", err)
-		http.Error(w, "Erreur interne", http.StatusInternalServerError)
-		return
-	}
-	isCurrentlyLiked = count > 0
-
-	// Toggle du like
-	var newLikedState bool
-	if isCurrentlyLiked {
-		// Supprimer le like
-		deleteQuery := "DELETE FROM comment_likes WHERE user_id = ? AND message_id = ?"
-		_, err = db.Exec(deleteQuery, userID, messageID)
-		if err != nil {
-			log.Printf("❌ Erreur suppression like: %v", err)
-			http.Error(w, "Erreur suppression like", http.StatusInternalServerError)
-			return
-		}
-		newLikedState = false
-		log.Printf("👎 Like supprimé sur message %d par user %d", messageID, userID)
-	} else {
-		// Ajouter le like
-		insertQuery := "INSERT INTO comment_likes (user_id, message_id) VALUES (?, ?)"
-		_, err = db.Exec(insertQuery, userID, messageID)
-		if err != nil {
-			log.Printf("❌ Erreur ajout like: %v", err)
-			http.Error(w, "Erreur ajout like", http.StatusInternalServerError)
-			return
-		}
-		newLikedState = true
-		log.Printf("👍 Like ajouté sur message %d par user %d", messageID, userID)
-	}
-
-	// Compter le total de likes pour ce message
-	countQuery := "SELECT COUNT(*) FROM comment_likes WHERE message_id = ?"
-	var totalLikes int
-	err = db.QueryRow(countQuery, messageID).Scan(&totalLikes)
-	if err != nil {
-		log.Printf("❌ Erreur comptage likes: %v", err)
-		totalLikes = 0
-	}
-
-	// Retourner la réponse
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"message_id":  messageID,
-			"is_liked":    newLikedState,
-			"likes_count": totalLikes,
+	// Notifier via WebSocket
+	wsMsg := &models.WebSocketMessage{
+		Type: "read",
+		Data: map[string]interface{}{
+			"conversation_id": conversationID,
+			"user_id":         userID,
 		},
-		"message": "Like mis à jour avec succès",
+		Timestamp: time.Now(),
+	}
+	messageHub := GetMessageHub()
+	messageHub.broadcast <- wsMsg
+
+	sendAPISuccess(w, "Conversation marquée comme lue", nil)
+}
+
+// GetUnreadCount récupère le nombre de messages non lus
+func (h *MessageHandler) GetUnreadCount(w http.ResponseWriter, r *http.Request) {
+	userID, exists := controllers.GetUserIDFromContext(r)
+	if !exists {
+		sendAPIError(w, "Utilisateur non authentifié", http.StatusUnauthorized)
+		return
+	}
+
+	count, err := h.messageService.GetUnreadCount(userID)
+	if err != nil {
+		sendAPIError(w, "Erreur récupération compteur", http.StatusInternalServerError)
+		return
+	}
+
+	sendAPISuccess(w, "Compteur récupéré", map[string]interface{}{
+		"unread_count": count,
 	})
+}
+
+// DeleteConversation supprime une conversation
+func (h *MessageHandler) DeleteConversation(w http.ResponseWriter, r *http.Request) {
+	userID, exists := controllers.GetUserIDFromContext(r)
+	if !exists {
+		sendAPIError(w, "Utilisateur non authentifié", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	conversationIDStr := vars["conversationId"]
+	conversationID, err := strconv.ParseUint(conversationIDStr, 10, 32)
+	if err != nil {
+		sendAPIError(w, "ID conversation invalide", http.StatusBadRequest)
+		return
+	}
+
+	err = h.messageService.DeleteConversation(uint(conversationID), userID)
+	if err != nil {
+		sendAPIError(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	sendAPISuccess(w, "Conversation supprimée", nil)
 }

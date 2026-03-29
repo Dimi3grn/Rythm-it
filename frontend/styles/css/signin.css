@@ -12,7 +12,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
             position: relative;
         }
 
@@ -471,5 +470,243 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
+            }
+        }
+
+        /* Validation du mot de passe */
+        .password-validation {
+            margin-top: 12px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            display: none;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .password-validation.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .password-strength-bar {
+            margin-bottom: 16px;
+        }
+
+        .strength-progress {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .strength-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #0abde3, #00d2d3);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .strength-progress.weak::after {
+            width: 20%;
+            background: #ff6b6b;
+        }
+
+        .strength-progress.fair::after {
+            width: 40%;
+            background: #feca57;
+        }
+
+        .strength-progress.good::after {
+            width: 60%;
+            background: #48dbfb;
+        }
+
+        .strength-progress.strong::after {
+            width: 80%;
+            background: #0abde3;
+        }
+
+        .strength-progress.excellent::after {
+            width: 100%;
+            background: #00d2d3;
+        }
+
+        .strength-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .strength-label.weak {
+            color: #ff6b6b;
+        }
+
+        .strength-label.fair {
+            color: #feca57;
+        }
+
+        .strength-label.good {
+            color: #48dbfb;
+        }
+
+        .strength-label.strong {
+            color: #0abde3;
+        }
+
+        .strength-label.excellent {
+            color: #00d2d3;
+        }
+
+        .validation-rules {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #888;
+            transition: all 0.3s ease;
+        }
+
+        .rule-item.valid {
+            color: #4ade80;
+        }
+
+        .rule-item.invalid {
+            color: #ff6b6b;
+        }
+
+        .rule-icon {
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .rule-item.valid .rule-icon {
+            color: #4ade80;
+        }
+
+        .rule-item.invalid .rule-icon {
+            color: #ff6b6b;
+        }
+
+        .rule-text {
+            transition: all 0.3s ease;
+        }
+
+        .rule-item.valid .rule-text {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        /* Validation de la confirmation du mot de passe */
+        .password-match {
+            margin-top: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            display: none;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .password-match.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .match-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #888;
+            transition: all 0.3s ease;
+        }
+
+        .match-indicator.valid {
+            color: #4ade80;
+        }
+
+        .match-indicator.invalid {
+            color: #ff6b6b;
+        }
+
+        .match-icon {
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .match-indicator.valid .match-icon {
+            color: #4ade80;
+        }
+
+        .match-indicator.invalid .match-icon {
+            color: #ff6b6b;
+        }
+
+        /* Animation de pulsation pour les règles actives */
+        .rule-item.checking {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.6;
+            }
+        }
+
+        /* Styles spécifiques pour les champs de mot de passe avec validation */
+        .form-input.password-strong {
+            border-color: rgba(0, 210, 211, 0.5);
+            background: rgba(0, 210, 211, 0.05);
+        }
+
+        .form-input.password-weak {
+            border-color: rgba(255, 107, 107, 0.5);
+            background: rgba(255, 107, 107, 0.05);
+        }
+
+        .form-input.password-matched {
+            border-color: rgba(74, 222, 128, 0.5);
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .form-input.password-mismatch {
+            border-color: rgba(255, 107, 107, 0.5);
+            background: rgba(255, 107, 107, 0.05);
+        }
+
+        /* Responsive pour les composants de validation */
+        @media (max-width: 768px) {
+            .password-validation,
+            .password-match {
+                padding: 16px;
+            }
+            
+            .rule-item,
+            .match-indicator {
+                font-size: 12px;
             }
         }

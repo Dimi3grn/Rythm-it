@@ -20,6 +20,13 @@ func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
+		// Ne pas wrapper les connexions WebSocket (besoin de Hijacker)
+		if strings.EqualFold(r.Header.Get("Upgrade"), "websocket") {
+			next.ServeHTTP(w, r)
+			log.Printf("[%s] %s %s %d %s", r.Method, r.RequestURI, r.RemoteAddr, http.StatusSwitchingProtocols, time.Since(start))
+			return
+		}
+
 		// Wrapped ResponseWriter pour capturer le status
 		wrapped := &responseWriter{
 			ResponseWriter: w,

@@ -77,7 +77,7 @@ func Load() *Config {
 		App: AppConfig{
 			Name:        getEnv("APP_NAME", "Rythmit"),
 			Environment: getEnv("APP_ENV", "development"),
-			Port:        getEnv("APP_PORT", "8085"),
+			Port:        getEnvFirstOf([]string{"APP_PORT", "PORT"}, "8085"),
 			Version:     getEnv("APP_VERSION", "0.1.0"),
 			URL:         getEnv("APP_URL", "http://localhost:8085"),
 		},
@@ -127,6 +127,16 @@ func Get() *Config {
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+// getEnvFirstOf checks multiple env var keys in order, returns first non-empty value
+func getEnvFirstOf(keys []string, defaultValue string) string {
+	for _, key := range keys {
+		if value := os.Getenv(key); value != "" {
+			return value
+		}
 	}
 	return defaultValue
 }

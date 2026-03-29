@@ -5,59 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paramètres - Rythm'it</title>
-    <link rel="stylesheet" href="styles/css/index.css">
-    <link rel="stylesheet" href="styles/css/friends.css">
-    <link rel="stylesheet" href="styles/css/settings.css">
+    <link rel="stylesheet" href="/styles/css/index.css">
+    <link rel="stylesheet" href="/styles/css/friends.css">
+    <link rel="stylesheet" href="/styles/css/settings.css">
 </head>
 <body>
     <div class="app-container">
-       <header class="header">
-    <a href="index.html" class="brand">
-        <div class="brand-icon">
-            <div class="wave-animation">
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-            </div>
-        </div>
-        <span class="brand-text">Rythm'it</span>
-    </a>
-    <div class="header-actions">
-        <a href="/hub" class="header-btn">
-            <span class="nav-icon">🎯</span>
-            Hub
-        </a>
-        <a href="/" class="header-btn">
-            <span class="nav-icon">🏠</span>
-            Accueil
-        </a>
-        <a href="/discover" class="header-btn">
-            <span class="nav-icon">🔍</span>
-            Découvrir
-        </a>
-        <a href="/friends" class="header-btn">
-            <span class="nav-icon">👥</span>
-            Amis
-        </a>
-        <div class="notification-container">
-            <a href="/messages" class="header-btn notification-btn">
-                <span class="nav-icon">💬</span>
-                Messages
-                <span class="notification-badge">3</span>
-            </a>
-        </div>
-        <a href="/profile" class="header-btn">Profil</a>
-        <a href="/settings" class="header-btn primary active">
-            <span class="nav-icon">⚙️</span>
-            Paramètres
-        </a>
-        <a href="/logout" class="header-btn logout-btn" title="Se déconnecter">🚪</a>
-    </div>
-</header>
+       {{template "header.html" .}}
 
-        <div class="settings-layout">
-            <aside class="settings-sidebar">
+        <div class="main-layout settings-container">
+            {{template "sidebar.html" .}}
+            
+            <div class="settings-layout">
+                <aside class="settings-sidebar">
                 <div class="settings-nav">
                     <h2>Paramètres</h2>
                     <div class="settings-nav-items">
@@ -896,6 +856,7 @@
                     </div>
                 </div>
             </main>
+        </div>
         </div>
     </div>
 

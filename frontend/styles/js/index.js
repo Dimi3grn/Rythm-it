@@ -198,10 +198,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Navigation active
+    // Navigation active - visual feedback only, don't block navigation
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', function(e) {
-            e.preventDefault();
+            // Don't prevent default - let links navigate normally!
+            // Only prevent for # links
+            const href = this.getAttribute('href');
+            if (href === '#' || href.startsWith('#')) {
+                e.preventDefault();
+            }
+            
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
             this.classList.add('active');
             

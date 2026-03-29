@@ -1912,3 +1912,139 @@ a {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
 }
+
+/* ========================================
+   RÉSULTATS UTILISATEURS
+======================================== */
+
+.user-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.user-result-item {
+    background: linear-gradient(135deg, #2a2d3a 0%, #252836 100%);
+    border: 1px solid #3a3f4f;
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.user-result-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+}
+
+.user-result-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.user-result-avatar,
+.user-result-avatar-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #667eea;
+}
+
+.user-result-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-weight: 700;
+    font-size: 20px;
+    color: white;
+}
+
+.user-result-info {
+    flex: 1;
+}
+
+.user-result-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 5px 0;
+}
+
+.user-result-mutual {
+    font-size: 13px;
+    color: #a0aec0;
+    margin: 0;
+}
+
+.user-result-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.user-action-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.user-action-btn.add-friend {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.user-action-btn.add-friend:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.user-action-btn.friend {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    color: white;
+}
+
+.user-action-btn.pending {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    color: white;
+}
+
+.user-action-btn.view-profile {
+    background: #3a3f4f;
+    color: #e2e8f0;
+}
+
+.user-action-btn.view-profile:hover {
+    background: #4a5568;
+}
+
+.user-action-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Responsive pour les résultats utilisateurs */
+@media (max-width: 768px) {
+    .user-results {
+        grid-template-columns: 1fr;
+    }
+    
+    .user-result-actions {
+        flex-direction: column;
+    }
+    
+    .user-action-btn {
+        width: 100%;
+        text-align: center;
+    }
+}

@@ -3,11 +3,14 @@ package router
 
 import (
 	"net/http"
+	"os"
+	"strings"
 	"text/template"
 
 	"rythmitbackend/configs"
 	"rythmitbackend/internal/handlers"
 	"rythmitbackend/internal/middleware"
+	"rythmitbackend/internal/repositories"
 	"rythmitbackend/internal/services"
 	"rythmitbackend/pkg/database"
 
@@ -35,8 +38,16 @@ func Init(cfg *configs.Config) *mux.Router {
 	Router.Use(middleware.Recovery)
 
 	// Servir les fichiers statiques (CSS, JS, images)
-	Router.PathPrefix("/styles/").Handler(http.StripPrefix("/styles/",
-		http.FileServer(http.Dir("../frontend/styles/"))))
+	// If STATIC_BASE_URL is set, redirect /styles/* to the CDN (e.g. Vercel)
+	if cdnURL := os.Getenv("STATIC_BASE_URL"); cdnURL != "" {
+		cdnBase := strings.TrimRight(cdnURL, "/")
+		Router.PathPrefix("/styles/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, cdnBase+r.URL.Path, http.StatusMovedPermanently)
+		})
+	} else {
+		Router.PathPrefix("/styles/").Handler(http.StripPrefix("/styles/",
+			http.FileServer(http.Dir("../frontend/styles/"))))
+	}
 
 	// Servir les images uploadées
 	Router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/",
@@ -49,8 +60,16 @@ func Init(cfg *configs.Config) *mux.Router {
 	setupAPIRoutes()
 
 	// Configuration CORS
+	allowedOrigins := []string{"http://localhost:3000", "http://localhost:5173", "http://localhost:8085"}
+	if extraOrigins := os.Getenv("CORS_ALLOWED_ORIGINS"); extraOrigins != "" {
+		for _, origin := range strings.Split(extraOrigins, ",") {
+			if o := strings.TrimSpace(origin); o != "" {
+				allowedOrigins = append(allowedOrigins, o)
+			}
+		}
+	}
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:5173", "http://localhost:8085"},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		ExposedHeaders:   []string{"Content-Length"},
@@ -100,6 +119,9 @@ func setupPageRoutes() {
 
 	// WebSocket pour notifications temps réel
 	Router.HandleFunc("/ws", handlers.WebSocketHandler).Methods("GET")
+
+	// WebSocket pour messages directs
+	Router.HandleFunc("/ws/messages", handlers.MessagesWebSocketHandler).Methods("GET")
 }
 
 // setupAPIRoutes configure les routes API
@@ -127,13 +149,13 @@ func setupAPIRoutes() {
 	mixed := api.NewRoute().Subrouter()
 	mixed.Use(middleware.OptionalAuthMiddleware)
 
-	// Likes sur threads et messages
+	// Likes sur threads
 	mixed.HandleFunc("/threads/{id:[0-9]+}/like", handlers.ToggleLikeHandler).Methods("POST")
-	mixed.HandleFunc("/messages/{id:[0-9]+}/like", handlers.MessageLikeHandler).Methods("POST")
 
-	// Messages dans les threads
-	mixed.HandleFunc("/threads/{id:[0-9]+}/messages", handlers.ThreadMessagesHandler).Methods("GET", "POST")
-	mixed.HandleFunc("/messages/{id:[0-9]+}/vote", handlers.MessageVoteHandler).Methods("POST")
+	// TODO: Implémenter les handlers suivants pour les messages dans les threads (commentaires)
+	// mixed.HandleFunc("/messages/{id:[0-9]+}/like", handlers.MessageLikeHandler).Methods("POST")
+	// mixed.HandleFunc("/threads/{id:[0-9]+}/messages", handlers.ThreadMessagesHandler).Methods("GET", "POST")
+	// mixed.HandleFunc("/messages/{id:[0-9]+}/vote", handlers.MessageVoteHandler).Methods("POST")
 
 	// Profil utilisateur
 	mixed.HandleFunc("/profile", handlers.ProfileAPIHandler).Methods("GET")
@@ -150,15 +172,20 @@ func setupAPIRoutes() {
 	// Routes d'amitiés (authentification requise)
 	setupFriendshipRoutes(mixed)
 
+	// Routes de messagerie (authentification requise)
+	setupMessageRoutes(mixed)
+
 	// Routes avec préfixe v1 (pour compatibilité frontend)
 	v1 := api.PathPrefix("/v1").Subrouter()
 	v1.Use(middleware.OptionalAuthMiddleware)
 
 	// Mêmes routes que mixed mais avec préfixe v1
 	v1.HandleFunc("/threads/{id:[0-9]+}/like", handlers.ToggleLikeHandler).Methods("POST")
-	v1.HandleFunc("/messages/{id:[0-9]+}/like", handlers.MessageLikeHandler).Methods("POST")
-	v1.HandleFunc("/threads/{id:[0-9]+}/messages", handlers.ThreadMessagesHandler).Methods("GET", "POST")
-	v1.HandleFunc("/messages/{id:[0-9]+}/vote", handlers.MessageVoteHandler).Methods("POST")
+
+	// TODO: Implémenter les handlers suivants pour les messages dans les threads (commentaires)
+	// v1.HandleFunc("/messages/{id:[0-9]+}/like", handlers.MessageLikeHandler).Methods("POST")
+	// v1.HandleFunc("/threads/{id:[0-9]+}/messages", handlers.ThreadMessagesHandler).Methods("GET", "POST")
+	// v1.HandleFunc("/messages/{id:[0-9]+}/vote", handlers.MessageVoteHandler).Methods("POST")
 	v1.HandleFunc("/profile", handlers.ProfileAPIHandler).Methods("GET")
 	v1.HandleFunc("/notifications", handlers.NotificationAPIHandler).Methods("GET", "POST")
 	v1.HandleFunc("/activity", handlers.ActivityAPIHandler).Methods("POST")
@@ -168,6 +195,32 @@ func setupAPIRoutes() {
 
 	// Routes d'amitiés pour v1 aussi
 	setupFriendshipRoutes(v1)
+
+	// Routes de messagerie pour v1 aussi
+	setupMessageRoutes(v1)
+}
+
+// setupMessageRoutes configure les routes pour l'API des messages directs
+func setupMessageRoutes(router *mux.Router) {
+	// Créer le handler de messages
+	db := database.DB
+	messageRepo := repositories.NewDirectMessageRepository(db)
+	friendshipRepo := repositories.NewFriendshipRepository(db)
+	messageService := services.NewMessageService(messageRepo, friendshipRepo)
+	messageHandler := handlers.NewMessageHandler(messageService)
+
+	// Routes pour les conversations
+	router.HandleFunc("/conversations", messageHandler.GetConversations).Methods("GET")
+	router.HandleFunc("/conversations/{userId:[0-9]+}", messageHandler.GetOrCreateConversation).Methods("GET")
+	router.HandleFunc("/conversations/{conversationId:[0-9]+}", messageHandler.DeleteConversation).Methods("DELETE")
+
+	// Routes pour les messages
+	router.HandleFunc("/conversations/{conversationId:[0-9]+}/messages", messageHandler.GetConversationMessages).Methods("GET")
+	router.HandleFunc("/messages/send", messageHandler.SendMessage).Methods("POST")
+	router.HandleFunc("/conversations/{conversationId:[0-9]+}/read", messageHandler.MarkAsRead).Methods("POST")
+
+	// Routes pour les statistiques
+	router.HandleFunc("/messages/unread", messageHandler.GetUnreadCount).Methods("GET")
 }
 
 // setupFriendshipRoutes configure les routes pour l'API des amitiés

@@ -83,6 +83,39 @@
                         👁️
                     </button>
                 </div>
+                
+                {{if .IsSignupMode}}
+                <!-- Composant de validation du mot de passe -->
+                <div class="password-validation" id="passwordValidation">
+                    <div class="password-strength-bar">
+                        <div class="strength-progress" id="strengthProgress"></div>
+                        <div class="strength-label" id="strengthLabel">Force du mot de passe</div>
+                    </div>
+                    
+                    <div class="validation-rules">
+                        <div class="rule-item" id="lengthRule">
+                            <span class="rule-icon">⚪</span>
+                            <span class="rule-text">Au moins 8 caractères</span>
+                        </div>
+                        <div class="rule-item" id="uppercaseRule">
+                            <span class="rule-icon">⚪</span>
+                            <span class="rule-text">Une majuscule</span>
+                        </div>
+                        <div class="rule-item" id="lowercaseRule">
+                            <span class="rule-icon">⚪</span>
+                            <span class="rule-text">Une minuscule</span>
+                        </div>
+                        <div class="rule-item" id="numberRule">
+                            <span class="rule-icon">⚪</span>
+                            <span class="rule-text">Un chiffre</span>
+                        </div>
+                        <div class="rule-item" id="specialRule">
+                            <span class="rule-icon">⚪</span>
+                            <span class="rule-text">Un caractère spécial (!@#$%^&*)</span>
+                        </div>
+                    </div>
+                </div>
+                {{end}}
             </div>
 
             {{if .IsSignupMode}}
@@ -100,6 +133,14 @@
                     <button type="button" class="password-toggle" onclick="toggleConfirmPassword()">
                         👁️
                     </button>
+                </div>
+                
+                <!-- Validation de la confirmation -->
+                <div class="password-match" id="passwordMatch">
+                    <div class="match-indicator" id="matchIndicator">
+                        <span class="match-icon">⚪</span>
+                        <span class="match-text">Les mots de passe correspondent</span>
+                    </div>
                 </div>
             </div>
             {{end}}

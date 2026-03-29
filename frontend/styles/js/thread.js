@@ -359,47 +359,94 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function submitComment() {
+    async function submitComment() {
         const content = commentInput.value.trim();
         if (!content) return;
         
-        const newComment = createCommentElement({
-            avatar: 'MO',
-            name: 'Moi',
-            time: 'À l\'instant',
-            content: content,
-            isOP: false,
-            isOwn: true
-        });
+        // Extraire l'ID du thread depuis l'URL
+        const threadId = window.location.pathname.split('/thread/')[1];
+        if (!threadId) {
+            showNotification('❌ Erreur : ID du thread non trouvé', 'error');
+            return;
+        }
         
-        // Ajouter au début de la liste
-        commentsList.insertBefore(newComment, commentsList.firstChild);
+        // Désactiver le bouton pendant l'envoi
+        const submitBtn = document.querySelector('.comment-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Envoi...';
+        }
         
-        // Réinitialiser l'input
-        commentInput.value = '';
-        handleCommentInput();
-        
-        // Mettre à jour le compteur
-        commentCount++;
-        updateCommentCount();
-        
-        // Animation d'apparition
-        newComment.style.opacity = '0';
-        newComment.style.transform = 'translateY(-20px)';
-        setTimeout(() => {
-            newComment.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            newComment.style.opacity = '1';
-            newComment.style.transform = 'translateY(0)';
-        }, 100);
-        
-        // Notification
-        showNotification('💬 Commentaire publié !', 'success');
-        
-        // Simuler une réponse de l'auteur
-        if (Math.random() < 0.3) {
-            setTimeout(() => {
-                simulateAuthorReply();
-            }, 3000 + Math.random() * 5000);
+        try {
+            const response = await fetch(`/api/threads/${threadId}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ content: content })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Créer le commentaire avec les données du serveur
+                const newComment = createCommentElement({
+                    id: data.data.id,
+                    avatar: data.data.author.username.substring(0, 2).toUpperCase(),
+                    name: data.data.author.username,
+                    time: 'À l\'instant',
+                    content: data.data.content,
+                    isOP: false,
+                    isOwn: true
+                });
+                
+                // Ajouter au début de la liste
+                commentsList.insertBefore(newComment, commentsList.firstChild);
+                
+                // Réinitialiser l'input
+                commentInput.value = '';
+                handleCommentInput();
+                
+                // Mettre à jour le compteur (qui va compter automatiquement)
+                updateCommentCount();
+                
+                // Animation d'apparition
+                newComment.style.opacity = '0';
+                newComment.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    newComment.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    newComment.style.opacity = '1';
+                    newComment.style.transform = 'translateY(0)';
+                }, 100);
+                
+                showNotification('💬 Commentaire publié !', 'success');
+            } else {
+                throw new Error(data.message || 'Erreur lors de l\'ajout du commentaire');
+            }
+            
+        } catch (error) {
+            console.error('Erreur ajout commentaire:', error);
+            
+            // En cas d'erreur, fallback vers POST classique
+            console.log('Fallback vers POST classique...');
+            const form = document.getElementById('comment-form');
+            if (form) {
+                form.submit();
+            } else {
+                showNotification('❌ Erreur lors de l\'envoi du commentaire', 'error');
+            }
+            
+        } finally {
+            // Réactiver le bouton
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Commenter';
+            }
         }
     }
     
@@ -407,6 +454,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function createCommentElement(data) {
         const comment = document.createElement('div');
         comment.className = 'comment-item';
+        
+        // Ajouter l'ID du message s'il est fourni
+        if (data.id) {
+            comment.setAttribute('data-message-id', data.id);
+        }
         
         const isOP = data.name === 'AudioSeeker';
         const opBadge = isOP ? '<span class="op-badge">OP</span>' : '';
@@ -474,17 +526,64 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Like de commentaire
-    function toggleCommentLike(btn) {
+    async function toggleCommentLike(btn) {
+        const commentItem = btn.closest('.comment-item');
+        const commentId = commentItem.dataset.messageId;
+        
+        if (!commentId) {
+            console.error('ID du commentaire non trouvé');
+            showNotification('❌ Erreur : ID du commentaire non trouvé', 'error');
+            return;
+        }
+        
         const isLiked = btn.classList.contains('liked');
         const currentCount = parseInt(btn.textContent.match(/\d+/)[0] || '0');
         
-        if (isLiked) {
-            btn.classList.remove('liked');
-            btn.textContent = `❤️ ${currentCount - 1}`;
-        } else {
-            btn.classList.add('liked');
-            btn.textContent = `❤️ ${currentCount + 1}`;
-            btn.style.color = '#ff6b6b';
+        // Désactiver le bouton pendant la requête
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch(`/api/messages/${commentId}/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Mettre à jour l'affichage avec les vraies données du serveur
+                if (data.data.is_liked) {
+                    btn.classList.add('liked');
+                    btn.style.color = '#ff6b6b';
+                } else {
+                    btn.classList.remove('liked');
+                    btn.style.color = '';
+                }
+                
+                btn.textContent = `❤️ ${data.data.likes_count}`;
+                
+                console.log(`Like ${data.data.is_liked ? 'ajouté' : 'supprimé'} sur commentaire ${commentId}`);
+            } else {
+                throw new Error(data.message || 'Erreur lors du like');
+            }
+            
+        } catch (error) {
+            console.error('Erreur like commentaire:', error);
+            showNotification('❌ Erreur lors du like', 'error');
+            
+            // Restaurer l'état précédent en cas d'erreur
+            // (ne pas changer l'affichage)
+            
+        } finally {
+            // Réactiver le bouton
+            btn.disabled = false;
         }
     }
     
@@ -592,16 +691,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Mettre à jour le compteur de commentaires
     function updateCommentCount() {
+        // Compter les commentaires réels dans le DOM
+        const actualCommentCount = document.querySelectorAll('.comment-item').length;
+        
         const commentCountElement = document.querySelector('.engagement-btn .btn-label[textContent="Commentaires"]');
         if (commentCountElement) {
             const countElement = commentCountElement.parentElement.querySelector('.btn-count');
-            countElement.textContent = commentCount;
+            countElement.textContent = actualCommentCount;
         }
         
         const commentsHeader = document.querySelector('.comments-header h3');
         if (commentsHeader) {
-            commentsHeader.textContent = `Commentaires (${commentCount})`;
+            commentsHeader.textContent = `Commentaires (${actualCommentCount})`;
         }
+        
+        // Mettre à jour la variable globale pour cohérence
+        commentCount = actualCommentCount;
     }
     
     // Charger plus de commentaires

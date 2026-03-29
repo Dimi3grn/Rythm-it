@@ -1116,3 +1116,50 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('👤 Page Profil Rythm\'it initialisée avec succès !');
     console.log('🎯 Fonctionnalités: Onglets dynamiques, Édition de profil, Statistiques en temps réel');
 });
+
+// ===== FONCTION GLOBALE: Envoyer une demande d'ami =====
+async function sendFriendRequest(userId, buttonElement) {
+    try {
+        console.log('👥 Envoi demande d\'ami à l\'utilisateur:', userId);
+        
+        buttonElement.disabled = true;
+        buttonElement.textContent = '⏳ Envoi...';
+        
+        const response = await fetch('/api/friends/request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                addressee_id: userId
+            })
+        });
+        
+        const data = await response.json();
+        console.log('📥 Réponse:', data);
+        
+        if (data.success) {
+            buttonElement.textContent = '✓ Demande envoyée';
+            buttonElement.className = 'profile-action-btn pending';
+            showNotification('✅ Demande d\'ami envoyée avec succès !', 'success');
+        } else {
+            throw new Error(data.message || 'Erreur lors de l\'envoi de la demande');
+        }
+    } catch (error) {
+        console.error('❌ Erreur envoi demande d\'ami:', error);
+        buttonElement.disabled = false;
+        buttonElement.textContent = '➕ Ajouter en ami';
+        showNotification('❌ ' + error.message, 'error');
+    }
+}
+
+// Fonction de notification (si elle n'existe pas déjà)
+function showNotification(message, type = 'info') {
+    if (typeof window.showNotification === 'function') {
+        window.showNotification(message, type);
+    } else {
+        console.log(`[${type.toUpperCase()}] ${message}`);
+        alert(message);
+    }
+}

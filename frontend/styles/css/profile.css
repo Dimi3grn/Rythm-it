@@ -1,8 +1,14 @@
 /* CSS pour la page Profil - profile.css */
 
 /* Layout principal du profil */
+.main-layout.profile-container {
+    grid-template-columns: 300px 1fr !important;
+    gap: 30px;
+}
+
 .profile-layout {
-    margin-top: 40px;
+    margin-top: 0;
+    width: 100%;
 }
 
 .profile-content {

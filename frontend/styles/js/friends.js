@@ -7,12 +7,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalUserName = document.getElementById('modalUserName');
     const searchInput = document.querySelector('.search-input');
     const addFriendBtn = document.querySelector('.add-friend-btn');
-    const friendsGrid = document.querySelector('.friends-grid');
+    const friendsGrid = document.getElementById('friends-grid-dynamic');
+    
+    // Gestion des onglets
+    const friendsTabs = document.querySelectorAll('.friends-tab');
+    friendsTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchTab(tabName);
+        });
+    });
     
     // Charger les données initiales
     loadFriends();
     loadFriendRequests();
+    loadSentRequests();
     loadFriendshipStats();
+    loadFriendSuggestions();
+    
+    // Écouter l'événement de mise à jour des amis
+    document.addEventListener('friendsUpdated', function() {
+        loadFriends();
+        loadFriendshipStats();
+    });
+    
+    // Exposer les fonctions de rechargement globalement
+    window.reloadFriends = loadFriends;
+    window.reloadFriendRequests = loadFriendRequests;
+    window.reloadSentRequests = loadSentRequests;
+    window.reloadFriendshipStats = loadFriendshipStats;
     
     // Gestion de la recherche d'amis
     if (searchInput) {
@@ -48,26 +71,63 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (response.ok) {
                 const data = await response.json();
-                displayFriends(data.friends || []);
+                displayFriends(data.data?.friends || data.friends || []);
+            } else if (response.status === 401) {
+                // Utilisateur non connecté
+                displayAuthRequired('friends-grid-dynamic');
             } else {
                 console.error('Erreur chargement amis:', response.statusText);
-                showNotification('Erreur lors du chargement des amis', 'error');
+                displayError('friends-grid-dynamic', 'Erreur lors du chargement');
             }
         } catch (error) {
             console.error('Erreur:', error);
-            showNotification('Erreur de connexion', 'error');
+            displayError('friends-grid-dynamic', 'Erreur de connexion');
         }
+    }
+    
+    // Afficher un message demandant de se connecter
+    function displayAuthRequired(elementId) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        element.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔒</div>
+                <h3>Connexion requise</h3>
+                <p>Connectez-vous pour voir vos amis et gérer vos demandes d'amitié</p>
+                <a href="/signin" class="auth-link-btn">Se connecter</a>
+            </div>
+        `;
+    }
+    
+    // Afficher une erreur
+    function displayError(elementId, message) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        element.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">⚠️</div>
+                <h3>Oops!</h3>
+                <p>${message}</p>
+                <button onclick="location.reload()" class="retry-btn">Réessayer</button>
+            </div>
+        `;
     }
     
     // Afficher la liste des amis
     function displayFriends(friends) {
         if (!friendsGrid) return;
         
-        if (friends.length === 0) {
+        // Mettre à jour le compteur dans l'onglet
+        updateTabCount('friends', friends.length);
+        
+        if (!friends || friends.length === 0) {
             friendsGrid.innerHTML = `
-                <div class="no-friends">
+                <div class="empty-state">
+                    <div class="empty-state-icon">👥</div>
                     <h3>Aucun ami pour le moment</h3>
-                    <p>Utilisez la recherche pour trouver des amis !</p>
+                    <p>Utilisez la recherche ou cliquez sur "Ajouter un ami" pour trouver des personnes !</p>
                 </div>
             `;
             return;
@@ -77,6 +137,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Ajouter les event listeners
         addFriendCardListeners();
+        
+        // Compter les amis en ligne pour les stats
+        const onlineCount = friends.filter(f => f.online_status === 'online').length;
+        const statOnline = document.getElementById('stat-friends-online');
+        if (statOnline) statOnline.textContent = onlineCount;
     }
     
     // Créer une carte d'ami
@@ -113,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="friend-actions">
-                    <button class="friend-btn message-btn" data-friend="${friend.username}">💬 Message</button>
+                    <button class="friend-btn message-btn" data-friend-id="${friend.id}">💬 Message</button>
                     <button class="friend-btn profile-btn" data-user-id="${friend.id}">👤 Profil</button>
                 </div>
             </div>
@@ -123,6 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Rechercher des utilisateurs
     async function searchUsers(query) {
         try {
+            console.log('🔍 Recherche utilisateurs:', query);
             const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
                 method: 'GET',
                 credentials: 'include'
@@ -130,12 +196,19 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (response.ok) {
                 const data = await response.json();
-                displaySearchResults(data.users || []);
+                console.log('📋 Résultats recherche:', data);
+                // L'API retourne {success: true, data: {users: [...]}}
+                const users = data.data?.users || data.users || [];
+                displaySearchResults(users);
+            } else if (response.status === 401) {
+                showNotification('Connectez-vous pour rechercher des utilisateurs', 'error');
             } else {
                 console.error('Erreur recherche:', response.statusText);
+                showNotification('Erreur lors de la recherche', 'error');
             }
         } catch (error) {
             console.error('Erreur recherche:', error);
+            showNotification('Erreur de connexion', 'error');
         }
     }
     
@@ -203,8 +276,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Boutons de message
         document.querySelectorAll('.message-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                const friendName = this.getAttribute('data-friend');
-                openMessageModal(friendName);
+                const friendId = this.getAttribute('data-friend-id');
+                if (friendId) {
+                    window.location.href = `/messages?user=${friendId}`;
+                }
             });
         });
         
@@ -291,11 +366,191 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (response.ok) {
                 const data = await response.json();
-                displayFriendRequests(data.requests || []);
+                console.log('📬 Demandes reçues:', data);
+                const requests = data.data?.requests || [];
+                displayFriendRequestsInTab(requests);
+                updateTabCount('requests', requests.length);
+                
+                // Ajouter la classe pending si il y a des demandes
+                const tabCount = document.getElementById('requests-count');
+                if (tabCount && requests.length > 0) {
+                    tabCount.classList.add('pending');
+                }
+            } else if (response.status === 401) {
+                displayEmptyState('friend-requests-list', 'Connectez-vous pour voir vos demandes', '🔒');
             }
         } catch (error) {
             console.error('Erreur chargement demandes:', error);
+            displayEmptyState('friend-requests-list', 'Erreur de chargement');
         }
+    }
+    
+    // Charger les demandes envoyées
+    async function loadSentRequests() {
+        try {
+            const response = await fetch('/api/friends/requests/sent', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('📤 Demandes envoyées:', data);
+                const requests = data.data?.requests || [];
+                displaySentRequestsInTab(requests);
+                updateTabCount('sent', requests.length);
+            } else if (response.status === 401) {
+                displayEmptyState('sent-requests-list', 'Connectez-vous pour voir vos demandes envoyées', '🔒');
+            }
+        } catch (error) {
+            console.error('Erreur chargement demandes envoyées:', error);
+            displayEmptyState('sent-requests-list', 'Erreur de chargement');
+        }
+    }
+    
+    // Fonction pour changer d'onglet
+    function switchTab(tabName) {
+        // Mettre à jour les boutons d'onglets
+        friendsTabs.forEach(tab => {
+            tab.classList.remove('active');
+            if (tab.getAttribute('data-tab') === tabName) {
+                tab.classList.add('active');
+            }
+        });
+        
+        // Afficher la bonne section
+        document.getElementById('friends-section').style.display = tabName === 'friends' ? 'block' : 'none';
+        document.getElementById('friend-requests-section').style.display = tabName === 'requests' ? 'block' : 'none';
+        document.getElementById('sent-requests-section').style.display = tabName === 'sent' ? 'block' : 'none';
+    }
+    
+    // Mettre à jour le compteur d'un onglet
+    function updateTabCount(tabName, count) {
+        const countElement = document.getElementById(`${tabName}-count`);
+        if (countElement) {
+            countElement.textContent = count;
+        }
+    }
+    
+    // Afficher les demandes reçues dans l'onglet
+    function displayFriendRequestsInTab(requests) {
+        const listElement = document.getElementById('friend-requests-list');
+        if (!listElement) return;
+        
+        if (requests.length === 0) {
+            displayEmptyState('friend-requests-list', 'Aucune demande d\'ami en attente', '📬');
+            return;
+        }
+        
+        listElement.innerHTML = requests.map(request => createRequestCard(request, 'received')).join('');
+        
+        // Attacher les événements
+        attachRequestEventListeners();
+    }
+    
+    // Afficher les demandes envoyées dans l'onglet
+    function displaySentRequestsInTab(requests) {
+        const listElement = document.getElementById('sent-requests-list');
+        if (!listElement) return;
+        
+        if (requests.length === 0) {
+            displayEmptyState('sent-requests-list', 'Aucune demande envoyée', '📤');
+            return;
+        }
+        
+        listElement.innerHTML = requests.map(request => createRequestCard(request, 'sent')).join('');
+        
+        // Attacher les événements
+        attachRequestEventListeners();
+    }
+    
+    // Créer une carte de demande
+    function createRequestCard(request, type) {
+        let username, avatar, userId;
+        
+        if (type === 'received') {
+            // Pour les demandes reçues: on affiche le demandeur
+            username = request.requester_username || request.username || 'Utilisateur';
+            avatar = request.requester_avatar || request.avatar;
+            userId = request.requester_id || request.id;
+        } else {
+            // Pour les demandes envoyées: on affiche le destinataire
+            // Note: Le backend retourne le username/avatar de l'addressee dans requester_username/avatar pour les sent requests
+            username = request.requester_username || request.username || 'Utilisateur';
+            avatar = request.requester_avatar || request.avatar;
+            userId = request.addressee_id || request.id;
+        }
+        
+        const timeAgo = formatTimeAgo(request.created_at);
+        
+        const avatarHTML = avatar 
+            ? `<img src="${avatar}" alt="${username}">` 
+            : `<div class="user-pic">${username.substring(0, 2).toUpperCase()}</div>`;
+        
+        let actionsHTML = '';
+        if (type === 'received') {
+            actionsHTML = `
+                <button class="request-btn accept" onclick="acceptFriendRequest(${userId}, this)">✓ Accepter</button>
+                <button class="request-btn reject" onclick="rejectFriendRequest(${userId}, this)">✕ Refuser</button>
+            `;
+        } else {
+            // Pour annuler, on passe l'addressee_id (la personne à qui on a envoyé la demande)
+            actionsHTML = `
+                <button class="request-btn cancel" onclick="cancelFriendRequest(${userId}, this)">✕ Annuler</button>
+            `;
+        }
+        
+        return `
+            <div class="request-card" data-user-id="${userId}" data-type="${type}">
+                <div class="request-header">
+                    <div class="request-avatar">
+                        ${avatarHTML}
+                    </div>
+                    <div class="request-info">
+                        <h4>${username}</h4>
+                        <p>${type === 'received' ? 'Veut être votre ami' : 'En attente de réponse'} • ${timeAgo}</p>
+                    </div>
+                </div>
+                <div class="request-actions">
+                    ${actionsHTML}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Afficher un état vide
+    function displayEmptyState(elementId, message, icon = '📭') {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        element.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">${icon}</div>
+                <h3>${message}</h3>
+                <p>Il n'y a rien à afficher pour le moment</p>
+            </div>
+        `;
+    }
+    
+    // Formater le temps écoulé
+    function formatTimeAgo(dateString) {
+        if (!dateString) return 'Récemment';
+        
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) return 'À l\'instant';
+        if (diffInSeconds < 3600) return `il y a ${Math.floor(diffInSeconds / 60)}min`;
+        if (diffInSeconds < 86400) return `il y a ${Math.floor(diffInSeconds / 3600)}h`;
+        if (diffInSeconds < 2592000) return `il y a ${Math.floor(diffInSeconds / 86400)}j`;
+        
+        return date.toLocaleDateString('fr-FR');
+    }
+    
+    // Attacher les événements aux boutons de demande
+    function attachRequestEventListeners() {
+        // Les événements sont gérés par les fonctions onclick dans le HTML
     }
     
     // Afficher les demandes d'amitié
@@ -441,7 +696,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (response.ok) {
                 const data = await response.json();
-                updateFriendshipStats(data.stats);
+                updateFriendshipStats(data.data?.stats || data.stats);
             }
         } catch (error) {
             console.error('Erreur stats:', error);
@@ -450,17 +705,121 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Mettre à jour l'affichage des statistiques
     function updateFriendshipStats(stats) {
+        if (!stats) return;
+        
         // Mettre à jour le badge de notifications si il y a des demandes en attente
         const notificationBadge = document.querySelector('.notification-badge');
-        if (notificationBadge && stats.pending_requests_count > 0) {
-            notificationBadge.textContent = stats.pending_requests_count;
-            notificationBadge.style.display = 'block';
+        if (notificationBadge) {
+            if (stats.pending_requests_count > 0) {
+                notificationBadge.textContent = stats.pending_requests_count;
+                notificationBadge.style.display = 'block';
+            } else {
+                notificationBadge.style.display = 'none';
+            }
         }
         
         // Mettre à jour le titre de la page avec le nombre d'amis
         const pageTitle = document.querySelector('.friends-header h1');
         if (pageTitle) {
-            pageTitle.textContent = `Mes Amis (${stats.friends_count})`;
+            pageTitle.textContent = `Mes Amis (${stats.friends_count || 0})`;
+        }
+        
+        // Mettre à jour les stats dans la sidebar
+        const statTotal = document.getElementById('stat-friends-total');
+        if (statTotal) statTotal.textContent = stats.friends_count || 0;
+        
+        const statPending = document.getElementById('stat-pending-requests');
+        if (statPending) statPending.textContent = stats.pending_requests_count || 0;
+        
+        const statSent = document.getElementById('stat-sent-requests');
+        if (statSent) statSent.textContent = stats.sent_requests_count || 0;
+    }
+    
+    // Charger les suggestions d'amis pour la sidebar
+    async function loadFriendSuggestions() {
+        const suggestionsList = document.getElementById('friend-suggestions-list');
+        if (!suggestionsList) return;
+        
+        try {
+            const response = await fetch('/api/friends/suggestions?limit=5', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const suggestions = data.data?.suggestions || data.suggestions || [];
+                displaySuggestions(suggestions, suggestionsList);
+            } else {
+                suggestionsList.innerHTML = '<p class="empty-state-small">Connectez-vous pour voir des suggestions</p>';
+            }
+        } catch (error) {
+            console.error('Erreur suggestions:', error);
+            suggestionsList.innerHTML = '<p class="empty-state-small">Erreur de chargement</p>';
+        }
+    }
+    
+    // Afficher les suggestions d'amis
+    function displaySuggestions(suggestions, container) {
+        if (!suggestions || suggestions.length === 0) {
+            container.innerHTML = '<p class="empty-state-small">Aucune suggestion pour le moment</p>';
+            return;
+        }
+        
+        container.innerHTML = suggestions.map(user => `
+            <div class="suggestion-item" data-user-id="${user.id}">
+                <div class="suggestion-avatar">
+                    ${user.avatar ? 
+                        `<img src="${user.avatar}" alt="${user.username}">` :
+                        `<div class="user-pic small">${user.username.substring(0, 2).toUpperCase()}</div>`
+                    }
+                </div>
+                <div class="suggestion-info">
+                    <span class="suggestion-name">${user.username}</span>
+                    ${user.mutual_friends > 0 ? `<small>${user.mutual_friends} amis en commun</small>` : ''}
+                </div>
+                <button class="suggestion-add-btn" data-user-id="${user.id}" title="Ajouter">➕</button>
+            </div>
+        `).join('');
+        
+        // Ajouter les event listeners pour les boutons d'ajout
+        container.querySelectorAll('.suggestion-add-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const userId = parseInt(this.getAttribute('data-user-id'));
+                await sendFriendRequestFromSuggestion(userId, this);
+            });
+        });
+    }
+    
+    // Envoyer une demande depuis les suggestions
+    async function sendFriendRequestFromSuggestion(userId, button) {
+        try {
+            button.disabled = true;
+            button.textContent = '⏳';
+            
+            const response = await fetch('/api/friends/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ addressee_id: userId })
+            });
+            
+            if (response.ok) {
+                button.textContent = '✓';
+                button.classList.add('sent');
+                showNotification('Demande d\'amitié envoyée !', 'success');
+                loadFriendshipStats();
+                loadSentRequests();
+            } else {
+                const data = await response.json();
+                showNotification(data.message || 'Erreur', 'error');
+                button.disabled = false;
+                button.textContent = '➕';
+            }
+        } catch (error) {
+            console.error('Erreur envoi demande:', error);
+            button.disabled = false;
+            button.textContent = '➕';
         }
     }
     
@@ -911,6 +1270,202 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// ===== FONCTIONS GLOBALES POUR LES DEMANDES D'AMIS =====
+
+// Accepter une demande d'ami
+async function acceptFriendRequest(userId, buttonElement) {
+    try {
+        console.log('✅ Acceptation demande d\'ami:', userId);
+        
+        buttonElement.disabled = true;
+        buttonElement.textContent = '⏳ Traitement...';
+        
+        const response = await fetch('/api/friends/request/accept', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                requester_id: userId
+            })
+        });
+        
+        const data = await response.json();
+        console.log('📥 Réponse:', data);
+        
+        if (data.success) {
+            // Supprimer la carte de demande avec animation
+            const card = buttonElement.closest('.request-card');
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            setTimeout(() => card.remove(), 300);
+            
+            showNotification('✅ Demande d\'ami acceptée !', 'success');
+            
+            // Mettre à jour le compteur de demandes
+            const requestsCountEl = document.getElementById('requests-count');
+            if (requestsCountEl) {
+                const currentCount = parseInt(requestsCountEl.textContent) || 0;
+                requestsCountEl.textContent = Math.max(0, currentCount - 1);
+                if (currentCount - 1 <= 0) {
+                    requestsCountEl.classList.remove('pending');
+                }
+            }
+            
+            // Recharger uniquement les données nécessaires
+            setTimeout(() => {
+                // Recharger les amis (nouvel ami ajouté)
+                const event = new CustomEvent('friendsUpdated');
+                document.dispatchEvent(event);
+                
+                // Recharger les statistiques
+                fetch('/api/friends/stats', { credentials: 'include' })
+                    .then(r => r.json())
+                    .then(data => {
+                        const stats = data.data?.stats || data.stats;
+                        if (stats) {
+                            const statTotal = document.getElementById('stat-friends-total');
+                            if (statTotal) statTotal.textContent = stats.friends_count || 0;
+                            const statPending = document.getElementById('stat-pending-requests');
+                            if (statPending) statPending.textContent = stats.pending_requests_count || 0;
+                        }
+                    });
+            }, 500);
+        } else {
+            throw new Error(data.message || 'Erreur lors de l\'acceptation');
+        }
+    } catch (error) {
+        console.error('❌ Erreur acceptation demande:', error);
+        buttonElement.disabled = false;
+        buttonElement.textContent = '✓ Accepter';
+        showNotification('❌ ' + error.message, 'error');
+    }
+}
+
+// Refuser une demande d'ami
+async function rejectFriendRequest(userId, buttonElement) {
+    try {
+        console.log('❌ Refus demande d\'ami:', userId);
+        
+        buttonElement.disabled = true;
+        buttonElement.textContent = '⏳ Traitement...';
+        
+        const response = await fetch('/api/friends/request/reject', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                requester_id: userId
+            })
+        });
+        
+        const data = await response.json();
+        console.log('📥 Réponse:', data);
+        
+        if (data.success) {
+            // Supprimer la carte de demande avec animation
+            const card = buttonElement.closest('.request-card');
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            setTimeout(() => card.remove(), 300);
+            
+            showNotification('✓ Demande refusée', 'info');
+            
+            // Mettre à jour le compteur de demandes
+            const requestsCountEl = document.getElementById('requests-count');
+            if (requestsCountEl) {
+                const currentCount = parseInt(requestsCountEl.textContent) || 0;
+                requestsCountEl.textContent = Math.max(0, currentCount - 1);
+                if (currentCount - 1 <= 0) {
+                    requestsCountEl.classList.remove('pending');
+                }
+            }
+            
+            // Mettre à jour les stats
+            const statPending = document.getElementById('stat-pending-requests');
+            if (statPending) {
+                const currentStat = parseInt(statPending.textContent) || 0;
+                statPending.textContent = Math.max(0, currentStat - 1);
+            }
+        } else {
+            throw new Error(data.message || 'Erreur lors du refus');
+        }
+    } catch (error) {
+        console.error('❌ Erreur refus demande:', error);
+        buttonElement.disabled = false;
+        buttonElement.textContent = '✕ Refuser';
+        showNotification('❌ ' + error.message, 'error');
+    }
+}
+
+// Annuler une demande d'ami envoyée
+// userId ici est l'addressee_id (la personne à qui on a envoyé la demande)
+async function cancelFriendRequest(addresseeId, buttonElement) {
+    try {
+        console.log('🔙 Annulation demande d\'ami vers addressee:', addresseeId);
+        
+        buttonElement.disabled = true;
+        buttonElement.textContent = '⏳ Annulation...';
+        
+        const response = await fetch('/api/friends/request/cancel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                // Le backend attend requester_id mais c'est en fait l'addressee dans ce contexte
+                // car le handler fait: CancelFriendRequest(currentUserID, req.RequesterID)
+                requester_id: addresseeId
+            })
+        });
+        
+        const data = await response.json();
+        console.log('📥 Réponse:', data);
+        
+        if (data.success) {
+            // Supprimer la carte de demande
+            const card = buttonElement.closest('.request-card');
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            setTimeout(() => card.remove(), 300);
+            
+            showNotification('✓ Demande annulée', 'info');
+            
+            // Mettre à jour le compteur de l'onglet
+            const sentCountEl = document.getElementById('sent-count');
+            if (sentCountEl) {
+                const currentCount = parseInt(sentCountEl.textContent) || 0;
+                sentCountEl.textContent = Math.max(0, currentCount - 1);
+            }
+            
+            // Recharger les stats
+            setTimeout(() => {
+                if (typeof loadFriendshipStats === 'function') loadFriendshipStats();
+            }, 500);
+        } else {
+            throw new Error(data.message || 'Erreur lors de l\'annulation');
+        }
+    } catch (error) {
+        console.error('❌ Erreur annulation demande:', error);
+        buttonElement.disabled = false;
+        buttonElement.textContent = '✕ Annuler';
+        showNotification('❌ ' + error.message, 'error');
+    }
+}
+
+// Fonction de notification utilitaire
+function showNotification(message, type = 'info') {
+    if (typeof window.showNotification === 'function' && window.showNotification !== showNotification) {
+        window.showNotification(message, type);
+    } else {
+        console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+}
 
 // CSS pour les styles de menu et notifications
 const additionalStyles = `

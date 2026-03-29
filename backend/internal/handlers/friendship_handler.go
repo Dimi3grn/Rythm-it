@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"rythmitbackend/internal/controllers"
 	"rythmitbackend/internal/services"
@@ -227,18 +228,26 @@ func (h *FriendshipHandler) UnblockUser(w http.ResponseWriter, r *http.Request) 
 
 // GetFriends récupère la liste des amis
 func (h *FriendshipHandler) GetFriends(w http.ResponseWriter, r *http.Request) {
+	log.Println("🔵 GetFriends: Handler appelé")
+
 	userID, exists := controllers.GetUserIDFromContext(r)
+	log.Printf("🔵 GetFriends: userID=%d, exists=%v", userID, exists)
+
 	if !exists {
+		log.Println("❌ GetFriends: Utilisateur non authentifié")
 		sendAPIError(w, "Utilisateur non authentifié", http.StatusUnauthorized)
 		return
 	}
 
+	log.Printf("👥 GetFriends: Récupération des amis pour userID=%d", userID)
 	friends, err := h.friendshipService.GetFriends(userID)
 	if err != nil {
-		sendAPIError(w, "Erreur récupération amis", http.StatusInternalServerError)
+		log.Printf("❌ GetFriends erreur: %v", err)
+		sendAPIError(w, "Erreur récupération amis: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	log.Printf("✅ GetFriends: %d amis récupérés", len(friends))
 	sendAPISuccess(w, "Amis récupérés avec succès", map[string]interface{}{
 		"friends": friends,
 	})
@@ -248,16 +257,20 @@ func (h *FriendshipHandler) GetFriends(w http.ResponseWriter, r *http.Request) {
 func (h *FriendshipHandler) GetFriendRequests(w http.ResponseWriter, r *http.Request) {
 	userID, exists := controllers.GetUserIDFromContext(r)
 	if !exists {
+		log.Println("❌ GetFriendRequests: Utilisateur non authentifié")
 		sendAPIError(w, "Utilisateur non authentifié", http.StatusUnauthorized)
 		return
 	}
 
+	log.Printf("📬 GetFriendRequests appelé pour userID=%d", userID)
 	requests, err := h.friendshipService.GetFriendRequests(userID)
 	if err != nil {
-		sendAPIError(w, "Erreur récupération demandes d'amitié", http.StatusInternalServerError)
+		log.Printf("❌ GetFriendRequests erreur: %v", err)
+		sendAPIError(w, "Erreur récupération demandes d'amitié: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	log.Printf("✅ GetFriendRequests: %d demandes récupérées", len(requests))
 	sendAPISuccess(w, "Demandes d'amitié récupérées avec succès", map[string]interface{}{
 		"requests": requests,
 	})
@@ -373,16 +386,20 @@ func (h *FriendshipHandler) GetSuggestedFriends(w http.ResponseWriter, r *http.R
 func (h *FriendshipHandler) GetFriendshipStats(w http.ResponseWriter, r *http.Request) {
 	userID, exists := controllers.GetUserIDFromContext(r)
 	if !exists {
+		log.Println("❌ GetFriendshipStats: Utilisateur non authentifié")
 		sendAPIError(w, "Utilisateur non authentifié", http.StatusUnauthorized)
 		return
 	}
 
+	log.Printf("📊 GetFriendshipStats appelé pour userID=%d", userID)
 	stats, err := h.friendshipService.GetFriendshipStats(userID)
 	if err != nil {
-		sendAPIError(w, "Erreur récupération statistiques", http.StatusInternalServerError)
+		log.Printf("❌ GetFriendshipStats erreur: %v", err)
+		sendAPIError(w, "Erreur récupération statistiques: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	log.Printf("✅ GetFriendshipStats: stats récupérées")
 	sendAPISuccess(w, "Statistiques récupérées avec succès", map[string]interface{}{
 		"stats": stats,
 	})

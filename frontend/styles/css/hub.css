@@ -1,38 +1,34 @@
- * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Hub-specific styles - scoped to avoid global conflicts */
+        
+        .hub-dashboard {
+            width: 100%;
         }
 
-        body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: radial-gradient(circle at 20% 50%, #1a1a2e 0%, #16213e 25%, #0f0f0f 100%);
-            color: #f0f0f0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1.6;
-        }
-
-        .hub-container {
-            max-width: 1200px;
-            padding: 40px;
+        .hub-hero {
             text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .hub-hero h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
         }
 
         .brand-section {
             margin-bottom: 60px;
+            display: none; /* Hide old brand section if present */
         }
 
-        .brand-logo {
+        .hub-dashboard .brand-logo {
             display: inline-flex;
             align-items: center;
             gap: 20px;
             margin-bottom: 30px;
         }
 
-        .brand-icon {
+        .hub-dashboard .brand-icon {
             width: 80px;
             height: 80px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -43,30 +39,30 @@
             box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
         }
 
-        .wave-animation {
+        .hub-dashboard .wave-animation {
             display: flex;
             gap: 4px;
             align-items: center;
         }
 
-        .wave-bar {
+        .hub-dashboard .wave-bar {
             width: 6px;
             height: 24px;
             background: white;
             border-radius: 3px;
-            animation: wave 1.5s ease-in-out infinite;
+            animation: hub-wave 1.5s ease-in-out infinite;
         }
 
-        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
-        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
-        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .hub-dashboard .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .hub-dashboard .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .hub-dashboard .wave-bar:nth-child(4) { animation-delay: 0.3s; }
 
-        @keyframes wave {
+        @keyframes hub-wave {
             0%, 100% { height: 24px; opacity: 0.7; }
             50% { height: 40px; opacity: 1; }
         }
 
-        .brand-text {
+        .hub-dashboard .brand-text {
             font-size: 48px;
             font-weight: 700;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -290,7 +286,7 @@
                 padding: 20px;
             }
 
-            .brand-text {
+            .hub-dashboard .brand-text {
                 font-size: 36px;
             }
 

@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"rythmitbackend/internal/models"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -354,4 +356,316 @@ func ActivityAPIHandler(w http.ResponseWriter, r *http.Request) {
 		"activity_type": requestData.Type,
 		"broadcast_at":  time.Now(),
 	})
+}
+
+// ==========================================
+// WEBSOCKET POUR MESSAGES DIRECTS
+// ==========================================
+
+// MessageClient représente un client WebSocket pour les messages
+type MessageClient struct {
+	ID     uint
+	Conn   *websocket.Conn
+	Send   chan []byte
+	Hub    *MessageHub
+	UserID uint
+}
+
+// MessageHub maintient l'ensemble des clients actifs pour les messages
+type MessageHub struct {
+	clients    map[uint]*MessageClient
+	broadcast  chan *models.WebSocketMessage
+	register   chan *MessageClient
+	unregister chan *MessageClient
+	mu         sync.RWMutex
+}
+
+var (
+	messageHub     *MessageHub
+	messageHubOnce sync.Once
+)
+
+// GetMessageHub retourne l'instance du hub de messages
+func GetMessageHub() *MessageHub {
+	messageHubOnce.Do(func() {
+		messageHub = &MessageHub{
+			broadcast:  make(chan *models.WebSocketMessage),
+			register:   make(chan *MessageClient),
+			unregister: make(chan *MessageClient),
+			clients:    make(map[uint]*MessageClient),
+		}
+		go messageHub.Run()
+	})
+	return messageHub
+}
+
+// Run démarre la boucle principale du hub de messages
+func (h *MessageHub) Run() {
+	for {
+		select {
+		case client := <-h.register:
+			h.mu.Lock()
+			h.clients[client.UserID] = client
+			h.mu.Unlock()
+			log.Printf("✅ Client messages connecté: User ID %d (Total: %d)", client.UserID, len(h.clients))
+
+			// Diffuser que l'utilisateur est en ligne
+			h.broadcastUserStatus(client.UserID, true)
+
+		case client := <-h.unregister:
+			userID := client.UserID
+			h.mu.Lock()
+			if _, ok := h.clients[client.UserID]; ok {
+				delete(h.clients, client.UserID)
+				close(client.Send)
+			}
+			h.mu.Unlock()
+			log.Printf("❌ Client messages déconnecté: User ID %d (Total: %d)", userID, len(h.clients))
+
+			// Diffuser que l'utilisateur est hors ligne
+			h.broadcastUserStatus(userID, false)
+
+		case message := <-h.broadcast:
+			h.broadcastMessage(message)
+		}
+	}
+}
+
+// broadcastMessage diffuse un message aux destinataires appropriés
+func (h *MessageHub) broadcastMessage(message *models.WebSocketMessage) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	messageJSON, err := json.Marshal(message)
+	if err != nil {
+		log.Printf("❌ Erreur marshalling message: %v", err)
+		return
+	}
+
+	// Déterminer les destinataires selon le type de message
+	switch message.Type {
+	case "message":
+		if message.Message != nil {
+			// Envoyer au destinataire
+			if client, ok := h.clients[message.Message.ReceiverID]; ok {
+				select {
+				case client.Send <- messageJSON:
+				default:
+					close(client.Send)
+					delete(h.clients, client.UserID)
+				}
+			}
+
+			// Envoyer à l'expéditeur (confirmation)
+			if client, ok := h.clients[message.Message.SenderID]; ok {
+				select {
+				case client.Send <- messageJSON:
+				default:
+					close(client.Send)
+					delete(h.clients, client.UserID)
+				}
+			}
+		}
+	case "typing", "read", "status", "user_online", "user_offline":
+		// Diffuser à tous les clients de la conversation
+		// Pour simplifier, on diffuse à tous les clients connectés
+		for _, client := range h.clients {
+			select {
+			case client.Send <- messageJSON:
+			default:
+				close(client.Send)
+				delete(h.clients, client.UserID)
+			}
+		}
+	}
+}
+
+// broadcastUserStatus diffuse le statut en ligne d'un utilisateur
+func (h *MessageHub) broadcastUserStatus(userID uint, isOnline bool) {
+	msgType := "user_offline"
+	if isOnline {
+		msgType = "user_online"
+	}
+
+	statusMsg := &models.WebSocketMessage{
+		Type: msgType,
+		Data: map[string]interface{}{
+			"user_id":   userID,
+			"is_online": isOnline,
+		},
+		Timestamp: time.Now(),
+	}
+
+	h.broadcastMessage(statusMsg)
+	log.Printf("🟢 Statut diffusé: User %d - %s", userID, msgType)
+}
+
+// GetOnlineUsers retourne la liste des utilisateurs connectés
+func (h *MessageHub) GetOnlineUsers() []uint {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	userIDs := make([]uint, 0, len(h.clients))
+	for userID := range h.clients {
+		userIDs = append(userIDs, userID)
+	}
+	return userIDs
+}
+
+// IsUserOnline vérifie si un utilisateur est connecté
+func (h *MessageHub) IsUserOnline(userID uint) bool {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	_, ok := h.clients[userID]
+	return ok
+}
+
+// SendToUser envoie un message à un utilisateur spécifique
+func (h *MessageHub) SendToUser(userID uint, message *models.WebSocketMessage) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	if client, ok := h.clients[userID]; ok {
+		messageJSON, err := json.Marshal(message)
+		if err != nil {
+			log.Printf("❌ Erreur marshalling message: %v", err)
+			return
+		}
+
+		select {
+		case client.Send <- messageJSON:
+		default:
+			close(client.Send)
+			delete(h.clients, client.UserID)
+		}
+	}
+}
+
+// readPump pompe les messages du websocket vers le hub
+func (c *MessageClient) readPump() {
+	defer func() {
+		c.Hub.unregister <- c
+		c.Conn.Close()
+	}()
+
+	c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	c.Conn.SetPongHandler(func(string) error {
+		c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		return nil
+	})
+
+	for {
+		_, message, err := c.Conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("❌ Erreur WebSocket: %v", err)
+			}
+			break
+		}
+
+		// Parser le message
+		var wsMsg models.WebSocketMessage
+		if err := json.Unmarshal(message, &wsMsg); err != nil {
+			log.Printf("❌ Erreur parsing message WebSocket: %v", err)
+			continue
+		}
+
+		log.Printf("📥 Message WebSocket reçu: Type=%s", wsMsg.Type)
+
+		// Traiter selon le type
+		switch wsMsg.Type {
+		case "message":
+			if wsMsg.Message != nil {
+				wsMsg.Message.SenderID = c.UserID
+				wsMsg.Timestamp = time.Now()
+				c.Hub.broadcast <- &wsMsg
+			}
+		case "typing":
+			if wsMsg.Data == nil {
+				wsMsg.Data = map[string]interface{}{}
+			}
+			wsMsg.Data["user_id"] = c.UserID
+			wsMsg.Timestamp = time.Now()
+			c.Hub.broadcast <- &wsMsg
+		}
+	}
+}
+
+// writePump pompe les messages du hub vers le websocket
+func (c *MessageClient) writePump() {
+	ticker := time.NewTicker(54 * time.Second)
+	defer func() {
+		ticker.Stop()
+		c.Conn.Close()
+	}()
+
+	for {
+		select {
+		case message, ok := <-c.Send:
+			c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if !ok {
+				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+
+			w, err := c.Conn.NextWriter(websocket.TextMessage)
+			if err != nil {
+				return
+			}
+			w.Write(message)
+
+			// Ajouter les messages en attente
+			n := len(c.Send)
+			for i := 0; i < n; i++ {
+				w.Write([]byte{'\n'})
+				w.Write(<-c.Send)
+			}
+
+			if err := w.Close(); err != nil {
+				return
+			}
+
+		case <-ticker.C:
+			c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
+			}
+		}
+	}
+}
+
+// MessagesWebSocketHandler gère les connexions WebSocket pour les messages
+func MessagesWebSocketHandler(w http.ResponseWriter, r *http.Request) {
+	// Vérifier l'authentification
+	user, isLoggedIn := getUserFromCookie(r)
+	if !isLoggedIn {
+		log.Printf("❌ WebSocket Messages: Utilisateur non authentifié")
+		http.Error(w, "Non authentifié", http.StatusUnauthorized)
+		return
+	}
+
+	log.Printf("🔌 WebSocket Messages: Tentative de connexion User ID %d", user.ID)
+
+	// Upgrade vers WebSocket
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("❌ Erreur upgrade WebSocket: %v", err)
+		return
+	}
+
+	hub := GetMessageHub()
+	client := &MessageClient{
+		Conn:   conn,
+		Send:   make(chan []byte, 256),
+		Hub:    hub,
+		UserID: user.ID,
+	}
+
+	client.Hub.register <- client
+
+	// Démarrer les goroutines
+	go client.writePump()
+	go client.readPump()
+
+	log.Printf("✅ WebSocket Messages: Client %d connecté avec succès", user.ID)
 }

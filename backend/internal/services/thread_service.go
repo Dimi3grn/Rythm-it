@@ -594,17 +594,11 @@ func (s *threadService) GetAllThreads() ([]ThreadDTO, error) {
 		}
 
 		// Get message count from the message repository
-		messageCount64, err := s.messageRepo.CountByThreadID(thread.ID)
+		messageCount, err := s.messageRepo.CountByThreadID(thread.ID)
 		if err != nil {
 			// Log the error but continue with 0 count
 			fmt.Printf("Error getting message count for thread %d: %v\n", thread.ID, err)
-			messageCount64 = 0
-		}
-
-		// Safely convert int64 to int
-		messageCount := 0
-		if messageCount64 <= int64(^uint(0)>>1) { // Check if it fits in an int
-			messageCount = int(messageCount64)
+			messageCount = 0
 		}
 
 		dto := ThreadDTO{

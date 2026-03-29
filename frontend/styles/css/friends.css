@@ -88,8 +88,8 @@
 /* Grille des amis */
 .friends-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
 }
 
 /* Carte d'ami */
@@ -199,40 +199,87 @@
 .friend-actions {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    margin-top: auto; /* Push to bottom if flex column */
 }
 
 .friend-btn {
-    flex: 1;
-    padding: 10px 15px;
+    flex: 1 1 45%;
+    max-width: 140px;
+    padding: 12px 16px;
     border: none;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
 }
 
 .friend-btn.message-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.25);
 }
 
 .friend-btn.profile-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #f0f0f0;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #e0e0e0;
 }
 
-.friend-btn:hover {
-    transform: translateY(-1px);
+.friend-btn.add-btn {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    color: white;
+    box-shadow: 0 3px 10px rgba(74, 222, 128, 0.25);
+}
+
+.friend-btn.pending-btn {
+    background: rgba(250, 204, 21, 0.15);
+    color: #facc15;
+    cursor: not-allowed;
+}
+
+.friend-btn.friends-btn {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+    cursor: default;
+}
+
+.friend-btn.blocked-btn {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    cursor: not-allowed;
+}
+
+.friend-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
 }
 
 .friend-btn.message-btn:hover {
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.35);
+    filter: brightness(1.1);
 }
 
 .friend-btn.profile-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.friend-btn.add-btn:hover {
+    box-shadow: 0 5px 15px rgba(74, 222, 128, 0.35);
+    filter: brightness(1.1);
+}
+
+.friend-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
 }
 
 /* Statuts en ligne */
@@ -344,7 +391,7 @@
     color: #888;
 }
 
-.message-btn {
+.friend-online .message-btn {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #888;
@@ -358,7 +405,7 @@
     transition: all 0.2s ease;
 }
 
-.message-btn:hover {
+.friend-online .message-btn:hover {
     background: rgba(255, 255, 255, 0.1);
     color: #fff;
     transform: scale(1.1);
@@ -851,4 +898,454 @@ a {
 .profile-content {
     min-width: 0;
     overflow-x: hidden;
+}
+
+/* ========================================
+   ONGLETS DE NAVIGATION (AMIS/DEMANDES)
+======================================== */
+
+.friends-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #3a3f4f;
+    padding-bottom: 0;
+}
+
+.friends-tab {
+    background: none;
+    border: none;
+    color: #a0aec0;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 15px 25px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.friends-tab:hover {
+    color: #e2e8f0;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.friends-tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.tab-count {
+    background: #3a3f4f;
+    color: #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.tab-count.pending {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+    animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* ========================================
+   SECTIONS DEMANDES D'AMIS
+======================================== */
+
+.friends-section {
+    animation: fadeInSlide 0.5s ease;
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.friends-section h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 20px;
+}
+
+.requests-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.request-card {
+    background: linear-gradient(135deg, #2a2d3a 0%, #252836 100%);
+    border: 1px solid #3a3f4f;
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.request-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+}
+
+.request-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.request-avatar {
+    position: relative;
+}
+
+.request-avatar .user-pic {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+}
+
+.request-avatar img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #667eea;
+}
+
+.request-info {
+    flex: 1;
+}
+
+.request-info h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 5px 0;
+}
+
+.request-info p {
+    font-size: 13px;
+    color: #a0aec0;
+    margin: 0;
+}
+
+.request-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.request-btn {
+    flex: 1;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.request-btn.accept {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    color: white;
+}
+
+.request-btn.accept:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(74, 222, 128, 0.4);
+}
+
+.request-btn.reject {
+    background: #3a3f4f;
+    color: #e2e8f0;
+}
+
+.request-btn.reject:hover {
+    background: #4a5568;
+}
+
+.request-btn.cancel {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+}
+
+.request-btn.cancel:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+}
+
+.request-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* État de chargement */
+.loading-state {
+    text-align: center;
+    padding: 40px;
+    color: #a0aec0;
+}
+
+.loading-state p {
+    font-size: 16px;
+    animation: pulse 2s infinite;
+}
+
+/* État vide */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #a0aec0;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    color: #e2e8f0;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .friends-tabs {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .friends-tab {
+        border-bottom: 1px solid #3a3f4f;
+        border-left: 3px solid transparent;
+        justify-content: space-between;
+    }
+    
+    .friends-tab.active {
+        border-bottom-color: #3a3f4f;
+        border-left-color: #667eea;
+    }
+    
+    .requests-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   SUGGESTIONS D'AMIS SIDEBAR
+======================================== */
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    margin-bottom: 8px;
+}
+
+.suggestion-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.suggestion-avatar {
+    flex-shrink: 0;
+}
+
+.suggestion-avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.suggestion-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.suggestion-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggestion-info small {
+    display: block;
+    font-size: 11px;
+    color: #a0aec0;
+    margin-top: 2px;
+}
+
+.suggestion-add-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.suggestion-add-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.suggestion-add-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.suggestion-add-btn.sent {
+    background: #4ade80;
+}
+
+/* ========================================
+   ÉTATS VIDES PETITS (SIDEBAR)
+======================================== */
+
+.empty-state-small,
+.loading-state-small {
+    text-align: center;
+    padding: 20px 10px;
+    color: #a0aec0;
+    font-size: 13px;
+}
+
+.loading-state-small p {
+    animation: pulse 2s infinite;
+}
+
+/* ========================================
+   ÉTATS "NO FRIENDS" AMÉLIORÉ
+======================================== */
+
+.no-friends,
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: #a0aec0;
+}
+
+.no-friends h3,
+.no-results h3 {
+    font-size: 20px;
+    color: #e2e8f0;
+    margin-bottom: 10px;
+}
+
+.no-friends p,
+.no-results p {
+    font-size: 14px;
+    margin: 0;
+}
+
+/* ========================================
+   CARTE DE RECHERCHE AMÉLIORÉE
+======================================== */
+
+.friend-card.search-result {
+    border: 1px dashed rgba(102, 126, 234, 0.3);
+}
+
+.friend-card.search-result:hover {
+    border-color: #667eea;
+}
+
+.mutual-friends {
+    font-size: 12px;
+    color: #667eea;
+    margin-top: 5px;
+}
+
+.friend-btn.add-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.friend-btn.pending-btn {
+    background: #facc15;
+    color: #1a1a2e;
+}
+
+.friend-btn.friends-btn {
+    background: #4ade80;
+    color: white;
+}
+
+.friend-btn.blocked-btn {
+    background: #ff6b6b;
+    color: white;
+}
+
+/* ========================================
+   BOUTONS D'ACTION ÉTATS
+======================================== */
+
+.auth-link-btn,
+.retry-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+}
+
+.auth-link-btn:hover,
+.retry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.retry-btn {
+    background: #3a3f4f;
+}
+
+.retry-btn:hover {
+    background: #4a5568;
 }

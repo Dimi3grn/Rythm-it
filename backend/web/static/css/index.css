@@ -13,9 +13,9 @@ body {
 }
 
 .app-container {
-    max-width: 1400px; /* Augmenté de 1100px à 1400px */
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 0 30px; /* Augmenté de 20px à 30px */
+    padding: 0 24px;
 }
 
 .header {
@@ -24,6 +24,10 @@ body {
     align-items: center;
     padding: 30px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .brand {
@@ -54,6 +58,7 @@ body {
 .header-actions {
     display: flex;
     gap: 15px;
+    flex-shrink: 0;
 }
 
 .header-btn {
@@ -657,8 +662,8 @@ body {
 /* Responsive pour les écrans très larges */
 @media (min-width: 1600px) {
     .app-container {
-        max-width: 1600px;
-        padding: 0 40px;
+        max-width: 1280px; /* Keep consistent with base max-width to prevent header stretching */
+        padding: 0 24px;
     }
     
     .main-layout {

@@ -78,6 +78,10 @@ type PageData struct {
 	AuthSubtitle   string
 	AuthButtonText string
 	AuthFooterText template.HTML
+	// Données pour le profil d'un autre utilisateur
+	IsOwnProfile     bool
+	CurrentUser      *User   // Utilisateur connecté (différent de User si on visite un autre profil)
+	FriendshipStatus *string // Statut d'amitié avec l'utilisateur affiché
 }
 
 // ProfileData structure pour les données de profil personnalisé
@@ -483,23 +487,16 @@ func DiscoverHandler(w http.ResponseWriter, r *http.Request) {
 // FriendsHandler gère la page des amis
 func FriendsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("👥 FriendsHandler appelé")
+
+	// Récupérer l'utilisateur connecté depuis le cookie
+	user, isLoggedIn := getUserFromCookie(r)
+
 	data := PageData{
 		Title:       "Mes Amis - Rythm'it",
 		CurrentPage: "friends",
-		IsLoggedIn:  true,
-		User: &User{
-			ID:       1,
-			Username: "MonProfil",
-			Avatar:   "MO",
-		},
-		Friends: []Friend{
-			{ID: 1, Username: "MixMaster", Avatar: "MX", Status: "online", Activity: "Écoute: Techno Vibes Mix"},
-			{ID: 2, Username: "SoundBliss", Avatar: "SB", Status: "online", Activity: "Écoute: Jazz Evening Collection"},
-			{ID: 3, Username: "VibeWave", Avatar: "VW", Status: "away", Activity: "Absent - il y a 2h"},
-			{ID: 4, Username: "RhythmHunter", Avatar: "RH", Status: "online", Activity: "En ligne"},
-			{ID: 5, Username: "EchoBeat", Avatar: "EB", Status: "online", Activity: "Écoute: Synthwave Dreams"},
-			{ID: 6, Username: "DeepSounds", Avatar: "DS", Status: "offline", Activity: "Hors ligne - il y a 1j"},
-		},
+		IsLoggedIn:  isLoggedIn,
+		User:        user,
+		Friends:     []Friend{}, // Liste vide - chargée dynamiquement via JavaScript
 	}
 
 	renderTemplate(w, "friends.html", data)
@@ -508,15 +505,18 @@ func FriendsHandler(w http.ResponseWriter, r *http.Request) {
 // MessagesHandler gère la page des messages
 func MessagesHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("💬 MessagesHandler appelé")
+
+	user, isLoggedIn := getUserFromCookie(r)
+	if !isLoggedIn {
+		http.Redirect(w, r, "/signin", http.StatusSeeOther)
+		return
+	}
+
 	data := PageData{
 		Title:       "Messages - Rythm'it",
 		CurrentPage: "messages",
 		IsLoggedIn:  true,
-		User: &User{
-			ID:       1,
-			Username: "MonProfil",
-			Avatar:   "MO",
-		},
+		User:        user,
 	}
 
 	renderTemplate(w, "messages.html", data)
@@ -636,17 +636,65 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("👤 ProfileHandler appelé - Method: %s", r.Method)
 
 	// Récupérer l'utilisateur connecté depuis le cookie
-	user, isLoggedIn := getUserFromCookie(r)
+	currentUser, isLoggedIn := getUserFromCookie(r)
 	if !isLoggedIn {
 		log.Printf("❌ Utilisateur non connecté")
 		http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		return
 	}
 
-	log.Printf("👤 Utilisateur connecté: %s (ID: %d)", user.Username, user.ID)
+	log.Printf("👤 Utilisateur connecté: %s (ID: %d)", currentUser.Username, currentUser.ID)
+
+	// Vérifier si on affiche le profil d'un autre utilisateur
+	targetUserIDStr := r.URL.Query().Get("user")
+	var targetUser *models.User
+	var isOwnProfile bool = true
+	
+	// Récupérer la connexion DB
+	db := database.DB
+	
+	if targetUserIDStr != "" {
+		// On affiche le profil d'un autre utilisateur
+		targetUserID, err := strconv.ParseUint(targetUserIDStr, 10, 32)
+		if err != nil {
+			log.Printf("❌ ID utilisateur invalide: %v", err)
+			http.Redirect(w, r, "/profile", http.StatusSeeOther)
+			return
+		}
+		
+		if uint(targetUserID) == currentUser.ID {
+			// Rediriger vers son propre profil
+			http.Redirect(w, r, "/profile", http.StatusSeeOther)
+			return
+		}
+		
+		// Récupérer l'utilisateur cible
+		userRepoTemp := repositories.NewUserRepository(db)
+		targetUser, err = userRepoTemp.FindByID(uint(targetUserID))
+		if err != nil {
+			log.Printf("❌ Utilisateur non trouvé: %v", err)
+			http.Redirect(w, r, "/profile", http.StatusSeeOther)
+			return
+		}
+		
+		isOwnProfile = false
+		log.Printf("👤 Affichage du profil de: %s (ID: %d)", targetUser.Username, targetUser.ID)
+	} else {
+		// On affiche son propre profil
+		// Convertir currentUser (*User) vers *models.User
+		userRepoTemp := repositories.NewUserRepository(db)
+		var err error
+		targetUser, err = userRepoTemp.FindByID(currentUser.ID)
+		if err != nil {
+			log.Printf("❌ Erreur récupération propre profil: %v", err)
+			http.Redirect(w, r, "/signin", http.StatusSeeOther)
+			return
+		}
+	}
+
+	log.Printf("👤 Profil cible: %s (ID: %d), Own: %t", targetUser.Username, targetUser.ID, isOwnProfile)
 
 	// Debug: Vérifier si la table user_profiles existe
-	db := database.DB
 	var tableExists int
 	err := db.QueryRow("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'rythmit_db' AND table_name = 'user_profiles'").Scan(&tableExists)
 	if err != nil {
@@ -681,6 +729,14 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	profileService := services.NewProfileService(profileRepo, userRepo)
 
 	if r.Method == "POST" {
+		// Seul le propriétaire du profil peut le modifier
+		if !isOwnProfile {
+			log.Printf("❌ Tentative de modification du profil d'un autre utilisateur")
+			http.Redirect(w, r, fmt.Sprintf("/profile?user=%d", targetUser.ID), http.StatusSeeOther)
+			return
+		}
+		
+		user := currentUser
 		log.Printf("📝 ===== DEBUT ProfileHandler POST =====")
 		
 		// Traiter la mise à jour du profil
@@ -761,12 +817,12 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	// GET - Afficher la page de profil
 	// Récupérer ou créer le profil utilisateur
-	profileData, err := profileService.GetOrCreateProfile(user.ID)
+	profileData, err := profileService.GetOrCreateProfile(targetUser.ID)
 	if err != nil {
 		log.Printf("❌ Erreur récupération profil: %v", err)
 		// Continuer avec un profil vide plutôt que de faire échouer la page
 		profileData = &services.ProfileResponseDTO{
-			UserID:      user.ID,
+			UserID:      targetUser.ID,
 			DisplayName: nil,
 			AvatarImage: nil,
 			BannerImage: nil,
@@ -781,6 +837,18 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		DisplayName: profileData.DisplayName,
 		AvatarImage: profileData.AvatarImage,
 		BannerImage: profileData.BannerImage,
+	}
+
+	// Récupérer le statut d'amitié si ce n'est pas son propre profil
+	var friendshipStatus *string
+	if !isOwnProfile {
+		friendshipRepo := repositories.NewFriendshipRepository(db)
+		status, err := friendshipRepo.GetFriendshipStatus(currentUser.ID, targetUser.ID)
+		if err != nil {
+			log.Printf("⚠️ Erreur récupération statut amitié: %v", err)
+		}
+		friendshipStatus = status
+		log.Printf("👥 Statut d'amitié: %v", friendshipStatus)
 	}
 
 	// Récupérer les messages d'erreur/succès depuis les query parameters
@@ -811,14 +879,32 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		successMessage = "Bannière supprimée avec succès !"
 	}
 
+	// Déterminer le titre de la page
+	pageTitle := "Mon Profil - Rythm'it"
+	if !isOwnProfile {
+		pageTitle = fmt.Sprintf("Profil de %s - Rythm'it", targetUser.Username)
+	}
+
+	// Convertir targetUser en User pour le template
+	displayUser := &User{
+		ID:       targetUser.ID,
+		Username: targetUser.Username,
+		Email:    targetUser.Email,
+		IsAdmin:  targetUser.IsAdmin,
+		Avatar:   string(targetUser.Username[0:2]),
+	}
+
 	data := PageData{
-		Title:          "Mon Profil - Rythm'it",
-		CurrentPage:    "profile",
-		IsLoggedIn:     isLoggedIn,
-		User:           user,
-		Profile:        profile,
-		ErrorMessage:   errorMessage,
-		SuccessMessage: successMessage,
+		Title:            pageTitle,
+		CurrentPage:      "profile",
+		IsLoggedIn:       isLoggedIn,
+		User:             displayUser,
+		CurrentUser:      &User{ID: currentUser.ID, Username: currentUser.Username, Email: currentUser.Email, Avatar: string(currentUser.Username[0:2])},
+		Profile:          profile,
+		IsOwnProfile:     isOwnProfile,
+		FriendshipStatus: friendshipStatus,
+		ErrorMessage:     errorMessage,
+		SuccessMessage:   successMessage,
 	}
 
 	renderTemplate(w, "profile.html", data)
