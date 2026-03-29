@@ -40,16 +40,16 @@ type ThreadService interface {
 
 // DTOs pour les threads
 type CreateThreadDTO struct {
-	Title       string   `json:"title" validate:"required,min=5,max=200"`
-	Description string   `json:"description" validate:"required,min=10"`
+	Title       string   `json:"title" validate:"required,min=1,max=200"`
+	Description string   `json:"description" validate:"required,min=1"`
 	ImageURL    *string  `json:"image_url" validate:"omitempty"`
 	Tags        []string `json:"tags" validate:"required,min=1,max=10"`
 	Visibility  string   `json:"visibility" validate:"oneof=public privé"`
 }
 
 type UpdateThreadDTO struct {
-	Title       string   `json:"title" validate:"required,min=5,max=200"`
-	Description string   `json:"description" validate:"required,min=10"`
+	Title       string   `json:"title" validate:"required,min=1,max=200"`
+	Description string   `json:"description" validate:"required,min=1"`
 	ImageURL    *string  `json:"image_url" validate:"omitempty"`
 	Tags        []string `json:"tags" validate:"omitempty,max=10"`
 	State       string   `json:"state" validate:"oneof=ouvert fermé archivé"`
