@@ -1298,6 +1298,7 @@ func getThreadsFromDatabase() ([]services.ThreadDTO, error) {
 			ID:           threadResp.ID,
 			Title:        threadResp.Title,
 			Content:      threadResp.Description,
+			ImageURL:     threadResp.ImageURL,
 			Username:     threadResp.Author.Username,
 			UserID:       threadResp.Author.ID,
 			MessageCount: threadResp.MessageCount, // Utiliser le vrai nombre de messages
@@ -1389,6 +1390,7 @@ func convertDBThreadsToPageThreads(dbThreads []services.ThreadDTO, currentUser *
 			ID:           dbThread.ID,
 			Title:        dbThread.Title,
 			Content:      dbThread.Content,
+			ImageURL:     dbThread.ImageURL,
 			Author:       authorDisplay,
 			AuthorAvatar: initials,
 			TimeAgo:      timeAgo,

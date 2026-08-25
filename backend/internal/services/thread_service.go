@@ -15,6 +15,7 @@ type ThreadDTO struct {
 	ID           uint      `json:"id"`
 	Title        string    `json:"title"`
 	Content      string    `json:"content"`
+	ImageURL     *string   `json:"image_url,omitempty"`
 	UserID       uint      `json:"user_id"`
 	Username     string    `json:"username"`
 	MessageCount int       `json:"message_count"`
